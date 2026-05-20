@@ -1,0 +1,36 @@
+"use client";
+
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+
+export type AuditLogStatus = "Success" | "Failed" | "Warning";
+
+export interface AuditLogEvent {
+  action: string;
+  entity: string;
+  details?: string;
+  schoolId?: string | null;
+  status?: AuditLogStatus;
+  metadata?: Record<string, unknown>;
+  role?: string | null;
+}
+
+export async function logAuditEvent(event: AuditLogEvent) {
+  const user = auth.currentUser;
+  const payload = {
+    action: event.action,
+    entity: event.entity,
+    details: event.details ?? "",
+    status: event.status ?? "Success",
+    schoolId: event.schoolId ?? null,
+    uid: user?.uid ?? null,
+    userName: user?.displayName ?? "Unknown",
+    userEmail: user?.email ?? "Unknown",
+    role: event.role ?? null,
+    metadata: event.metadata ?? {},
+    createdAt: serverTimestamp(),
+  };
+
+  await addDoc(collection(db, "audit_logs"), payload);
+}
+

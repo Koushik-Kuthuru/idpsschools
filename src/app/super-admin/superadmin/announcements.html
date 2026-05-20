@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Announcements | DPISO Super Admin</title>
+    <link rel="icon" href="../../assets/icons/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#144835',
+                            light: '#a2c144',
+                            cream: '#faf1e2',
+                            beige: '#f5f5dc',
+                        }
+                    },
+                    fontFamily: {
+                        jost: ['Jost', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Jost', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        /* Sidebar Scrollbar */
+        aside::-webkit-scrollbar {
+            width: 4px;
+        }
+        aside::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        aside::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        aside::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-[#fcfaf7] flex h-screen overflow-hidden relative">
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity opacity-0"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-gradient-to-b from-brand-dark to-[#0f3628] text-white w-72 flex-shrink-0 fixed lg:static h-full z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 shadow-2xl lg:shadow-none flex flex-col">
+        <div class="h-16 flex items-center justify-center border-b border-white/10 relative overflow-hidden">
+             <!-- Decorative glow -->
+             <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-brand-light/20 rounded-full blur-3xl"></div>
+             
+            <div class="flex items-center gap-3 relative z-10">
+                <div class="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/10">
+                    <img src="../../assets/logo/DPISO-LOGO.webp" alt="DPISO" class="h-8 drop-shadow-md">
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-lg tracking-wide leading-none">DPISO</span>
+                    <span class="text-[10px] text-brand-light uppercase tracking-widest mt-1">Super Admin</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Main Menu</p>
+            
+            <a href="super-admin-dashboard.html" class="flex items-center px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-th-large text-sm"></i>
+                </div>
+                <span class="font-medium">Dashboard</span>
+            </a>
+
+            <a href="all-schools.html" class="flex items-center px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-school text-sm"></i>
+                </div>
+                <span class="font-medium">All Schools</span>
+            </a>
+
+            <a href="finance-management.html" class="flex items-center px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-file-invoice text-sm"></i>
+                </div>
+                <span class="font-medium">Finance Management</span>
+            </a>
+
+            <a href="user-management.html" class="flex items-center px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-users text-sm"></i>
+                </div>
+                <span class="font-medium">User Management</span>
+            </a>
+
+            <a href="franchise-inquiries.html" class="flex items-center px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-bullhorn text-sm"></i>
+                </div>
+                <span class="font-medium">Franchise Inquiries</span>
+            </a>
+
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Communication</p>
+
+            <a href="announcements.html" class="flex items-center px-3 py-2 bg-brand-light/20 text-brand-light rounded-xl shadow-sm border border-brand-light/10 transition-all group">
+                <div class="w-8 h-8 rounded-lg bg-brand-light/20 flex items-center justify-center mr-3 group-hover:bg-brand-light/30 transition-colors">
+                    <i class="fas fa-bullhorn text-sm"></i>
+                </div>
+                <span class="font-medium">Announcements</span>
+            </a>
+
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Analytics & Settings</p>
+
+            <a href="global-reports.html" class="flex items-center px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-chart-line text-sm"></i>
+                </div>
+                <span class="font-medium">Global Reports</span>
+            </a>
+
+            <a href="activities.html" class="flex items-center px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-history text-sm"></i>
+                </div>
+                <span class="font-medium">Activities</span>
+            </a>
+
+            <a href="system-settings.html" class="flex items-center px-3 py-2 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-cogs text-sm"></i>
+                </div>
+                <span class="font-medium">System Settings</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-white/10 bg-black/20">
+            <a href="system-settings.html#profile" class="flex items-center gap-3 px-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group">
+                <div class="relative">
+                    <img src="https://ui-avatars.com/api/?name=Super+Admin&background=144835&color=fff" alt="Admin" class="h-10 w-10 rounded-full border-2 border-white/20 shadow-lg group-hover:border-brand-light transition-colors">
+                    <div class="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-brand-dark rounded-full"></div>
+                </div>
+                <div class="flex flex-col overflow-hidden">
+                    <span class="font-bold text-sm truncate group-hover:text-brand-light transition-colors">Super Admin</span>
+                    <span class="text-xs text-gray-400 truncate">admin@dpiso.com</span>
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Orbs -->
+        <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-brand-light/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-brand-dark/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Header -->
+        <header class="glass-effect h-16 flex items-center justify-between px-4 z-20 sticky top-0">
+            <div class="flex items-center gap-4">
+                <button id="sidebarToggle" class="lg:hidden text-gray-500 hover:text-brand-dark focus:outline-none p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                
+                <h2 class="text-xl font-bold text-gray-800 hidden sm:block">Announcements</h2>
+            </div>
+            
+            <div class="flex items-center gap-4 ml-auto">
+                <div class="relative">
+                    <span class="absolute top-0.5 right-1 h-2 w-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+                    <button id="notificationBtn" class="text-gray-400 hover:text-brand-dark focus:outline-none p-2 rounded-full hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-bell text-xl"></i>
+                    </button>
+                    <!-- Notification Dropdown -->
+                    <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                        <div class="p-4 border-b border-gray-50 flex justify-between items-center">
+                            <h3 class="font-bold text-gray-800">Notifications</h3>
+                            <span class="text-xs text-brand-dark font-medium cursor-pointer hover:underline">Mark all read</span>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <!-- Notification Items -->
+                            <div class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-2 h-2 mt-2 rounded-full bg-blue-500 shrink-0"></div>
+                                    <div>
+                                        <p class="text-sm text-gray-800 font-medium line-clamp-2">New franchise inquiry from Bangalore region</p>
+                                        <p class="text-xs text-gray-500 mt-1">2 mins ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-2 h-2 mt-2 rounded-full bg-green-500 shrink-0"></div>
+                                    <div>
+                                        <p class="text-sm text-gray-800 font-medium line-clamp-2">Monthly financial report is ready for review</p>
+                                        <p class="text-xs text-gray-500 mt-1">1 hour ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-2 h-2 mt-2 rounded-full bg-yellow-500 shrink-0"></div>
+                                    <div>
+                                        <p class="text-sm text-gray-800 font-medium line-clamp-2">System maintenance scheduled for tonight</p>
+                                        <p class="text-xs text-gray-500 mt-1">5 hours ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 text-center border-t border-gray-50 bg-gray-50">
+                            <a href="announcements.html" class="text-sm text-brand-dark font-medium hover:underline">View All Announcements</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="h-8 w-px bg-gray-200"></div>
+                
+                <div class="relative ml-2">
+                    <button id="settingsBtn" class="flex items-center gap-2 text-gray-400 hover:text-brand-dark focus:outline-none p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-cog text-xl"></i>
+                    </button>
+                    
+                    <!-- Settings Dropdown -->
+                    <div id="settingsDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden">
+                        <a href="system-settings.html" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-cogs w-5 text-center mr-2 text-gray-400"></i> Settings
+                        </a>
+                        <div class="border-t border-gray-100"></div>
+                        <a href="../login.html" class="block px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                            <i class="fas fa-sign-out-alt w-5 text-center mr-2"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Body -->
+        <main class="flex-1 overflow-y-auto p-4 lg:p-4 z-10 scroll-smooth">
+            
+            <!-- Header Section -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Announcements</h1>
+                    <p class="text-gray-500 mt-1">Stay updated with the latest news from all schools and the system.</p>
+                </div>
+                <a href="create-announcement.html" class="px-6 py-2 bg-brand-light text-brand-dark rounded-xl hover:bg-brand-light/90 transition-colors shadow-lg shadow-brand-light/20 text-sm font-bold flex items-center gap-2">
+                    <i class="fas fa-plus"></i> Create Announcement
+                </a>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="flex flex-col lg:flex-row justify-between items-center gap-4 mb-6">
+                <!-- Search -->
+                <div class="relative w-full lg:w-96">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" placeholder="Search announcements..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-brand-light focus:ring-2 focus:ring-brand-light/20 transition-all">
+                </div>
+                
+                <!-- Filters -->
+                <div class="flex items-center gap-2 overflow-x-auto w-full lg:w-auto pb-2 lg:pb-0 hide-scrollbar">
+                    <button class="px-4 py-1.5 bg-brand-dark text-white rounded-full text-sm font-medium transition-colors whitespace-nowrap">All</button>
+                    <button class="px-4 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-full text-sm font-medium transition-colors whitespace-nowrap">Admissions</button>
+                    <button class="px-4 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-full text-sm font-medium transition-colors whitespace-nowrap">Financials</button>
+                    <button class="px-4 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-full text-sm font-medium transition-colors whitespace-nowrap">System</button>
+                    <button class="px-4 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-full text-sm font-medium transition-colors whitespace-nowrap">Events</button>
+                </div>
+            </div>
+
+            <!-- Announcements List -->
+            <div class="space-y-4">
+                
+                <!-- Item 1: Pinned / System -->
+                <div class="bg-white rounded-[16px] p-4 border-l-4 border-l-brand-light border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row gap-4 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-light/10 flex items-center justify-center text-brand-dark flex-shrink-0">
+                        <i class="fas fa-bullhorn text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-2 py-0.5 bg-brand-light/20 text-brand-dark text-[10px] font-bold uppercase rounded tracking-wide">Pinned</span>
+                            <span class="text-gray-400 text-xs">• Oct 26, 2025</span>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-900 mb-2">System Maintenance Scheduled</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4">The platform will undergo scheduled maintenance this Saturday from 2:00 AM to 4:00 AM UTC. Please ensure all data entries are saved before this time. The system will be completely inaccessible during the update window.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <img src="https://ui-avatars.com/api/?name=System+Admin&background=144835&color=fff" class="w-6 h-6 rounded-full">
+                                <span class="text-xs font-medium text-gray-500">Posted by System Admin</span>
+                            </div>
+                            <button 
+                                onclick="openAnnouncement(this)"
+                                data-title="System Maintenance Scheduled"
+                                data-category="System"
+                                data-date="Oct 26, 2025"
+                                data-content="The platform will undergo scheduled maintenance this Saturday from 2:00 AM to 4:00 AM UTC. Please ensure all data entries are saved before this time. The system will be completely inaccessible during the update window. We apologize for any inconvenience this may cause. Our technical team will be performing critical server upgrades to improve performance and security."
+                                data-author="System Admin"
+                                data-authorimg="https://ui-avatars.com/api/?name=System+Admin&background=144835&color=fff"
+                                data-audience="All Users"
+                                class="text-sm font-bold text-brand-dark hover:text-brand-dark/80 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                Read full report <i class="fas fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 2: Financials -->
+                <div class="bg-white rounded-[16px] p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0">
+                        <i class="fas fa-rupee-sign text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase rounded tracking-wide">Financials</span>
+                            <span class="text-gray-400 text-xs">• Oct 24, 2025</span>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-900 mb-2">Q3 Budget Review Completed</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4">The financial audit for Lincoln High School has been finalized. Review the attached documents for a detailed breakdown of Q3 expenditures and Q4 projections. Several departments came in under budget, allowing for reallocation of funds to the arts program.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <img src="https://ui-avatars.com/api/?name=Sarah+Smith&background=random" class="w-6 h-6 rounded-full">
+                                <span class="text-xs font-medium text-gray-500">Posted by Sarah Smith</span>
+                            </div>
+                            <button 
+                                onclick="openAnnouncement(this)"
+                                data-title="Q3 Budget Review Completed"
+                                data-category="Financials"
+                                data-date="Oct 24, 2025"
+                                data-content="The financial audit for Lincoln High School has been finalized. Review the attached documents for a detailed breakdown of Q3 expenditures and Q4 projections. Several departments came in under budget, allowing for reallocation of funds to the arts program. The full report includes: \n\n- Detailed expense breakdown by department\n- Comparison with Q3 2024\n- Forecast for Q4 2025\n\nPlease review by next Friday."
+                                data-author="Sarah Smith"
+                                data-authorimg="https://ui-avatars.com/api/?name=Sarah+Smith&background=random"
+                                data-audience="Admins Only"
+                                class="text-sm font-bold text-brand-dark hover:text-brand-dark/80 flex items-center gap-1">
+                                Read full report <i class="fas fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 3: Admissions -->
+                <div class="bg-white rounded-[16px] p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0">
+                        <i class="fas fa-graduation-cap text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase rounded tracking-wide">Admissions</span>
+                            <span class="text-gray-400 text-xs">• Oct 22, 2025</span>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-900 mb-2">Fall 2025 Enrollment Trends</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4">We have observed a significant 15% increase in primary school applications compared to last year. This trend suggests a need to open two additional kindergarten sections. Please review the capacity planning sheet attached below.</p>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <img src="https://ui-avatars.com/api/?name=Mark+Johnson&background=random" class="w-6 h-6 rounded-full">
+                                <span class="text-xs font-medium text-gray-500">Posted by Mark Johnson</span>
+                            </div>
+                            <button 
+                                onclick="openAnnouncement(this)"
+                                data-title="Fall 2025 Enrollment Trends"
+                                data-category="Admissions"
+                                data-date="Oct 22, 2025"
+                                data-content="We have observed a significant 15% increase in primary school applications compared to last year. This trend suggests a need to open two additional kindergarten sections. Please review the capacity planning sheet attached below. The increase is primarily driven by the new housing developments in the North District. We recommend immediate hiring of 2 new lead teachers and 2 assistants."
+                                data-author="Mark Johnson"
+                                data-authorimg="https://ui-avatars.com/api/?name=Mark+Johnson&background=random"
+                                data-audience="Sales Team Only"
+                                class="text-sm font-bold text-brand-dark hover:text-brand-dark/80 flex items-center gap-1">
+                                Read full report <i class="fas fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item 4: Events -->
+                <div class="bg-white rounded-[16px] p-4 border border-gray-100 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-600 flex-shrink-0">
+                        <i class="fas fa-calendar-alt text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-700 text-[10px] font-bold uppercase rounded tracking-wide">Events</span>
+                            <span class="text-gray-400 text-xs">• Oct 20, 2025</span>
+                        </div>
+                        <h3 class="text-base font-bold text-gray-900 mb-2">Annual Science Fair Registration</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4">Registration for the Inter-School Science Fair opens next Monday. Ensure all science department heads have distributed the guidelines to students. Deadline for project submission is November 15th.</p>
+                        <div class="flex items-center gap-3">
+                            <img src="https://ui-avatars.com/api/?name=Emily+Davis&background=random" class="w-6 h-6 rounded-full">
+                            <span class="text-xs font-medium text-gray-500">Posted by Emily Davis</span>
+                            <div class="flex-1 text-right">
+                                <button 
+                                    onclick="openAnnouncement(this)"
+                                    data-title="Annual Science Fair Registration"
+                                    data-category="Events"
+                                    data-date="Oct 20, 2025"
+                                    data-content="Registration for the Inter-School Science Fair opens next Monday. Ensure all science department heads have distributed the guidelines to students. Deadline for project submission is November 15th. The fair will be held on December 10th in the Main Hall. Judges this year include professors from the State University."
+                                    data-author="Emily Davis"
+                                    data-authorimg="https://ui-avatars.com/api/?name=Emily+Davis&background=random"
+                                    data-audience="All Users"
+                                    class="text-sm font-bold text-brand-dark hover:text-brand-dark/80 flex items-center gap-1 ml-auto inline-flex">
+                                    Read full report <i class="fas fa-arrow-right text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Announcement Modal -->
+    <div id="announcementModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity opacity-0 ease-out duration-300 backdrop-blur-sm" onclick="closeAnnouncementModal()"></div>
+
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-[16px] bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-100 opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95 ease-out duration-300">
+                    
+                    <!-- Modal Header -->
+                    <div class="bg-gray-50/50 px-3 py-2 border-b border-gray-100 flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <span id="modalCategory" class="px-2 py-0.5 bg-brand-light/20 text-brand-dark text-[10px] font-bold uppercase rounded tracking-wide">Category</span>
+                                <span id="modalDate" class="text-gray-400 text-xs">• Date</span>
+                            </div>
+                            <h3 id="modalTitle" class="text-xl font-bold text-gray-900 leading-tight">Announcement Title</h3>
+                        </div>
+                        <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none transition-colors" onclick="closeAnnouncementModal()">
+                            <span class="sr-only">Close</span>
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="px-6 py-6">
+                        <!-- Author Info -->
+                        <div class="flex items-center gap-3 mb-4 pb-6 border-b border-gray-100">
+                            <img id="modalAuthorImg" src="" class="w-10 h-10 rounded-full border border-gray-200">
+                            <div>
+                                <p id="modalAuthor" class="text-sm font-bold text-gray-900">Author Name</p>
+                                <p class="text-xs text-gray-500">System Administrator</p>
+                            </div>
+                        </div>
+
+                        <!-- Content -->
+                        <div id="modalContent" class="prose prose-sm max-w-none text-gray-600 leading-relaxed">
+                            <!-- Content goes here -->
+                        </div>
+
+                        <!-- Additional Info (Audience/Attachments) -->
+                        <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Audience</h4>
+                                <div class="flex items-center gap-2 text-brand-dark">
+                                    <i class="fas fa-users"></i>
+                                    <span id="modalAudience" class="text-sm font-medium">All Users</span>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Attachments</h4>
+                                <a href="#" class="flex items-center gap-2 text-brand-dark hover:underline">
+                                    <i class="fas fa-paperclip"></i>
+                                    <span class="text-sm font-medium">View Attachment</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="bg-gray-50/50 px-3 py-2 flex flex-row-reverse border-t border-gray-100">
+                        <button type="button" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-light focus:ring-offset-2 transition-colors sm:ml-3 sm:mt-0" onclick="closeAnnouncementModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar Toggle Logic
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            if (isClosed) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebarOverlay.classList.remove('hidden');
+                setTimeout(() => sidebarOverlay.classList.remove('opacity-0'), 10);
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('opacity-0');
+                setTimeout(() => sidebarOverlay.classList.add('hidden'), 300);
+            }
+        }
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        // Announcement Modal Logic
+        function openAnnouncement(element) {
+            const title = element.dataset.title;
+            const category = element.dataset.category;
+            const date = element.dataset.date;
+            const content = element.dataset.content;
+            const author = element.dataset.author;
+            const authorImg = element.dataset.authorimg;
+            const audience = element.dataset.audience || 'All Users';
+
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalCategory').textContent = category;
+            document.getElementById('modalDate').textContent = '• ' + date;
+            document.getElementById('modalContent').innerHTML = content.replace(/\n/g, '<br>');
+            document.getElementById('modalAuthor').textContent = author;
+            document.getElementById('modalAuthorImg').src = authorImg;
+            document.getElementById('modalAudience').textContent = audience;
+
+            const modal = document.getElementById('announcementModal');
+            modal.classList.remove('hidden');
+            
+            // Animation In
+            setTimeout(() => {
+                modal.firstElementChild.classList.remove('opacity-0');
+                modal.querySelector('.transform').classList.remove('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            }, 10);
+        }
+
+        function closeAnnouncementModal() {
+            const modal = document.getElementById('announcementModal');
+            
+            // Animation Out
+            modal.firstElementChild.classList.add('opacity-0');
+            modal.querySelector('.transform').classList.add('opacity-0', 'translate-y-4', 'sm:translate-y-0', 'sm:scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Notification Dropdown Logic
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+
+        if (notificationBtn && notificationDropdown) {
+            notificationBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('hidden');
+                // Close settings if open
+                const settingsDropdown = document.getElementById('settingsDropdown');
+                if (settingsDropdown && !settingsDropdown.classList.contains('hidden')) {
+                    settingsDropdown.classList.add('hidden');
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!notificationDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // Settings Dropdown Logic
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsDropdown = document.getElementById('settingsDropdown');
+
+        if (settingsBtn && settingsDropdown) {
+            settingsBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                settingsDropdown.classList.toggle('hidden');
+                // Close notifications if open
+                if (notificationDropdown && !notificationDropdown.classList.contains('hidden')) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!settingsDropdown.contains(e.target) && !settingsBtn.contains(e.target)) {
+                    settingsDropdown.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

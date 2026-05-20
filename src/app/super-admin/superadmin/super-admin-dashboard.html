@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard | DPISO</title>
+    <link rel="icon" href="../../assets/icons/favicon.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#144835',
+                            light: '#a2c144',
+                            cream: '#faf1e2',
+                            beige: '#f5f5dc',
+                        }
+                    },
+                    fontFamily: {
+                        jost: ['Jost', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Jost', sans-serif; }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        /* Sidebar Scrollbar */
+        aside::-webkit-scrollbar {
+            width: 4px;
+        }
+        aside::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        aside::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        aside::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-[#fcfaf7] flex h-screen overflow-hidden relative">
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm transition-opacity opacity-0"></div>
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-gradient-to-b from-brand-dark to-[#0f3628] text-white w-72 flex-shrink-0 fixed lg:static h-full z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 shadow-2xl lg:shadow-none flex flex-col">
+        <div class="h-16 flex items-center justify-center border-b border-white/10 relative overflow-hidden">
+             <!-- Decorative glow -->
+             <div class="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-brand-light/20 rounded-full blur-3xl"></div>
+             
+            <div class="flex items-center gap-3 relative z-10">
+                <div class="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/10">
+                    <img src="../../assets/logo/DPISO-LOGO.webp" alt="DPISO" class="h-8 drop-shadow-md">
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-lg tracking-wide leading-none">DPISO</span>
+                    <span class="text-[10px] text-brand-light uppercase tracking-widest mt-1">Super Admin</span>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Main Menu</p>
+            
+            <a href="super-admin-dashboard.html" class="flex items-center px-4 py-3 bg-brand-light/20 text-brand-light rounded-xl shadow-sm border border-brand-light/10 transition-all group">
+                <div class="w-8 h-8 rounded-lg bg-brand-light/20 flex items-center justify-center mr-3 group-hover:bg-brand-light/30 transition-colors">
+                    <i class="fas fa-th-large text-sm"></i>
+                </div>
+                <span class="font-medium">Dashboard</span>
+            </a>
+
+            <a href="all-schools.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-school text-sm"></i>
+                </div>
+                <span class="font-medium">All Schools</span>
+            </a>
+
+            <a href="finance-management.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-file-invoice text-sm"></i>
+                </div>
+                <span class="font-medium">Finance Management</span>
+            </a>
+
+            <a href="user-management.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-users text-sm"></i>
+                </div>
+                <span class="font-medium">User Management</span>
+            </a>
+
+            <a href="franchise-inquiries.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-bullhorn text-sm"></i>
+                </div>
+                <span class="font-medium">Franchise Inquiries</span>
+            </a>
+
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Communication</p>
+
+            <a href="announcements.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-bullhorn text-sm"></i>
+                </div>
+                <span class="font-medium">Announcements</span>
+            </a>
+
+            <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-6">Analytics & Settings</p>
+
+            <a href="global-reports.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-chart-line text-sm"></i>
+                </div>
+                <span class="font-medium">Global Reports</span>
+            </a>
+
+            <a href="activities.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-history text-sm"></i>
+                </div>
+                <span class="font-medium">Activities</span>
+            </a>
+
+            <a href="system-settings.html" class="flex items-center px-4 py-3 text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-all group hover:translate-x-1">
+                <div class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center mr-3 group-hover:bg-white/10 transition-colors">
+                    <i class="fas fa-cogs text-sm"></i>
+                </div>
+                <span class="font-medium">System Settings</span>
+            </a>
+        </nav>
+
+        <!-- Admin Profile -->
+        <div class="p-4 border-t border-white/10 bg-black/20">
+            <a href="system-settings.html#profile" class="flex items-center gap-3 px-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group">
+                <div class="relative">
+                    <img src="https://ui-avatars.com/api/?name=Super+Admin&background=144835&color=fff" alt="Admin" class="h-10 w-10 rounded-full border-2 border-white/20 shadow-sm group-hover:border-brand-light transition-colors">
+                    <div class="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-[#0f3628] rounded-full"></div>
+                </div>
+                <div class="flex flex-col">
+                    <p class="text-sm font-bold text-white group-hover:text-brand-light transition-colors">Super Admin</p>
+                    <p class="text-xs text-gray-400">System Admin</p>
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <!-- Background Orbs -->
+        <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-brand-light/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-brand-dark/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Header -->
+        <header class="glass-effect h-16 flex items-center justify-between px-6 z-20 sticky top-0">
+            <div class="flex items-center gap-4">
+                <button id="sidebarToggle" class="lg:hidden text-gray-500 hover:text-brand-dark focus:outline-none p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-bars text-lg"></i>
+                </button>
+                
+                <!-- Search Bar (Hidden on small mobile) -->
+                <div class="hidden sm:flex items-center bg-gray-100/50 rounded-full px-4 py-1.5 border border-gray-200 focus-within:border-brand-light focus-within:ring-2 focus-within:ring-brand-light/20 transition-all w-56">
+                    <i class="fas fa-search text-gray-400 mr-2 text-xs"></i>
+                    <input type="text" placeholder="Search..." class="bg-transparent border-none outline-none text-xs w-full text-gray-700 placeholder-gray-400">
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 ml-auto">
+                <div class="relative">
+                    <span class="absolute top-0.5 right-0.5 h-1.5 w-1.5 bg-red-500 rounded-full ring-2 ring-white"></span>
+                    <button id="notificationBtn" class="text-gray-400 hover:text-brand-dark focus:outline-none p-1.5 rounded-full hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-bell text-lg"></i>
+                    </button>
+                    
+                    <!-- Notification Dropdown -->
+                    <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-[16px] shadow-lg border border-gray-100 z-50 overflow-hidden">
+                        <div class="p-3 border-b border-gray-50 flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-gray-800">Notifications</h3>
+                            <span class="text-[10px] text-brand-dark font-medium cursor-pointer hover:underline">Mark all read</span>
+                        </div>
+                        <div class="max-h-80 overflow-y-auto">
+                            <!-- Notification Items -->
+                            <div class="p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-1.5 h-1.5 mt-1.5 rounded-full bg-blue-500 shrink-0"></div>
+                                    <div>
+                                        <p class="text-xs text-gray-800 font-bold line-clamp-2">New franchise inquiry from Bangalore region</p>
+                                        <p class="text-[10px] text-gray-500 mt-0.5">2 mins ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-1.5 h-1.5 mt-1.5 rounded-full bg-green-500 shrink-0"></div>
+                                    <div>
+                                        <p class="text-xs text-gray-800 font-bold line-clamp-2">Monthly financial report is ready for review</p>
+                                        <p class="text-[10px] text-gray-500 mt-0.5">1 hour ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-1.5 h-1.5 mt-1.5 rounded-full bg-yellow-500 shrink-0"></div>
+                                    <div>
+                                        <p class="text-xs text-gray-800 font-bold line-clamp-2">System maintenance scheduled for tonight</p>
+                                        <p class="text-[10px] text-gray-500 mt-0.5">5 hours ago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-2 text-center border-t border-gray-50 bg-gray-50">
+                            <a href="announcements.html" class="text-[10px] text-brand-dark font-bold hover:underline">View All Announcements</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="h-6 w-px bg-gray-200"></div>
+                
+                <div class="relative ml-1">
+                    <button id="settingsBtn" class="flex items-center gap-2 text-gray-400 hover:text-brand-dark focus:outline-none p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+                        <i class="fas fa-cog text-lg"></i>
+                    </button>
+                    
+                    <!-- Settings Dropdown -->
+                    <div id="settingsDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white rounded-[12px] shadow-lg border border-gray-100 z-50 overflow-hidden">
+                        <a href="system-settings.html" class="block px-3 py-2 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-cogs w-4 text-center mr-1 text-gray-400"></i> Settings
+                        </a>
+                        <div class="border-t border-gray-100"></div>
+                        <a href="../login.html" class="block px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors">
+                            <i class="fas fa-sign-out-alt w-4 text-center mr-1"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Body -->
+        <main class="flex-1 overflow-y-auto p-4 lg:p-6 z-10 scroll-smooth">
+            
+            <!-- Welcome Banner -->
+            <div class="bg-gradient-to-r from-brand-dark to-[#0f3628] rounded-[16px] p-6 mb-6 text-white shadow-md relative overflow-hidden card-hover">
+                <!-- Abstract Shapes -->
+                <div class="absolute right-0 top-0 h-full w-2/3 bg-white/5 skew-x-12 transform translate-x-20"></div>
+                <div class="absolute right-[-5%] bottom-[-50%] w-64 h-64 bg-brand-light/20 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10 max-w-2xl">
+                    <div class="inline-block px-2 py-0.5 bg-white/10 rounded-full text-[10px] font-bold text-brand-light mb-2 border border-white/10">
+                        <i class="fas fa-star mr-1"></i> Dashboard Overview
+                    </div>
+                    <h1 class="text-xl font-bold mb-2">Welcome back, Super Admin!</h1>
+                    <p class="text-brand-cream/80 text-xs leading-relaxed">Here's what's happening with your franchise network today. You have <span class="font-bold text-white">12 new notifications</span> requiring attention.</p>
+                    
+                    <div class="mt-4 flex gap-2">
+                        <button class="px-4 py-2 bg-brand-light text-brand-dark font-bold rounded-lg shadow-sm shadow-brand-light/20 hover:bg-white hover:text-brand-dark transition-all transform hover:-translate-y-0.5 text-[10px]">
+                            View Reports
+                        </button>
+                        <button class="px-4 py-2 bg-white/10 text-white font-bold rounded-lg hover:bg-white/20 transition-all text-[10px] backdrop-blur-sm">
+                            Manage Users
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <!-- Card 1 -->
+                <a href="all-schools.html" class="bg-white rounded-[16px] p-4 shadow-sm border border-gray-100 card-hover relative overflow-hidden group block">
+                    <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <i class="fas fa-school text-4xl text-brand-dark"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                            <i class="fas fa-school text-sm"></i>
+                        </div>
+                        <div class="flex items-center text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md">
+                            <i class="fas fa-arrow-up mr-1"></i> 12 New
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Total Schools</p>
+                        <h3 class="text-2xl font-black text-gray-800 mt-0.5">325+</h3>
+                    </div>
+                </a>
+
+                <!-- Card 2 -->
+                <div class="bg-white rounded-[16px] p-4 shadow-sm border border-gray-100 card-hover relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <i class="fas fa-user-graduate text-4xl text-brand-light"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                            <i class="fas fa-user-graduate text-sm"></i>
+                        </div>
+                        <div class="flex items-center text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md">
+                            <i class="fas fa-arrow-up mr-1"></i> 5.2%
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Active Students</p>
+                        <h3 class="text-2xl font-black text-gray-800 mt-0.5">4.5L+</h3>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <a href="franchise-inquiries.html" class="bg-white rounded-[16px] p-4 shadow-sm border border-gray-100 card-hover relative overflow-hidden group block">
+                    <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <i class="fas fa-bullhorn text-4xl text-orange-500"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="p-2 bg-orange-50 text-orange-600 rounded-lg">
+                            <i class="fas fa-bullhorn text-sm"></i>
+                        </div>
+                        <div class="flex items-center text-[10px] font-bold text-red-500 bg-red-50 px-1.5 py-0.5 rounded-md">
+                            <i class="fas fa-arrow-down mr-1"></i> 2.1%
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Franchise Leads</p>
+                        <h3 class="text-2xl font-black text-gray-800 mt-0.5">1,284</h3>
+                    </div>
+                </a>
+
+                <!-- Card 4 -->
+                <div class="bg-white rounded-[16px] p-4 shadow-sm border border-gray-100 card-hover relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
+                        <i class="fas fa-rupee-sign text-4xl text-green-600"></i>
+                    </div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="p-2 bg-green-50 text-green-600 rounded-lg">
+                            <i class="fas fa-rupee-sign text-sm"></i>
+                        </div>
+                        <div class="flex items-center text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-md">
+                            <i class="fas fa-arrow-up mr-1"></i> 18.4%
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Total Revenue</p>
+                        <h3 class="text-2xl font-black text-gray-800 mt-0.5">₹45.2 Cr</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Lists Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                
+                <!-- Main Chart -->
+                <div class="lg:col-span-2 bg-white rounded-[16px] shadow-sm border border-gray-100 p-4 card-hover">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-sm">Franchise Growth Analytics</h3>
+                            <p class="text-[10px] text-gray-500">Monthly admissions and inquiries</p>
+                        </div>
+                        <select class="text-xs border border-gray-200 rounded-lg text-gray-500 focus:ring-brand-light focus:border-brand-light py-1 px-2 bg-gray-50 hover:bg-white transition-colors cursor-pointer outline-none">
+                            <option>This Year</option>
+                            <option>Last Year</option>
+                        </select>
+                    </div>
+                    <div class="h-64 w-full">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="bg-white rounded-[16px] shadow-sm border border-gray-100 p-4 card-hover flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-gray-800 text-sm">Recent Activities</h3>
+                        <button class="text-gray-400 hover:text-brand-dark"><i class="fas fa-ellipsis-h text-sm"></i></button>
+                    </div>
+                    
+                    <div class="space-y-4 flex-1 overflow-y-auto pr-1 custom-scrollbar">
+                        <div class="flex gap-3 group cursor-pointer">
+                            <div class="relative">
+                                <div class="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 flex-shrink-0 group-hover:bg-blue-100 transition-colors">
+                                    <i class="fas fa-plus text-[10px]"></i>
+                                </div>
+                                <div class="absolute top-8 left-1/2 -translate-x-1/2 w-px h-full bg-gray-100 -z-10"></div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-800 group-hover:text-blue-600 transition-colors">New School Added</p>
+                                <p class="text-[10px] text-gray-500 mt-0.5">IDPS Hyderabad North Branch approved.</p>
+                                <span class="text-[8px] font-bold text-gray-400 mt-0.5 block flex items-center gap-1"><i class="far fa-clock"></i> 2 hours ago</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 group cursor-pointer">
+                            <div class="relative">
+                                <div class="h-8 w-8 rounded-lg bg-green-50 flex items-center justify-center text-green-600 flex-shrink-0 group-hover:bg-green-100 transition-colors">
+                                    <i class="fas fa-check text-[10px]"></i>
+                                </div>
+                                <div class="absolute top-8 left-1/2 -translate-x-1/2 w-px h-full bg-gray-100 -z-10"></div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-800 group-hover:text-green-600 transition-colors">Payment Received</p>
+                                <p class="text-[10px] text-gray-500 mt-0.5">Franchise fee received from DPPS Pune.</p>
+                                <span class="text-[8px] font-bold text-gray-400 mt-0.5 block flex items-center gap-1"><i class="far fa-clock"></i> 5 hours ago</span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 group cursor-pointer">
+                            <div class="relative">
+                                <div class="h-8 w-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 flex-shrink-0 group-hover:bg-orange-100 transition-colors">
+                                    <i class="fas fa-user-plus text-[10px]"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-800 group-hover:text-orange-600 transition-colors">New Sales Agent</p>
+                                <p class="text-[10px] text-gray-500 mt-0.5">Rahul Kumar joined Sales Team.</p>
+                                <span class="text-[8px] font-bold text-gray-400 mt-0.5 block flex items-center gap-1"><i class="far fa-clock"></i> 1 day ago</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="w-full mt-4 py-1.5 rounded-lg border border-gray-200 text-[10px] text-gray-600 font-bold hover:bg-gray-50 hover:text-brand-dark transition-all shadow-sm">View All Activity</button>
+                </div>
+            </div>
+
+            <!-- School Table -->
+            <div class="mt-4 bg-white rounded-[16px] shadow-sm border border-gray-100 overflow-hidden card-hover">
+                <div class="p-4 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+                    <div>
+                        <h3 class="font-bold text-gray-800 text-sm">Top Performing Schools</h3>
+                        <p class="text-[10px] text-gray-500">Based on student enrollment and revenue</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-600 text-[10px] font-bold rounded-lg hover:bg-gray-100 transition-colors shadow-sm"><i class="fas fa-filter mr-1"></i> Filter</button>
+                        <button class="px-3 py-1.5 bg-brand-light/10 text-brand-dark text-[10px] font-bold rounded-lg hover:bg-brand-light/20 transition-colors">View All</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50/50 text-gray-500 text-[10px] uppercase">
+                            <tr>
+                                <th class="px-4 py-2.5 font-bold tracking-wider">School Name</th>
+                                <th class="px-4 py-2.5 font-bold tracking-wider">Location</th>
+                                <th class="px-4 py-2.5 font-bold tracking-wider">Students</th>
+                                <th class="px-4 py-2.5 font-bold tracking-wider">Status</th>
+                                <th class="px-4 py-2.5 font-bold tracking-wider text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-xs">
+                            <tr class="hover:bg-gray-50/80 transition-colors group">
+                                <td class="px-4 py-2.5 font-bold text-gray-800 flex items-center gap-2">
+                                    <div class="h-6 w-6 rounded-full bg-brand-light/20 text-brand-dark flex items-center justify-center font-bold text-[8px]">ID</div>
+                                    IDPS Hyderabad Main
+                                </td>
+                                <td class="px-4 py-2.5 text-gray-600 font-medium">Telangana</td>
+                                <td class="px-4 py-2.5 text-gray-600 font-bold">2,450</td>
+                                <td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded-md text-[8px] font-bold uppercase border border-green-200 bg-green-50 text-green-700 tracking-wide">Active</span></td>
+                                <td class="px-4 py-2.5 text-right"><button class="text-gray-400 hover:text-brand-dark p-1 rounded-full hover:bg-gray-100 transition-colors"><i class="fas fa-ellipsis-v text-[10px]"></i></button></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition-colors group">
+                                <td class="px-4 py-2.5 font-bold text-gray-800 flex items-center gap-2">
+                                    <div class="h-6 w-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[8px]">DP</div>
+                                    DPPS Bangalore East
+                                </td>
+                                <td class="px-4 py-2.5 text-gray-600 font-medium">Karnataka</td>
+                                <td class="px-4 py-2.5 text-gray-600 font-bold">1,120</td>
+                                <td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded-md text-[8px] font-bold uppercase border border-green-200 bg-green-50 text-green-700 tracking-wide">Active</span></td>
+                                <td class="px-4 py-2.5 text-right"><button class="text-gray-400 hover:text-brand-dark p-1 rounded-full hover:bg-gray-100 transition-colors"><i class="fas fa-ellipsis-v text-[10px]"></i></button></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50/80 transition-colors group">
+                                <td class="px-4 py-2.5 font-bold text-gray-800 flex items-center gap-2">
+                                    <div class="h-6 w-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-[8px]">IN</div>
+                                    International DPS Pune
+                                </td>
+                                <td class="px-4 py-2.5 text-gray-600 font-medium">Maharashtra</td>
+                                <td class="px-4 py-2.5 text-gray-600 font-bold">890</td>
+                                <td class="px-4 py-2.5"><span class="px-2 py-0.5 rounded-md text-[8px] font-bold uppercase border border-amber-200 bg-amber-50 text-amber-700 tracking-wide">Warning</span></td>
+                                <td class="px-4 py-2.5 text-right"><button class="text-gray-400 hover:text-brand-dark p-1 rounded-full hover:bg-gray-100 transition-colors"><i class="fas fa-ellipsis-v text-[10px]"></i></button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Sidebar Toggle Logic
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            if (isClosed) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebarOverlay.classList.remove('hidden');
+                setTimeout(() => sidebarOverlay.classList.remove('opacity-0'), 10);
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('opacity-0');
+                setTimeout(() => sidebarOverlay.classList.add('hidden'), 300);
+            }
+        }
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
+        // Chart.js Configuration
+        const ctx = document.getElementById('growthChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'New Admissions',
+                    data: [65, 59, 80, 81, 56, 55, 40, 75, 92, 110, 120, 135],
+                    borderColor: '#144835',
+                    backgroundColor: 'rgba(20, 72, 53, 0.05)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#a2c144'
+                }, {
+                    label: 'Franchise Inquiries',
+                    data: [28, 48, 40, 19, 86, 27, 90, 65, 82, 55, 95, 100],
+                    borderColor: '#a2c144',
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    fill: false,
+                    borderWidth: 2,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, boxWidth: 8 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { borderDash: [2, 2] }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Notification Dropdown Logic
+        const notificationBtn = document.getElementById('notificationBtn');
+        const notificationDropdown = document.getElementById('notificationDropdown');
+
+        if (notificationBtn && notificationDropdown) {
+            notificationBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notificationDropdown.classList.toggle('hidden');
+                // Close settings if open
+                const settingsDropdown = document.getElementById('settingsDropdown');
+                if (settingsDropdown && !settingsDropdown.classList.contains('hidden')) {
+                    settingsDropdown.classList.add('hidden');
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!notificationDropdown.contains(e.target) && !notificationBtn.contains(e.target)) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // Settings Dropdown Logic
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsDropdown = document.getElementById('settingsDropdown');
+
+        if (settingsBtn && settingsDropdown) {
+            settingsBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                settingsDropdown.classList.toggle('hidden');
+                // Close notifications if open
+                if (notificationDropdown && !notificationDropdown.classList.contains('hidden')) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!settingsDropdown.contains(e.target) && !settingsBtn.contains(e.target)) {
+                    settingsDropdown.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

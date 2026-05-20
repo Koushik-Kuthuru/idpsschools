@@ -1,0 +1,291 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { Bell, Lock, Search, ShieldAlert, Smartphone, User, Laptop, Pencil, LogOut } from "lucide-react";
+
+type Tab = "Basic Info" | "Password" | "Preferences" | "Privacy" | "Sessions";
+
+const tabs: Tab[] = ["Basic Info", "Password", "Preferences", "Privacy", "Sessions"];
+
+function cn(...inputs: ClassValue[]) {
+ return twMerge(clsx(inputs));
+}
+
+export default function AdminProfileSettingsPage() {
+ const [tab, setTab] = useState<Tab>("Basic Info");
+ const [digest, setDigest] = useState("Summarized (Once daily at 8 AM)");
+
+ const sessions = useMemo(() => {
+ return [
+ { id: "s1", device: "Chrome, Windows 11", meta: "192.168.1.104 • Mumbai, IN", status: "ACTIVE", icon: Laptop },
+ { id: "s2", device: "iPhone 15, iOS 17", meta: "2 hrs ago", status: "Logout", icon: Smartphone },
+ { id: "s3", device: "Safari, macOS Sonoma", meta: "Yesterday", status: "Logout", icon: Laptop },
+ ] as const;
+ }, []);
+
+ return (
+ <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
+ {/* Header */}
+ <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="flex items-center gap-3">
+ <div className="h-12 w-12 rounded-[12px] bg-[#144835]/10 border-2 border-white shadow-sm flex items-center justify-center text-lg font-black text-[#144835] shrink-0">
+ SS
+ </div>
+ <div>
+ <h1 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Siddharth Sharma</h1>
+ <div className="flex flex-wrap items-center gap-2 mt-1">
+ <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[10px] font-bold">
+ Senior Operations Manager
+ </span>
+ <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-bold">
+ Admin Role
+ </span>
+ </div>
+ </div>
+ </div>
+ 
+ <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
+ <div className="relative w-full sm:w-[240px]">
+ <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+ <input
+ className="w-full h-8 bg-white border border-gray-200 rounded-lg pl-9 pr-4 text-[10px] font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm"
+ placeholder="Search settings..."
+ />
+ </div>
+ </div>
+ </div>
+
+ {/* Tabs */}
+ <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+ <div className="p-2 border-b border-gray-100 bg-gray-50/50 flex flex-wrap gap-2">
+ {tabs.map((t) => {
+ const active = t === tab;
+ return (
+ <button
+ key={t}
+ type="button"
+ onClick={() => setTab(t)}
+ className={cn(
+ "px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all",
+ active ? "text-[#144835] bg-white border border-gray-200 shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100/50"
+ )}
+ >
+ {t}
+ </button>
+ );
+ })}
+ </div>
+
+ {tab === "Basic Info" ? (
+ <div className="p-4">
+ <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+ <div className="lg:col-span-8 bg-white rounded-[12px] border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full">
+ <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50">
+ <div className="flex items-center gap-3">
+ <div className="h-8 w-8 rounded-lg bg-[#144835]/10 text-[#144835] flex items-center justify-center">
+ <User size={16} />
+ </div>
+ <p className="text-sm font-bold text-gray-900">Basic Information</p>
+ </div>
+ <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#144835] px-3 h-8 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
+ <Pencil size={14} /> Edit Profile
+ </button>
+ </div>
+
+ <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+ {[
+ { label: "Full Name", value: "Siddharth Sharma" },
+ { label: "Email Address", value: "s.sharma@idps-erp.com" },
+ { label: "Phone Number", value: "+91 98765 43210" },
+ { label: "Employee ID", value: "EMP-2024-045" },
+ { label: "Designation / Role", value: "Senior Operations Manager" },
+ { label: "Department & Branch", value: "Logistics - Mumbai South" },
+ ].map((f) => (
+ <div key={f.label} className="rounded-[12px] border border-gray-100 bg-gray-50 p-3 transition-colors hover:border-[#144835]/30 hover:bg-[#144835]/5">
+ <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{f.label}</p>
+ <p className="mt-1.5 text-xs font-bold text-gray-900">{f.value}</p>
+ </div>
+ ))}
+ </div>
+ </div>
+
+ <div className="lg:col-span-4 bg-white rounded-[12px] border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full">
+ <div className="px-4 py-2.5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+ <div className="h-8 w-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+ <Lock size={16} />
+ </div>
+ <p className="text-sm font-bold text-gray-900">Change Password</p>
+ </div>
+
+ <div className="p-4 space-y-4">
+ <div>
+ <label className="text-[10px] font-bold text-gray-700">Current Password</label>
+ <input
+ type="password"
+ className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
+ placeholder="••••••••"
+ />
+ </div>
+ <div>
+ <label className="text-[10px] font-bold text-gray-700">New Password</label>
+ <input
+ type="password"
+ className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
+ placeholder="••••••••"
+ />
+ <div className="mt-2 h-1 rounded-full bg-gray-100 overflow-hidden">
+ <div className="h-full w-2/3 bg-[#144835] rounded-full" />
+ </div>
+ </div>
+ <div>
+ <label className="text-[10px] font-bold text-gray-700">Confirm Password</label>
+ <input
+ type="password"
+ className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
+ placeholder="••••••••"
+ />
+ </div>
+
+ <label className="inline-flex items-center gap-2 text-[10px] font-bold text-gray-700 mt-2 cursor-pointer">
+ <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-[#144835] focus:ring-[#144835]" defaultChecked />
+ Sign out of other sessions
+ </label>
+
+ <button
+ type="button"
+ className="w-full mt-4 h-8 inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 text-[10px] font-bold text-white shadow-md hover:bg-gray-800 transition-colors"
+ >
+ Update Password
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+ ) : null}
+
+ {tab === "Preferences" ? (
+ <div className="p-4">
+ <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+ <div className="lg:col-span-8 bg-white rounded-[12px] border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full">
+ <div className="px-4 py-2.5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+ <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+ <Bell size={16} />
+ </div>
+ <p className="text-sm font-bold text-gray-900">Notification Preferences</p>
+ </div>
+
+ <div className="p-4 space-y-4">
+ <div className="divide-y divide-gray-100 rounded-[12px] border border-gray-100 overflow-hidden shadow-sm">
+ {[
+ { label: "Email Notifications", desc: "System alerts via work email" },
+ { label: "SMS Notifications", desc: "Urgent operational alerts to phone" },
+ { label: "Push & In-App", desc: "Browser and mobile dashboard" },
+ ].map((p, idx) => (
+ <div key={p.label} className="p-3 flex items-center justify-between gap-4 bg-white hover:bg-gray-50/50 transition-colors">
+ <div>
+ <p className="text-[10px] font-bold text-gray-900">{p.label}</p>
+ <p className="mt-0.5 text-[10px] font-medium text-gray-500">{p.desc}</p>
+ </div>
+ <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-[#144835] focus:ring-[#144835]" defaultChecked={p.label !== "Push & In-App"} />
+ </div>
+ ))}
+ </div>
+
+ <div>
+ <label className="text-[10px] font-bold text-gray-700">Email Daily Digest Frequency</label>
+ <select
+ value={digest}
+ onChange={(e) => setDigest(e.target.value)}
+ className="mt-1.5 w-full h-8 appearance-none rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm cursor-pointer"
+ >
+ <option>Summarized (Once daily at 8 AM)</option>
+ <option>Detailed (Once daily at 8 AM)</option>
+ <option>Weekly (Every Monday)</option>
+ <option>Off</option>
+ </select>
+ </div>
+ </div>
+ </div>
+ </div>
+ </div>
+ ) : null}
+
+ {tab === "Sessions" ? (
+ <div className="p-4">
+ <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+ <div className="lg:col-span-8 bg-white rounded-[12px] border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full">
+ <div className="px-4 py-2.5 border-b border-gray-100 flex items-center gap-3 bg-gray-50/50">
+ <div className="h-8 w-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+ <Laptop size={16} />
+ </div>
+ <p className="text-sm font-bold text-gray-900">Active Sessions</p>
+ </div>
+
+ <div className="p-4 space-y-3">
+ {sessions.map((s) => (
+ <div key={s.id} className="rounded-[12px] border border-gray-100 bg-gray-50 p-3 flex items-center justify-between gap-3 transition-colors hover:border-[#144835]/30">
+ <div className="flex items-center gap-3 min-w-0">
+ <div className="h-8 w-8 rounded-lg bg-white border border-gray-200 text-gray-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+ <s.icon size={16} />
+ </div>
+ <div className="min-w-0">
+ <div className="flex items-center gap-2">
+ <p className="text-[10px] font-bold text-gray-900 truncate">{s.device}</p>
+ {s.status === "ACTIVE" ? (
+ <span className="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 text-[8px] font-bold text-emerald-700">
+ ACTIVE NOW
+ </span>
+ ) : null}
+ </div>
+ <p className="mt-0.5 text-[10px] font-medium text-gray-500 truncate">{s.meta}</p>
+ </div>
+ </div>
+
+ {s.status !== "ACTIVE" ? (
+ <button type="button" className="text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline px-2 py-1">
+ Logout
+ </button>
+ ) : null}
+ </div>
+ ))}
+
+ <button type="button" className="mt-2 w-full h-8 rounded-lg border border-gray-200 bg-white px-4 text-[10px] font-bold text-gray-700 hover:bg-gray-50 inline-flex items-center justify-center gap-2 shadow-sm transition-colors">
+ <LogOut size={14} /> Logout All Other Sessions
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+ ) : null}
+
+ {tab === "Privacy" ? (
+ <div className="p-4">
+ <div className="bg-white rounded-[12px] border border-gray-100 shadow-sm p-6 text-center max-w-2xl mx-auto">
+ <ShieldAlert size={32} className="mx-auto text-gray-300 mb-3" />
+ <h3 className="text-sm font-bold text-gray-900">Privacy Controls</h3>
+ <p className="text-[10px] text-gray-500 mt-2">Privacy and data sharing settings are managed globally by the system administrator. If you need to request a data export, please contact support.</p>
+ </div>
+ </div>
+ ) : null}
+
+ {/* Footer Actions */}
+ <div className="p-4 border-t border-gray-100 bg-gray-50/30 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+ <button type="button" className="inline-flex items-center gap-2 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline w-fit px-2 py-1">
+ <ShieldAlert size={14} /> Deactivate Account
+ </button>
+
+ <div className="flex flex-wrap items-center gap-3 justify-end">
+ <button type="button" className="h-8 rounded-lg border border-gray-200 bg-white px-5 text-[10px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
+ Discard Changes
+ </button>
+ <button type="button" className="h-8 rounded-lg bg-[#144835] px-5 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
+ Save All Changes
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+ );
+}

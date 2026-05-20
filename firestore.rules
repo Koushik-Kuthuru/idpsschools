@@ -1,0 +1,88 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+    // 1. Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 2. Check if the user is a Super Admin
+    // Assuming the user's role is stored in their Auth token claims (custom claims)
+    // OR we can check if their uid exists in the `super_admin_users` collection
+    function isSuperAdmin() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/super_admin_users/$(request.auth.uid));
+    }
+
+    // 3. Check if the user belongs to a specific school (Branch Admin/Teacher/Student)
+    // Supports BOTH:
+    // - Custom claims: request.auth.token.{role, schoolId}
+    // - Firestore mapping: user_roles/{uid} => { role, schoolId }
+    function hasSchoolClaims(schoolId) {
+      return isAuthenticated()
+        && request.auth.token.schoolId == schoolId
+        && request.auth.token.role in ['admin', 'teacher', 'student'];
+    }
+
+    function hasSchoolRoleDoc(schoolId) {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/user_roles/$(request.auth.uid))
+        && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.schoolId == schoolId
+        && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['admin', 'teacher', 'student'];
+    }
+
+    function isSchoolUser(schoolId) {
+      return hasSchoolClaims(schoolId) || hasSchoolRoleDoc(schoolId);
+    }
+
+    function isSchoolAdmin(schoolId) {
+      return (isAuthenticated() && request.auth.token.schoolId == schoolId && request.auth.token.role == 'admin')
+        || (isAuthenticated()
+          && exists(/databases/$(database)/documents/user_roles/$(request.auth.uid))
+          && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.schoolId == schoolId
+          && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // Global User Roles (needed for AuthContext to read the current user's role)
+    match /user_roles/{userId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow write: if isSuperAdmin();
+    }
+
+
+    // Global Super Admin Users Collection
+    match /super_admin_users/{userId} {
+      // Only Super Admins can read/write this collection, or the user themselves (to read their profile)
+      allow read: if isSuperAdmin() || request.auth.uid == userId;
+      allow write: if isSuperAdmin();
+    }
+
+    // Global Announcements (seen by all authenticated users, managed by Super Admin)
+    match /global_announcements/{announcementId} {
+      allow read: if isAuthenticated();
+      allow write: if isSuperAdmin();
+    }
+
+    // Global System Settings (managed by Super Admin)
+    match /system_settings/{settingsId} {
+      allow read, write: if isSuperAdmin();
+    }
+
+    // Audit Logs (append-only from clients; readable by Super Admin)
+    match /audit_logs/{logId} {
+      allow read: if isSuperAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // Multi-tenant Schools Collection
+    match /schools/{schoolId} {
+      allow read, write: if isAuthenticated();
+
+      match /{subcollection}/{document=**} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+  }
+}
