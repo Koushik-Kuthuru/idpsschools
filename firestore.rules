@@ -2,86 +2,87 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions
-    // 1. Check if the user is authenticated
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // 2. Check if the user is a Super Admin
-    // Assuming the user's role is stored in their Auth token claims (custom claims)
-    // OR we can check if their uid exists in the `super_admin_users` collection
+    // Super-admin check: user owns their own doc in super_admin_users.
+    // We use get() here only inside rules that are NOT on super_admin_users
+    // itself, to avoid circular evaluation.
     function isSuperAdmin() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/super_admin_users/$(request.auth.uid));
-    }
-
-    // 3. Check if the user belongs to a specific school (Branch Admin/Teacher/Student)
-    // Supports BOTH:
-    // - Custom claims: request.auth.token.{role, schoolId}
-    // - Firestore mapping: user_roles/{uid} => { role, schoolId }
-    function hasSchoolClaims(schoolId) {
       return isAuthenticated()
-        && request.auth.token.schoolId == schoolId
-        && request.auth.token.role in ['admin', 'teacher', 'student'];
+        && exists(/databases/$(database)/documents/super_admin_users/$(request.auth.uid));
     }
 
-    function hasSchoolRoleDoc(schoolId) {
+    // Role doc helpers (used for school-scoped collections)
+    function userRole() {
+      return get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data;
+    }
+
+    function hasRoleDoc() {
       return isAuthenticated()
-        && exists(/databases/$(database)/documents/user_roles/$(request.auth.uid))
-        && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.schoolId == schoolId
-        && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['admin', 'teacher', 'student'];
+        && exists(/databases/$(database)/documents/user_roles/$(request.auth.uid));
     }
 
-    function isSchoolUser(schoolId) {
-      return hasSchoolClaims(schoolId) || hasSchoolRoleDoc(schoolId);
+    function isSchoolMember(schoolId) {
+      return isAuthenticated() && hasRoleDoc() && userRole().schoolId == schoolId;
     }
 
     function isSchoolAdmin(schoolId) {
-      return (isAuthenticated() && request.auth.token.schoolId == schoolId && request.auth.token.role == 'admin')
-        || (isAuthenticated()
-          && exists(/databases/$(database)/documents/user_roles/$(request.auth.uid))
-          && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.schoolId == schoolId
-          && get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'admin');
+      return isAuthenticated() && hasRoleDoc()
+        && userRole().schoolId == schoolId
+        && userRole().role == 'admin';
     }
 
-    // Global User Roles (needed for AuthContext to read the current user's role)
-    match /user_roles/{userId} {
-      allow read: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
-      allow write: if isSuperAdmin();
-    }
-
-
-    // Global Super Admin Users Collection
+    // ── super_admin_users ────────────────────────────────────────────────────
+    // Any authenticated user can read their OWN doc (needed for role lookup
+    // in AuthContext without a circular dependency).
+    // Only existing super-admins can write / read others' docs.
     match /super_admin_users/{userId} {
-      // Only Super Admins can read/write this collection, or the user themselves (to read their profile)
-      allow read: if isSuperAdmin() || request.auth.uid == userId;
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isSuperAdmin();
       allow write: if isSuperAdmin();
     }
 
-    // Global Announcements (seen by all authenticated users, managed by Super Admin)
+    // ── user_roles ───────────────────────────────────────────────────────────
+    // Any authenticated user can read their own role doc.
+    // Only super-admins can create/update role docs.
+    match /user_roles/{userId} {
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isSuperAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    // ── global_announcements ─────────────────────────────────────────────────
     match /global_announcements/{announcementId} {
       allow read: if isAuthenticated();
       allow write: if isSuperAdmin();
     }
 
-    // Global System Settings (managed by Super Admin)
+    // ── system_settings ──────────────────────────────────────────────────────
     match /system_settings/{settingsId} {
       allow read, write: if isSuperAdmin();
     }
 
-    // Audit Logs (append-only from clients; readable by Super Admin)
+    // ── audit_logs ───────────────────────────────────────────────────────────
     match /audit_logs/{logId} {
       allow read: if isSuperAdmin();
       allow create: if isAuthenticated();
       allow update, delete: if isSuperAdmin();
     }
 
-    // Multi-tenant Schools Collection
+    // ── schools (multi-tenant) ───────────────────────────────────────────────
+    // Super-admins have full access to all schools.
+    // School members (admin/teacher/student) can read/write their own school.
     match /schools/{schoolId} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if isSuperAdmin();
+      allow read, write: if isSchoolMember(schoolId);
 
       match /{subcollection}/{document=**} {
-        allow read, write: if isAuthenticated();
+        allow read, write: if isSuperAdmin();
+        allow read, write: if isSchoolMember(schoolId);
       }
     }
   }

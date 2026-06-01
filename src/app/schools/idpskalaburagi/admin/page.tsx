@@ -113,7 +113,28 @@ export default function AdminDashboardPage() {
  const unsubActivity = onSnapshot(
  query(collection(db, "schools", schoolId, "activity"), orderBy("createdAt", "desc"), limit(5)),
  (snap) => {
- setActivities(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+ setActivities(snap.docs.map(d => {
+ const data = d.data();
+ // Normalize: ensure every activity has href and time
+ const createdAt = data.createdAt;
+ let time = "Recently";
+ if (createdAt) {
+ const date = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+ const diff = Date.now() - date.getTime();
+ const mins = Math.floor(diff / 60000);
+ const hours = Math.floor(diff / 3600000);
+ const days = Math.floor(diff / 86400000);
+ if (mins < 60) time = `${mins}m ago`;
+ else if (hours < 24) time = `${hours}h ago`;
+ else time = `${days}d ago`;
+ }
+ return {
+ id: d.id,
+ text: data.text ?? data.title ?? "Activity",
+ time,
+ href: data.href ?? `/schools/${schoolId}/admin`,
+ };
+ }));
  }
  );
 
@@ -156,13 +177,7 @@ export default function AdminDashboardPage() {
  ];
 
  const [logOpen, setLogOpen] = useState(false);
- const fullActivityLog = [
- ...activities,
- { text: "New notice published: Annual Sports Meet", href: `/schools/${schoolId}/admin/communication/messages`, time: "2d ago" },
- { text: "Inventory: 12 laptops added to IT assets", href: `/schools/${schoolId}/admin/inventory/assets`, time: "3d ago" },
- { text: "3 invoices generated for Grade 10", href: `/schools/${schoolId}/admin/finance/invoices`, time: "4d ago" },
- { text: "Timetable updated for next week", href: `/schools/${schoolId}/admin/academic/timetable`, time: "5d ago" },
- ];
+ const fullActivityLog = [...activities];
 
  return (
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-24 max-w-[1600px] mx-auto pt-2">

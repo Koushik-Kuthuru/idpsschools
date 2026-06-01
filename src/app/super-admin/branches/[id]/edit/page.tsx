@@ -28,31 +28,12 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { branchesData } from "@/data/mockData";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
 }
-
-// Helper to generate consistent mock data based on ID (Same as in Details Page)
-const getExtendedBranchData = (id: string, basicData: any) => {
- // Simple hash function for deterministic randomness
- const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
- const rand = (offset: number) => (hash + offset) % 100 / 100;
- 
- const principals = ["Dr. Sarah Jenkins", "Prof. Robert Langdon", "Dr. Emily Stone", "Mr. James Wilson", "Mrs. Anita Desai"];
- 
- return {
- ...basicData,
- established: 2010 + Math.floor(rand(1) * 12),
- phone: `+91 ${9000000000 + Math.floor(rand(2) * 999999999)}`,
- email: `branch${id.replace(/\D/g, '')}@idps.edu.in`,
- principal: principals[Math.floor(rand(4) * principals.length)],
- address: `${10 + Math.floor(rand(10) * 90)}, Knowledge Park ${String.fromCharCode(65 + Math.floor(rand(11) * 5))}, ${basicData?.location || 'New Delhi'}`,
- website: `https://www.idps.edu.in/branch/${id.replace(/\D/g, '')}`,
- capacity: (1000 + Math.floor(rand(12) * 2000)).toString()
- };
-};
 
 export default function EditBranchPage({ params }: { params: Promise<{ id: string }> }) {
  const resolvedParams = use(params);
@@ -63,6 +44,8 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  const [selectedFacilities, setSelectedFacilities] = useState<string[]>([]);
  const [logoPreview, setLogoPreview] = useState<string | null>(null);
  const fileInputRef = useRef<HTMLInputElement>(null);
+ const [pageLoading, setPageLoading] = useState(true);
+ const [saving, setSaving] = useState(false);
  
  // Form State
  const [formData, setFormData] = useState({
@@ -87,36 +70,44 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  academicYear: "2024-2025"
  });
 
- // Load Mock Data
+ // Load from Firestore
  useEffect(() => {
- const basicBranch = branchesData.find(b => b.id === branchId);
- if (basicBranch) {
- const branch = getExtendedBranchData(branchId, basicBranch);
- 
+ async function load() {
+ try {
+ const snap = await getDoc(doc(db, "schools", branchId));
+ if (snap.exists()) {
+ const d = snap.data() as any;
  setFormData({
- branchName: branch.name,
- branchCode: branch.id,
- establishedYear: branch.established.toString(),
- affiliationBoard: "CBSE", // Default
- schoolType: "K-12", // Default
- address: branch.address,
- city: branch.location.split(',')[0]?.trim() || "",
- state: branch.location.split(',')[1]?.trim() || "Delhi",
- zipCode: "110001", // Mock
- country: "India",
- email: branch.email,
- phone: branch.phone,
- website: branch.website,
- principalName: branch.principal,
- studentCapacity: branch.capacity,
- branchAdmin: "Robert Fox", // Mock
- username: "admin_" + branch.id.toLowerCase().replace(/\s/g, '').replace(/#/g, ''),
- password: "password123", // Mock
- academicYear: "2024-2025"
+ branchName: d.name ?? "",
+ branchCode: d.code ?? branchId,
+ establishedYear: d.established ?? "",
+ affiliationBoard: d.affiliationBoard ?? "CBSE",
+ schoolType: d.schoolType ?? "K-12",
+ address: d.address ?? "",
+ city: d.city ?? "",
+ state: d.state ?? "",
+ zipCode: d.zipCode ?? "",
+ country: d.country ?? "India",
+ email: d.email ?? "",
+ phone: d.phone ?? "",
+ website: d.website ?? "",
+ principalName: d.principal ?? "",
+ studentCapacity: d.studentCapacity ?? String(d.students ?? ""),
+ branchAdmin: d.branchAdmin ?? "",
+ username: d.username ?? "",
+ password: "",
+ academicYear: d.academicYear ?? "2024-2025",
  });
- setIsActive(branch.status === "Active");
- setSelectedFacilities(["library", "labs", "transport", "smart_class"]); // Mock
+ setIsActive(d.status === "Active");
+ setSelectedFacilities(d.facilities ?? []);
  }
+ } catch (e) {
+ console.error("Failed to load branch:", e);
+ } finally {
+ setPageLoading(false);
+ }
+ }
+ load();
  }, [branchId]);
 
  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -150,24 +141,42 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  }
  };
 
- const handleSubmit = () => {
- // Basic Validation
+ const handleSubmit = async () => {
  if (!formData.branchName || !formData.email) {
  alert("Please fill in required fields.");
  return;
  }
-
- const payload = {
- id: branchId,
- ...formData,
- isActive,
+ setSaving(true);
+ try {
+ await updateDoc(doc(db, "schools", branchId), {
+ name: formData.branchName,
+ code: formData.branchCode,
+ established: formData.establishedYear,
+ affiliationBoard: formData.affiliationBoard,
+ schoolType: formData.schoolType,
+ address: formData.address,
+ city: formData.city,
+ state: formData.state,
+ zipCode: formData.zipCode,
+ country: formData.country,
+ email: formData.email,
+ phone: formData.phone,
+ website: formData.website,
+ principal: formData.principalName,
+ studentCapacity: formData.studentCapacity,
+ branchAdmin: formData.branchAdmin,
+ username: formData.username,
+ academicYear: formData.academicYear,
+ status: isActive ? "Active" : "Inactive",
  facilities: selectedFacilities,
- logo: logoPreview,
- updatedAt: new Date().toISOString()
- };
-
- console.log("Update Submitted:", payload);
+ });
  alert("Branch updated successfully!");
+ } catch (e) {
+ console.error("Update failed:", e);
+ alert("Failed to update branch. Check console for details.");
+ } finally {
+ setSaving(false);
+ }
  };
 
  const facilities = [
@@ -184,7 +193,12 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  return (
  <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-24 font-jost">
  
- {/* Breadcrumb & Header */}
+ {pageLoading ? (
+ <div className="flex h-96 items-center justify-center">
+ <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin"></div>
+ </div>
+ ) : (
+ <>
  <div className="space-y-4">
  <nav className="flex items-center text-xs font-medium text-gray-500">
  <Link href="/super-admin" className="hover:text-[#144835] transition-colors">Dashboard</Link>

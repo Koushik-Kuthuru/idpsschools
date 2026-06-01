@@ -50,12 +50,21 @@ export default function LoginPage() {
  setIsLoading(true);
 
  try {
- await login(email);
- // The login method in AuthContext will update state,
+ await login(email, password);
+ // onAuthStateChanged in AuthContext will update state,
  // and the useEffect above will redirect the user.
  } catch (err: any) {
  console.error(err);
+ const code = err?.code ?? "";
+ if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") {
  setError("Invalid email or password. Please try again.");
+ } else if (code === "auth/too-many-requests") {
+ setError("Too many failed attempts. Please try again later.");
+ } else if (code === "auth/user-disabled") {
+ setError("This account has been disabled. Contact your administrator.");
+ } else {
+ setError("Sign in failed. Please check your credentials and try again.");
+ }
  setIsLoading(false);
  }
  };

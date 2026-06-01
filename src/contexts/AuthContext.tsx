@@ -1,6 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  type User as FirebaseUser,
+} from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export interface User {
   uid: string;
@@ -13,7 +21,7 @@ interface AuthContextType {
   role: string | null;
   schoolId: string | null;
   loading: boolean;
-  login: (email: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -28,6 +36,31 @@ const AuthContext = createContext<AuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
+async function fetchUserRole(uid: string): Promise<{ role: string | null; schoolId: string | null }> {
+  try {
+    // 1. Check super_admin_users collection first
+    const superAdminDoc = await getDoc(doc(db, "super_admin_users", uid));
+    if (superAdminDoc.exists()) {
+      return { role: "super_admin", schoolId: "all" };
+    }
+
+    // 2. Fall back to user_roles collection
+    const roleDoc = await getDoc(doc(db, "user_roles", uid));
+    if (roleDoc.exists()) {
+      const data = roleDoc.data();
+      return {
+        role: data.role ?? null,
+        schoolId: data.schoolId ?? null,
+      };
+    }
+
+    return { role: null, schoolId: null };
+  } catch (err) {
+    console.error("Failed to fetch user role:", err);
+    return { role: null, schoolId: null };
+  }
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
@@ -35,51 +68,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load from local storage
-    const storedUser = localStorage.getItem("mock_user");
-    const storedRole = localStorage.getItem("mock_role");
-    const storedSchoolId = localStorage.getItem("mock_schoolId");
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        const { role: userRole, schoolId: userSchoolId } = await fetchUserRole(firebaseUser.uid);
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+        });
+        setRole(userRole);
+        setSchoolId(userSchoolId);
+      } else {
+        setUser(null);
+        setRole(null);
+        setSchoolId(null);
+      }
+      setLoading(false);
+    });
 
-    if (storedUser && storedRole && storedSchoolId) {
-      setUser(JSON.parse(storedUser));
-      setRole(storedRole);
-      setSchoolId(storedSchoolId);
-    }
-    setLoading(false);
+    return () => unsubscribe();
   }, []);
 
-  const login = async (email: string) => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const mockUser: User = { uid: "mock_uid_123", email, displayName: email.split("@")[0] };
-    
-    // Determine mock role based on email (for easy testing)
-    let newRole = "admin";
-    if (email.includes("teacher")) newRole = "teacher";
-    if (email.includes("student")) newRole = "student";
-    if (email.includes("super")) newRole = "super_admin";
-
-    let newSchoolId = "idpskalaburagi";
-    if (newRole === "super_admin") newSchoolId = "all";
-    if (email.includes("cherukupalli")) newSchoolId = "idpscherukupalli";
-
-    localStorage.setItem("mock_user", JSON.stringify(mockUser));
-    localStorage.setItem("mock_role", newRole);
-    localStorage.setItem("mock_schoolId", newSchoolId);
-    
-    setUser(mockUser);
-    setRole(newRole);
-    setSchoolId(newSchoolId);
+  const login = async (email: string, password: string) => {
+    // signInWithEmailAndPassword triggers onAuthStateChanged above,
+    // which will set user/role/schoolId automatically.
+    await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
-    localStorage.removeItem("mock_user");
-    localStorage.removeItem("mock_role");
-    localStorage.removeItem("mock_schoolId");
-    setUser(null);
-    setRole(null);
-    setSchoolId(null);
+    await signOut(auth);
+    // onAuthStateChanged will clear state automatically
   };
 
   return (

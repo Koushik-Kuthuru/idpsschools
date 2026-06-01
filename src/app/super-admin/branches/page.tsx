@@ -89,11 +89,11 @@ export default function BranchesPage() {
  return matchesSearch && matchesStatus && matchesRegion;
  });
 
- // Derived metrics
+ // Derived metrics — computed from real Firebase data
  const totalBranches = branches.length;
  const activeBranches = branches.filter(b => b.status === "Active").length;
  const totalStudents = branches.reduce((acc, curr) => acc + (curr.students || 0), 0);
- const totalRevenue = "₹2.4Cr"; // Update if available
+ const totalStaff = branches.reduce((acc, curr) => acc + (curr.teachers || 0) + (curr.admins || 0), 0);
 
  if (loading) {
  return (
@@ -142,7 +142,7 @@ export default function BranchesPage() {
  },
  {
  label: "TOTAL STUDENTS",
- value: "5,840", 
+ value: totalStudents.toLocaleString("en-IN"),
  icon: GraduationCap,
  trend: "+12.5%",
  trendUp: true,
@@ -152,7 +152,7 @@ export default function BranchesPage() {
  },
  {
  label: "TOTAL STAFF",
- value: "320", 
+ value: totalStaff.toLocaleString("en-IN"),
  icon: Users,
  trend: "+4.2%",
  trendUp: true,
