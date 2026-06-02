@@ -110,27 +110,34 @@ export default function AdminDashboardPage() {
       (snap) => setPendingApplications(snap.size)
     ));
 
-    // Staff on leave today
+    // Fetch all Approved leaves, filter dates client-side — no composite index needed
     const today = new Date().toISOString().split("T")[0];
     unsubs.push(onSnapshot(
       query(
         collection(db, "schools", SCHOOL_ID, "leaves"),
         where("status", "==", "Approved"),
-        where("startDate", "<=", today),
-        where("endDate", ">=", today),
-        limit(5)
+        limit(50)
       ),
       (snap) => {
-        setOnLeaveToday(snap.docs.map((d) => {
-          const data = d.data() as any;
-          const name = data.employeeName ?? data.name ?? "Staff";
-          return {
-            id: d.id,
-            name,
-            initials: name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
-            reason: data.leaveType ?? data.reason ?? "Leave",
-          };
-        }));
+        const onLeave = snap.docs
+          .filter(d => {
+            const data = d.data() as any;
+            const start = data.startDate ?? "";
+            const end   = data.endDate   ?? today;
+            return start <= today && end >= today;
+          })
+          .slice(0, 5)
+          .map((d) => {
+            const data = d.data() as any;
+            const name = data.employeeName ?? data.name ?? "Staff";
+            return {
+              id: d.id,
+              name,
+              initials: name.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase(),
+              reason: data.leaveType ?? data.reason ?? "Leave",
+            };
+          });
+        setOnLeaveToday(onLeave);
       }
     ));
 
