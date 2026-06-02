@@ -138,58 +138,14 @@ export default function FranchiseGrowthChart() {
     return dataSets[period];
   }
 
-  const chartData = dataSets[timePeriod];
-
-  // Chart dimensions and configuration
-  const height = 350;
-  const padding = { top: 40, right: 30, bottom: 50, left: 50 };
-  const graphWidth = width - padding.left - padding.right;
-  const graphHeight = height - padding.top - padding.bottom;
-
-  // Scales
-  const maxValue = Math.max(...chartData.map(d => Math.max(d.admissions, d.inquiries)));
-  const maxY = Math.ceil(maxValue * 1.2); // Add 20% buffer
-  
-  const xScale = (index: number) => padding.left + (index / (chartData.length - 1)) * graphWidth;
-  const yScale = (value: number) => height - padding.bottom - (value / maxY) * graphHeight;
-
-  // Generate SVG path for a line
-  const createPath = (dataKey: "admissions" | "inquiries") => {
-    if (chartData.length === 0) return "";
-    
-    let path = `M ${xScale(0)} ${yScale(chartData[0][dataKey])}`;
-
-    for (let i = 0; i < chartData.length - 1; i++) {
-      const x1 = xScale(i);
-      const y1 = yScale(chartData[i][dataKey]);
-      const x2 = xScale(i + 1);
-      const y2 = yScale(chartData[i + 1][dataKey]);
-      
-      const xc1 = (x1 + x2) / 2;
-      const yc1 = y1;
-      const xc2 = (x1 + x2) / 2;
-      const yc2 = y2;
-
-      path += ` C ${xc1} ${yc1}, ${xc2} ${yc2}, ${x2} ${y2}`;
-    }
-    return path;
-  };
-
-  // Create Area Path for gradient fill
-  const createAreaPath = (dataKey: "admissions") => {
-    if (chartData.length === 0) return "";
-    const linePath = createPath(dataKey);
-    return `${linePath} L ${xScale(chartData.length - 1)} ${height - padding.bottom} L ${xScale(0)} ${height - padding.bottom} Z`;
-  };
-
   return (
     <div ref={containerRef} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 w-full relative z-10 transition-all hover:shadow-md">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
         <div>
           <h2 className="text-xl font-extrabold text-[#1A1A1A] tracking-tight">Franchise Growth Analytics</h2>
           <div className="flex items-center gap-2 mt-1.5">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <p className="text-xs text-gray-500 font-medium">Live data updates</p>
+            <span className={`w-2 h-2 rounded-full ${loading ? "bg-gray-400" : "bg-green-500 animate-pulse"}`}></span>
+            <p className="text-xs text-gray-500 font-medium">{loading ? "Loading data..." : "Live data updates"}</p>
           </div>
         </div>
         <div className="relative">
@@ -220,6 +176,59 @@ export default function FranchiseGrowthChart() {
           )}
         </div>
       </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-[350px]">
+          <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin"></div>
+        </div>
+      ) : chartData.length === 0 ? (
+        <div className="flex items-center justify-center h-[350px] text-gray-400">
+          <p>No data available for the selected period</p>
+        </div>
+      ) : (() => {
+        const height = 350;
+        const padding = { top: 40, right: 30, bottom: 50, left: 50 };
+        const graphWidth = width - padding.left - padding.right;
+        const graphHeight = height - padding.top - padding.bottom;
+
+        // Scales
+        const maxValue = Math.max(...chartData.map(d => Math.max(d.admissions, d.inquiries)));
+        const maxY = Math.ceil(maxValue * 1.2); // Add 20% buffer
+        
+        const xScale = (index: number) => padding.left + (index / (chartData.length - 1)) * graphWidth;
+        const yScale = (value: number) => height - padding.bottom - (value / maxY) * graphHeight;
+
+        // Generate SVG path for a line
+        const createPath = (dataKey: "admissions" | "inquiries") => {
+          if (chartData.length === 0) return "";
+          
+          let path = `M ${xScale(0)} ${yScale(chartData[0][dataKey])}`;
+
+          for (let i = 0; i < chartData.length - 1; i++) {
+            const x1 = xScale(i);
+            const y1 = yScale(chartData[i][dataKey]);
+            const x2 = xScale(i + 1);
+            const y2 = yScale(chartData[i + 1][dataKey]);
+            
+            const xc1 = (x1 + x2) / 2;
+            const yc1 = y1;
+            const xc2 = (x1 + x2) / 2;
+            const yc2 = y2;
+
+            path += ` C ${xc1} ${yc1}, ${xc2} ${yc2}, ${x2} ${y2}`;
+          }
+          return path;
+        };
+
+        // Create Area Path for gradient fill
+        const createAreaPath = (dataKey: "admissions") => {
+          if (chartData.length === 0) return "";
+          const linePath = createPath(dataKey);
+          return `${linePath} L ${xScale(chartData.length - 1)} ${height - padding.bottom} L ${xScale(0)} ${height - padding.bottom} Z`;
+        };
+
+        return (
+          <>
 
       <div className="relative w-full aspect-[2/1] min-h-[350px]">
         <svg
@@ -385,17 +394,20 @@ export default function FranchiseGrowthChart() {
         </svg>
       </div>
 
-      {/* Legend */}
-      <div className="flex justify-center gap-8 mt-6">
-        <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-100">
-          <div className="w-3 h-3 rounded-full bg-[#144835] border-2 border-white shadow-sm ring-1 ring-[#144835]/20"></div>
-          <span className="text-xs font-bold text-gray-700">New Admissions</span>
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-100">
-          <div className="w-3 h-3 rounded-full bg-white border-2 border-[#a2c144] shadow-sm"></div>
-          <span className="text-xs font-bold text-gray-700">Franchise Inquiries</span>
-        </div>
-      </div>
+          {/* Legend */}
+          <div className="flex justify-center gap-8 mt-6">
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-100">
+              <div className="w-3 h-3 rounded-full bg-[#144835] border-2 border-white shadow-sm ring-1 ring-[#144835]/20"></div>
+              <span className="text-xs font-bold text-gray-700">New Admissions</span>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full border border-gray-100">
+              <div className="w-3 h-3 rounded-full bg-white border-2 border-[#a2c144] shadow-sm"></div>
+              <span className="text-xs font-bold text-gray-700">Franchise Inquiries</span>
+            </div>
+          </div>
+          </>
+        );
+      })()} 
     </div>
   );
 }
