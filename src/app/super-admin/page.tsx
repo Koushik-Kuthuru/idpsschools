@@ -131,36 +131,64 @@ export default function SuperAdminDashboard() {
  });
  setActivities(auditLogsData);
 
- // 4. Fetch Pending Actions from multiple collections
- const pendingLeaves = await getDocs(query(collection(db, "leaves"), where("status", "==", "Pending")));
- const pendingExpenses = await getDocs(query(collection(db, "expenses"), where("status", "==", "Pending")));
- const pendingApplications = await getDocs(query(collection(db, "applications"), where("status", "==", "Pending")));
+ // 4. Fetch Pending Actions from school subcollections
+ const pendingActionsData: any[] = [];
  
- const leaves = pendingLeaves.docs.slice(0, 2).map(doc => ({
+ for (const school of schoolsData) {
+ try {
+ // Fetch pending leaves for this school
+ const pendingLeaves = await getDocs(
+ query(collection(db, "schools", school.id, "leaves"), where("status", "==", "Pending"), limit(2))
+ );
+ pendingLeaves.docs.forEach(doc => {
+ const data = doc.data();
+ pendingActionsData.push({
  type: "leave",
- label: `${doc.data().staffName || "Staff"} - Leave Request`,
+ label: `${data.employeeName || data.staffName || "Staff"} - Leave Request`,
  icon: Users,
- time: new Date(doc.data().startDate).toLocaleDateString(),
- id: doc.id
- }));
+ time: data.startDate ? new Date(data.startDate).toLocaleDateString() : "Recent",
+ id: doc.id,
+ schoolId: school.id
+ });
+ });
  
- const expenses = pendingExpenses.docs.slice(0, 2).map(doc => ({
+ // Fetch pending expenses for this school
+ const pendingExpenses = await getDocs(
+ query(collection(db, "schools", school.id, "expenses"), where("status", "==", "Pending"), limit(2))
+ );
+ pendingExpenses.docs.forEach(doc => {
+ const data = doc.data();
+ pendingActionsData.push({
  type: "expense",
- label: `Expense: ${doc.data().description || "N/A"}`,
+ label: `Expense: ${data.description || data.category || "Pending Review"}`,
  icon: Briefcase,
- time: new Date(doc.data().createdAt?.toDate?.() || doc.data().createdAt).toLocaleDateString(),
- id: doc.id
- }));
+ time: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : "Recent",
+ id: doc.id,
+ schoolId: school.id
+ });
+ });
  
- const applications = pendingApplications.docs.slice(0, 1).map(doc => ({
+ // Fetch pending admission applications for this school
+ const pendingApplications = await getDocs(
+ query(collection(db, "schools", school.id, "applications"), where("status", "==", "Pending"), limit(1))
+ );
+ pendingApplications.docs.forEach(doc => {
+ const data = doc.data();
+ pendingActionsData.push({
  type: "application",
- label: `Application - ${doc.data().type || "New Request"}`,
+ label: `Application - ${data.studentName || data.name || "New Request"}`,
  icon: Activity,
- time: new Date(doc.data().createdAt?.toDate?.() || doc.data().createdAt).toLocaleDateString(),
- id: doc.id
- }));
-
- setPendingActions([...leaves, ...expenses, ...applications].slice(0, 5));
+ time: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString() : "Recent",
+ id: doc.id,
+ schoolId: school.id
+ });
+ });
+ } catch (e) {
+ console.log(`No pending items for ${school.id}`);
+ }
+ }
+ 
+ setPendingActions(pendingActionsData.slice(0, 5));
 
  } catch (error) {
  console.error("Error fetching dashboard data:", error);
