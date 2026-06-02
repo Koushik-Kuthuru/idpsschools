@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, PanelLeftClose, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { navGroups } from "./navigation";
+import { buildNavGroups } from "./navigation";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -31,6 +31,15 @@ export default function Sidebar({
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [isHovered, setIsHovered] = React.useState(false);
 
+  // Derive school ID from the URL: /schools/{schoolId}/admin/...
+  const schoolId = useMemo(() => {
+    const match = pathname.match(/^\/schools\/([^/]+)/);
+    return match ? match[1] : "idpskalaburagi";
+  }, [pathname]);
+
+  const navGroups = useMemo(() => buildNavGroups(schoolId), [schoolId]);
+  const dashboardHref = `/schools/${schoolId}/admin`;
+
   const sidebarExpanded = isSidebarOpen || isHovered;
 
   const handleMouseEnter = () => {
@@ -45,10 +54,10 @@ export default function Sidebar({
 
   const activeGroupId = useMemo(() => {
     const group = navGroups.find((g) =>
-      g.items.some((item) => pathname === item.href || (item.href !== "/schools/idpskalaburagi/admin" && pathname.startsWith(item.href)))
+      g.items.some((item) => pathname === item.href || (item.href !== dashboardHref && pathname.startsWith(item.href)))
     );
     return group?.id ?? null;
-  }, [pathname]);
+  }, [pathname, navGroups, dashboardHref]);
 
   useEffect(() => {
     if (!activeGroupId) return;
@@ -69,7 +78,7 @@ export default function Sidebar({
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#a2c144]/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <Link
-          href="/schools/idpskalaburagi/admin"
+          href={dashboardHref}
           onClick={(e) => {
             if (!sidebarExpanded) {
               e.preventDefault();
@@ -118,7 +127,7 @@ export default function Sidebar({
           <div className="space-y-1">
             {navGroups.map((group) => {
               const groupActive = group.items.some(
-                (item) => pathname === item.href || (item.href !== "/schools/idpskalaburagi/admin" && pathname.startsWith(item.href))
+                (item) => pathname === item.href || (item.href !== dashboardHref && pathname.startsWith(item.href))
               );
               const isOpen = !!openGroups[group.id];
 
@@ -202,7 +211,7 @@ export default function Sidebar({
                     <div className="pl-4 space-y-1">
                       {group.items.map((item) => {
                         const isActive =
-                          pathname === item.href || (item.href !== "/idpskalaburagi/admin" && pathname.startsWith(item.href));
+                          pathname === item.href || (item.href !== dashboardHref && pathname.startsWith(item.href));
                         return (
                             <Link
                               key={item.href}
@@ -236,7 +245,7 @@ export default function Sidebar({
 
       <div className="p-4 border-t border-white/10 bg-black/20 shrink-0">
         <Link
-          href="/idpskalaburagi/settings"
+          href={`/schools/${schoolId}/admin/settings`}
           className={cn(
             "flex items-center px-2 py-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group",
             sidebarExpanded ? "gap-3 justify-start" : "justify-center"
