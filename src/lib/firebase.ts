@@ -3,10 +3,6 @@ import { getFirestore, type Firestore } from "firebase/firestore";
 import { getAuth, type Auth } from "firebase/auth";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
-// Firebase config — populated from env vars at runtime.
-// All pages using Firebase are "use client", so these vars are always
-// available in the browser. During Next.js static generation on the server
-// the vars may be absent; we guard against that below.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -17,38 +13,32 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Only initialise when the mandatory keys are present.
-// This prevents crashes during Next.js SSR / static generation where
-// NEXT_PUBLIC_* vars are injected at build time via Vercel env settings.
-function getFirebaseApp(): FirebaseApp | null {
-  if (!firebaseConfig.apiKey || !firebaseConfig.projectId) return null;
-  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+// Always initialise — on the server during static generation the keys
+// will be undefined but Firebase will simply fail later (not at import time)
+// because all pages that use Firebase are "use client" components.
+// The guard below prevents the initializeApp crash when called twice.
+let app: FirebaseApp;
+try {
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+} catch {
+  app = getApp();
 }
 
-const app = getFirebaseApp();
+export { app };
+export const db: Firestore = getFirestore(app);
+export const auth: Auth = getAuth(app);
+export const storage: FirebaseStorage = getStorage(app);
 
-// Export lazy accessors so modules that import db/auth/storage don't
-// explode on the server when the app couldn't be initialised.
-export const db: Firestore = app
-  ? getFirestore(app)
-  : (null as unknown as Firestore);
-
-export const auth: Auth = app
-  ? getAuth(app)
-  : (null as unknown as Auth);
-
-export const storage: FirebaseStorage = app
-  ? getStorage(app)
-  : (null as unknown as FirebaseStorage);
-
-// Analytics — browser only, production only
+// Analytics — browser + production only, dynamically imported
 export let analytics: unknown = null;
-if (typeof window !== "undefined" && process.env.NODE_ENV === "production" && app) {
-  import("firebase/analytics").then(({ getAnalytics, isSupported }) => {
-    isSupported().then((ok) => {
-      if (ok) analytics = getAnalytics(app);
-    }).catch(() => {});
-  }).catch(() => {});
+if (typeof window !== "undefined" && process.env.NODE_ENV === "production") {
+  import("firebase/analytics")
+    .then(({ getAnalytics, isSupported }) => {
+      isSupported()
+        .then((ok) => { if (ok) analytics = getAnalytics(app); })
+        .catch(() => {});
+    })
+    .catch(() => {});
 }
 
 export default app;

@@ -68,6 +68,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // auth can be uninitialised during SSR — skip in that case
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         const { role: userRole, schoolId: userSchoolId } = await fetchUserRole(firebaseUser.uid);
