@@ -23,17 +23,25 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import FranchiseGrowthChart from "@/components/super-admin/FranchiseGrowthChart";
-import { collection, getDocs, query, limit, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, limit, orderBy, where, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
 }
 
+function formatCurrency(amount: number): string {
+ if (amount >= 10000000) return `₹${(amount / 10000000).toFixed(1)}Cr`;
+ if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
+ if (amount >= 1000) return `₹${(amount / 1000).toFixed(1)}K`;
+ return `₹${amount}`;
+}
+
 export default function SuperAdminDashboard() {
  const [schools, setSchools] = useState<any[]>([]);
  const [stats, setStats] = useState<any[]>([]);
  const [activities, setActivities] = useState<any[]>([]);
+ const [pendingActions, setPendingActions] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
@@ -44,15 +52,30 @@ export default function SuperAdminDashboard() {
  const schoolsData = schoolsSnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
  setSchools(schoolsData);
 
- // 2. Calculate dynamic stats
+ // 2. Calculate dynamic stats including real revenue
  const totalBranches = schoolsData.length;
  const totalStudents = schoolsData.reduce((acc: number, school: any) => acc + (school.students || 0), 0);
  const totalTeachers = schoolsData.reduce((acc: number, school: any) => acc + (school.teachers || 0), 0);
+ 
+ // Calculate total revenue from all school transactions
+ let totalRevenue = 0;
+ for (const school of schoolsData) {
+ try {
+ const transactionsSnapshot = await getDocs(collection(db, `schools/${school.id}/transactions`));
+ const schoolRevenue = transactionsSnapshot.docs.reduce((acc: number, doc: any) => {
+ const data = doc.data();
+ return acc + (data.amount || 0);
+ }, 0);
+ totalRevenue += schoolRevenue;
+ } catch (e) {
+ console.log(`No transactions for ${school.id}`);
+ }
+ }
 
  setStats([
  {
  title: "Total Revenue",
- value: "₹2.4Cr", // Mocked for now until finance is built
+ value: formatCurrency(totalRevenue),
  change: "+12.5%",
  trend: "up",
  icon: IndianRupee,
@@ -80,19 +103,64 @@ export default function SuperAdminDashboard() {
  }
  ]);
 
- // 3. Fetch Global Announcements / Activities
- const announcementsSnapshot = await getDocs(query(collection(db, "global_announcements"), limit(5)));
- const announcementsData = announcementsSnapshot.docs.map(doc => {
+ // 3. Fetch Audit Logs for Recent Activity
+ const auditLogsSnapshot = await getDocs(query(collection(db, "audit_logs"), orderBy("createdAt", "desc"), limit(5)));
+ const auditLogsData = auditLogsSnapshot.docs.map(doc => {
  const data = doc.data();
+ const timestamp = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+ const now = new Date();
+ const diffMs = now.getTime() - timestamp.getTime();
+ const diffMins = Math.floor(diffMs / 60000);
+ const diffHours = Math.floor(diffMs / 3600000);
+ const diffDays = Math.floor(diffMs / 86400000);
+ 
+ let timeAgo = "";
+ if (diffMins < 1) timeAgo = "Just now";
+ else if (diffMins < 60) timeAgo = `${diffMins}m ago`;
+ else if (diffHours < 24) timeAgo = `${diffHours}h ago`;
+ else if (diffDays < 7) timeAgo = `${diffDays}d ago`;
+ else timeAgo = timestamp.toLocaleDateString();
+
  return {
  id: doc.id,
- message: data.title,
- time: new Date(data.date).toLocaleDateString(),
- status: data.priority === 'high' ? 'pending' : 'completed',
- user: "System"
+ message: data.action || data.entity || "System Activity",
+ time: timeAgo,
+ status: data.status || "completed",
+ user: data.userName || "System"
  };
  });
- setActivities(announcementsData);
+ setActivities(auditLogsData);
+
+ // 4. Fetch Pending Actions from multiple collections
+ const pendingLeaves = await getDocs(query(collection(db, "leaves"), where("status", "==", "Pending")));
+ const pendingExpenses = await getDocs(query(collection(db, "expenses"), where("status", "==", "Pending")));
+ const pendingApplications = await getDocs(query(collection(db, "applications"), where("status", "==", "Pending")));
+ 
+ const leaves = pendingLeaves.docs.slice(0, 2).map(doc => ({
+ type: "leave",
+ label: `${doc.data().staffName || "Staff"} - Leave Request`,
+ icon: Users,
+ time: new Date(doc.data().startDate).toLocaleDateString(),
+ id: doc.id
+ }));
+ 
+ const expenses = pendingExpenses.docs.slice(0, 2).map(doc => ({
+ type: "expense",
+ label: `Expense: ${doc.data().description || "N/A"}`,
+ icon: Briefcase,
+ time: new Date(doc.data().createdAt?.toDate?.() || doc.data().createdAt).toLocaleDateString(),
+ id: doc.id
+ }));
+ 
+ const applications = pendingApplications.docs.slice(0, 1).map(doc => ({
+ type: "application",
+ label: `Application - ${doc.data().type || "New Request"}`,
+ icon: Activity,
+ time: new Date(doc.data().createdAt?.toDate?.() || doc.data().createdAt).toLocaleDateString(),
+ id: doc.id
+ }));
+
+ setPendingActions([...leaves, ...expenses, ...applications].slice(0, 5));
 
  } catch (error) {
  console.error("Error fetching dashboard data:", error);
@@ -270,7 +338,7 @@ export default function SuperAdminDashboard() {
  <div className="flex justify-between items-start mb-6">
  <div>
  <h3 className="text-xl font-bold">Pending Actions</h3>
- <p className="text-[#a2c144] text-xs font-bold uppercase tracking-wider mt-1">5 New Requests</p>
+ <p className="text-[#a2c144] text-xs font-bold uppercase tracking-wider mt-1">{pendingActions.length} New Requests</p>
  </div>
  <div className="p-2 bg-white/10 rounded-lg">
  <AlertCircle size={20} className="text-[#a2c144]" />
@@ -278,27 +346,27 @@ export default function SuperAdminDashboard() {
  </div>
  
  <div className="space-y-4">
- {[
- { label: "New Franchise Inquiry", time: "2h ago", icon: Briefcase },
- { label: "Staff Access Request", time: "5h ago", icon: Users },
- { label: "System Update v2.4", time: "1d ago", icon: Activity }
- ].map((item, i) => (
+ {pendingActions.length > 0 ? (
+ pendingActions.map((action, i) => (
  <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5 hover:bg-white/10 transition-colors cursor-pointer">
  <div className="p-2 bg-white/10 rounded-lg">
- <item.icon size={14} className="text-white" />
+ <action.icon size={14} className="text-white" />
  </div>
  <div className="flex-1">
- <p className="text-xs font-bold text-white">{item.label}</p>
- <p className="text-xs text-white/50">{item.time}</p>
+ <p className="text-xs font-bold text-white">{action.label}</p>
+ <p className="text-xs text-white/50">{action.time}</p>
  </div>
  <ChevronRight size={14} className="text-white/30" />
  </div>
- ))}
+ ))
+ ) : (
+ <div className="text-xs text-white/50 text-center py-4">No pending actions</div>
+ )}
  </div>
 
- <button className="w-full mt-6 py-3 bg-[#a2c144] text-[#144835] font-bold rounded-lg text-xs hover:bg-white transition-colors shadow-lg shadow-black/10">
+ <Link href="/super-admin/audit-logs" className="w-full mt-6 py-3 bg-[#a2c144] text-[#144835] font-bold rounded-lg text-xs hover:bg-white transition-colors shadow-lg shadow-black/10 block text-center">
  View All Notifications
- </button>
+ </Link>
  </div>
  </div>
 
