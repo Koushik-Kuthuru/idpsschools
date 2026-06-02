@@ -631,13 +631,16 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  </Link>
  <button 
  onClick={handleSubmit}
- className="px-8 py-3 bg-[#144835] text-white rounded-lg text-xs font-bold hover:bg-[#144835]/90 flex items-center gap-2 shadow-lg shadow-[#144835]/20 transition-all transform active:scale-95 uppercase tracking-wide"
+ disabled={saving}
+ className="px-8 py-3 bg-[#144835] text-white rounded-lg text-xs font-bold hover:bg-[#144835]/90 flex items-center gap-2 shadow-lg shadow-[#144835]/20 transition-all transform active:scale-95 uppercase tracking-wide disabled:opacity-70 disabled:cursor-not-allowed"
  >
  <Save size={18} />
- Update Branch
+ {saving ? "Saving..." : "Update Branch"}
  </button>
  </div>
  </div>
+ </>
+ )}
  </div>
  );
 }
