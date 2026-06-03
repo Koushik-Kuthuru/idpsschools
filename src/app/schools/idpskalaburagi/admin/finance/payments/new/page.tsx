@@ -8,6 +8,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, doc, getDocs, query, setDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { logSchoolActivity } from "@/lib/schoolActivity";
+import { useSchoolId } from "@/hooks/useSchoolId";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -15,7 +17,7 @@ function cn(...inputs: ClassValue[]) {
 
 export default function RecordPaymentPage() {
  const router = useRouter();
- const schoolId = "idpskalaburagi";
+ const schoolId = useSchoolId();
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState<string | null>(null);
 
@@ -84,6 +86,15 @@ export default function RecordPaymentPage() {
  createdAt: serverTimestamp(),
  };
  await setDoc(doc(db, "schools", schoolId, "payments", form.id), payload);
+
+ if (form.status === "Completed") {
+ await logSchoolActivity({
+ schoolId,
+ text: `Payment recorded — ${form.student} (₹${form.amount.toLocaleString("en-IN")})`,
+ href: `/schools/${schoolId}/admin/finance/payments`,
+ type: "payment",
+ });
+ }
 
  // 2. Update invoice amountPaid
  if (form.status === "Completed") {

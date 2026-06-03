@@ -27,6 +27,9 @@ import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
+import ImportExcelButton from "@/components/ui/ImportExcelButton";
+import { useSchoolId } from "@/hooks/useSchoolId";
+import { importStudentsToFirestore } from "@/lib/importStudentsFromExcel";
 import { calculateAttendanceStats } from "@/utils/attendance";
 
 // Define local AdminStudent type based on what we expect from Firestore
@@ -68,7 +71,7 @@ function getAvatarColor(name: string) {
 
 export default function AdminStudentsPage() {
  const { activeBranch } = useBranch();
- const schoolId = "idpskalaburagi";
+ const schoolId = useSchoolId("idpskalaburagi");
  const allClassesKey = "all";
  const allSectionsKey = "all";
  const [students, setStudents] = useState<AdminStudent[]>([]);
@@ -203,7 +206,29 @@ export default function AdminStudentsPage() {
  </p>
  </div>
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end mt-2 xl:mt-0">
- <ExportButton data={filtered} filename="Export" className="h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors" iconSize={14} />
+ <ImportExcelButton
+ label="Import Excel"
+ className="h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors disabled:opacity-60"
+ iconSize={14}
+ onImport={async (rows) => {
+ const count = await importStudentsToFirestore(schoolId, rows);
+ alert(`Imported ${count} student${count === 1 ? "" : "s"} successfully.`);
+ }}
+ />
+ <ExportButton
+ data={filtered}
+ filename="students"
+ columns={[
+ { header: "Name", key: "name" },
+ { header: "Class", key: "className" },
+ { header: "Section", key: "section" },
+ { header: "Roll", key: "roll" },
+ { header: "Status", key: "status" },
+ { header: "Attendance %", key: "attendance" },
+ ]}
+ className="h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors"
+ iconSize={14}
+ />
  <Link
  href={`/schools/${schoolId}/admin/academic/students/new`}
  className="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all"

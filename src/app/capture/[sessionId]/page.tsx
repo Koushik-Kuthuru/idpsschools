@@ -1,14 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useRouteParam } from '@/hooks/useRouteParams';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { Camera, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
-export default function MobileCapturePage() {
- const { sessionId } = useParams();
+export default function MobileCapturePage({
+ params,
+}: {
+ params: Promise<{ sessionId: string }>;
+}) {
+ const sessionId = useRouteParam(params, 'sessionId');
  const [sessionData, setSessionData] = useState<any>(null);
  const [status, setStatus] = useState<'loading' | 'waiting' | 'uploading' | 'success' | 'error'>('loading');
  const [errorMsg, setErrorMsg] = useState('');

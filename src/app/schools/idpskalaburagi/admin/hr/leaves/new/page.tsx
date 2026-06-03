@@ -8,6 +8,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { addDoc, collection, onSnapshot, orderBy, query as fsQuery, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { logSchoolActivity } from "@/lib/schoolActivity";
+import { useSchoolId } from "@/hooks/useSchoolId";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -15,7 +17,7 @@ function cn(...inputs: ClassValue[]) {
 
 export default function NewLeavePage() {
  const router = useRouter();
- const schoolId = "idpskalaburagi";
+ const schoolId = useSchoolId();
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState<string | null>(null);
  const [employees, setEmployees] = useState<Array<{ id: string; name: string; type: "teacher" | "staff" }>>([]);
@@ -118,6 +120,13 @@ export default function NewLeavePage() {
  status: "Pending",
  createdAt: serverTimestamp(),
  updatedAt: serverTimestamp(),
+ });
+
+ await logSchoolActivity({
+ schoolId,
+ text: `Leave request — ${employeeName} (${type})`,
+ href: `/schools/${schoolId}/admin/hr/leaves`,
+ type: "leave",
  });
 
  router.push(`/schools/${schoolId}/admin/hr/leaves`);

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useRouteParam } from "@/hooks/useRouteParams";
 import { ArrowLeft, Pencil, User, AlertCircle, Users, BookOpen, Heart, Building, Home, FileText, Printer, MessageSquare, IndianRupee, Award, Bus, Camera, Calendar, TrendingUp, Ticket, List, Library, Wallet, MapPin, Clock, Phone, History, UploadCloud, FileCheck, FileMinus, Eye, Trash2, Camera as CameraIcon, CheckCircle2, XCircle, AlertTriangle, Smartphone, Bell, Check, Send, BarChart3, ChevronDown, Download, ShieldCheck, ShieldAlert, UserCheck, Clock4, Activity } from "lucide-react";
 import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
@@ -33,10 +34,13 @@ const InfoField = ({ label, value }: { label: string, value: any }) => (
  </div>
 );
 
-export default function AdminStudentProfilePage() {
- const params = useParams<{ id: string }>();
+export default function AdminStudentProfilePage({
+ params,
+}: {
+ params: Promise<{ id: string }>;
+}) {
+ const studentId = useRouteParam(params, "id");
  const searchParams = useSearchParams();
- const studentId = typeof params?.id === "string" ? decodeURIComponent(params.id) : "";
  const schoolId = "idpskalaburagi"; // Update this per school
  const [student, setStudent] = useState<any | null>(null);
  const [attendanceStats, setAttendanceStats] = useState<AttendanceStats | null>(null);

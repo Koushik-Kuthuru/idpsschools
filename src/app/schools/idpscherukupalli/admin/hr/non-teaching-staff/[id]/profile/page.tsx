@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useRouteParam } from "@/hooks/useRouteParams";
 import { useEffect, useState } from "react";
 import type { AdminEmployee } from "@/data/adminEmployees";
 import EmployeeProfileView from "@/components/admin/EmployeeProfileView";
 
-export default function AdminNonTeachingStaffProfilePage() {
- const params = useParams<{ id: string }>();
+export default function AdminNonTeachingStaffProfilePage({
+ params,
+}: {
+ params: Promise<{ id: string }>;
+}) {
  const schoolId = "idpscherukupalli";
- const employeeId = typeof params?.id === "string" ? decodeURIComponent(params.id) : "";
+ const employeeId = useRouteParam(params, "id");
  const [employee, setEmployee] = useState<AdminEmployee | null>(null);
  const [loading, setLoading] = useState(true);
 

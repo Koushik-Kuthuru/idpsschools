@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useRouteParam } from "@/hooks/useRouteParams";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Edit3, ListChecks } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -39,9 +39,12 @@ function statusTone(status: PortionStatus) {
  return "bg-amber-50 border-amber-200 text-amber-700";
 }
 
-export default function AdminSubjectDetailPage() {
- const params = useParams<{ id: string }>();
- const id = typeof params?.id === "string" ? decodeURIComponent(params.id) : "";
+export default function AdminSubjectDetailPage({
+ params,
+}: {
+ params: Promise<{ id: string }>;
+}) {
+ const id = useRouteParam(params, "id");
  const schoolId = "idpskalaburagi";
  const [subject, setSubject] = useState<AcademicSubject | null>(null);
  const [loading, setLoading] = useState(true);

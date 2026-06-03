@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useRouteParam } from "@/hooks/useRouteParams";
 import { ArrowLeft, Save, User, Heart, Building, Users, Home, BookOpen, FileText, CheckCircle2, GraduationCap, Sparkles, HelpCircle, Upload, X } from "lucide-react";
 import { collection, addDoc, getDocs, query, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -99,13 +100,16 @@ const Checkbox = ({ label, checked, onChange, tooltip }: any) => (
  </label>
 );
 
-export default function AdminEditStudentPage() {
+export default function AdminEditStudentPage({
+ params,
+}: {
+ params: Promise<{ id: string }>;
+}) {
  const schoolId = "idpskalaburagi";
  const router = useRouter();
  
  const [saving, setSaving] = useState(false);
- const params = useParams<{ id: string }>();
- const studentId = typeof params?.id === "string" ? decodeURIComponent(params.id) : "";
+ const studentId = useRouteParam(params, "id");
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {

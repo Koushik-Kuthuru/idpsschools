@@ -8,6 +8,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { logSchoolActivity } from "@/lib/schoolActivity";
+import { useSchoolId } from "@/hooks/useSchoolId";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -15,7 +17,7 @@ function cn(...inputs: ClassValue[]) {
 
 export default function NewEventPage() {
  const router = useRouter();
- const schoolId = "idpskalaburagi";
+ const schoolId = useSchoolId();
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +51,12 @@ export default function NewEventPage() {
  description: String(form.description || "").trim(),
  createdAt: serverTimestamp(),
  updatedAt: serverTimestamp(),
+ });
+ await logSchoolActivity({
+ schoolId,
+ text: `Event scheduled — ${title}`,
+ href: `/schools/${schoolId}/admin/academic/calendar`,
+ type: "event",
  });
  router.push(`/schools/${schoolId}/admin/academic/calendar`);
  } catch (e: any) {

@@ -18,8 +18,9 @@ async function getEmployee(id: string) {
  return employees.find((e) => String(e.id) === String(id)) || null;
 }
 
-export default async function AdminStaffLegacyProfileRedirectPage({ params }: { params: { id: string } }) {
- const id = decodeURIComponent(params.id);
+export default async function AdminStaffLegacyProfileRedirectPage({ params }: { params: Promise<{ id: string }> }) {
+ const { id: rawId } = await params;
+ const id = decodeURIComponent(rawId);
  const employee = await getEmployee(id);
  const base = employee && isTeachingEmployee(employee) ? "/idpskalaburagi/hr/teaching-staff" : "/idpskalaburagi/hr/non-teaching-staff";
  redirect(`${base}/${encodeURIComponent(id)}/profile`);

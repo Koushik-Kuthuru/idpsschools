@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useRouteParam } from "@/hooks/useRouteParams";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -41,10 +42,13 @@ const emptyPortion = (): SubjectPortion => ({
  status: "Planned",
 });
 
-export default function AdminEditSubjectPage() {
+export default function AdminEditSubjectPage({
+ params,
+}: {
+ params: Promise<{ id: string }>;
+}) {
  const router = useRouter();
- const params = useParams<{ id: string }>();
- const id = typeof params?.id === "string" ? decodeURIComponent(params.id) : "";
+ const id = useRouteParam(params, "id");
  const schoolId = "idpskalaburagi";
 
  const [gradeCatalog, setGradeCatalog] = useState<string[]>(["Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]);

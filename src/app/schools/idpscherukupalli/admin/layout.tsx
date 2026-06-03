@@ -21,7 +21,6 @@ export default function AdminLayout({
  const pathname = usePathname();
  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
- const [isSidebarHovered, setIsSidebarHovered] = useState(false);
  const [mounted, setMounted] = useState(false);
 
  // Handle initial hydration state mismatch
@@ -55,13 +54,12 @@ export default function AdminLayout({
  setIsSidebarOpen={setIsSidebarOpen}
  isMobileMenuOpen={isMobileMenuOpen}
  setIsMobileMenuOpen={setIsMobileMenuOpen}
- setIsHoveredProps={setIsSidebarHovered}
  />
 
  {/* Main Content Area */}
  <div className={cn(
  "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out",
- (isSidebarOpen || isSidebarHovered) ? "lg:ml-72" : "lg:ml-20"
+ isSidebarOpen ? "lg:ml-72" : "lg:ml-20"
  )}>
  <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
