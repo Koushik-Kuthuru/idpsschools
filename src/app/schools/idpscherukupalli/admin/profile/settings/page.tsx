@@ -87,15 +87,39 @@ function FieldRow({ label, icon: Icon, children }: {
   );
 }
 
+function PrivacySettingRow({ label, desc, icon: Icon, initialOn }: {
+  label: string;
+  desc: string;
+  icon: typeof User;
+  initialOn: boolean;
+}) {
+  const [toggled, setToggled] = useState(initialOn);
+  return (
+    <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-[#144835]/20 transition-all">
+      <div className="flex items-center gap-3">
+        <div className="h-9 w-9 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 shrink-0">
+          <Icon size={14} />
+        </div>
+        <div>
+          <p className="text-xs font-bold text-gray-900">{label}</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">{desc}</p>
+        </div>
+      </div>
+      <Toggle checked={toggled} onChange={setToggled} />
+    </div>
+  );
+}
+
 const inputCls = "w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all placeholder:text-gray-400";
 
 export default function AdminProfileSettingsPage() {
-  const { user, role, schoolId, logout } = useAuth();
+  const { user, role, schoolId, logout, updateProfile } = useAuth();
   const { activeBranch } = useBranch();
   const router = useRouter();
 
   const [tab, setTab] = useState<Tab>("profile");
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -104,9 +128,9 @@ export default function AdminProfileSettingsPage() {
   const [profile, setProfile] = useState({
     displayName: user?.displayName ?? "",
     email: user?.email ?? "",
-    phone: "",
-    designation: role === "admin" ? "Branch Administrator" : role ?? "Staff",
-    department: "",
+    phone: user?.phone ?? "",
+    designation: user?.designation || (role === "admin" ? "Branch Administrator" : role ?? "Staff"),
+    department: user?.department ?? "",
   });
 
   useEffect(() => {
@@ -115,7 +139,13 @@ export default function AdminProfileSettingsPage() {
         ...p,
         displayName: user.displayName ?? p.displayName,
         email: user.email ?? p.email,
+        phone: user.phone ?? p.phone,
+        designation: user.designation ?? p.designation,
+        department: user.department ?? p.department,
       }));
+      if (user.photoURL) {
+        setAvatarSrc(user.photoURL);
+      }
     }
   }, [user]);
 
@@ -126,8 +156,27 @@ export default function AdminProfileSettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onloadend = () => setAvatarSrc(reader.result as string);
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      setAvatarSrc(dataUrl);
+    };
     reader.readAsDataURL(file);
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      setError(null);
+      await updateProfile({
+        displayName: profile.displayName,
+        phone: profile.phone,
+        designation: profile.designation,
+        department: profile.department,
+        photoURL: avatarSrc,
+      });
+      showSaved();
+    } catch (err: any) {
+      setError(err.message || "Failed to update profile");
+    }
   };
 
   // ── Security ─────────────────────────────────────────────────────────────────
@@ -165,13 +214,11 @@ export default function AdminProfileSettingsPage() {
   };
 
   return (
-    <div className="animate-in fade-in duration-500 font-jost pb-12 max-w-5xl mx-auto">
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 font-jost pb-20 sm:pb-24 max-w-[1600px] mx-auto -mx-0.5 sm:mx-auto">
 
       {/* ── Profile Hero ── */}
-      <div className="relative bg-gradient-to-r from-[#144835] to-[#1e6b52] rounded-2xl overflow-hidden mb-6 shadow-xl">
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}
-        />
+      <div className="relative bg-gradient-to-br from-[#144835] via-[#1a5a40] to-[#0d2e22] text-white border border-[#0d2e22] ring-1 ring-inset ring-white/10 rounded-2xl overflow-hidden shadow-xl">
+        <div className="absolute -right-8 -top-8 h-32 sm:h-40 w-32 sm:w-40 rounded-full bg-[#a2c144]/20 blur-2xl pointer-events-none" />
         <div className="relative z-10 p-6 flex flex-col sm:flex-row items-center sm:items-end gap-5">
           {/* Avatar */}
           <div className="relative group shrink-0">
@@ -248,11 +295,17 @@ export default function AdminProfileSettingsPage() {
                 <h2 className="text-base font-black text-gray-900">Personal Information</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Update your name, contact details and role</p>
               </div>
-              <button onClick={showSaved}
+              <button onClick={handleSaveProfile}
                 className="h-9 px-5 inline-flex items-center gap-2 rounded-xl bg-[#144835] text-xs font-bold text-white shadow-lg shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
                 <Save size={13} /> Save Changes
               </button>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
+                <ShieldAlert size={14} /> {error}
+              </div>
+            )}
 
             <div className="space-y-3">
               <FieldRow label="Full Name" icon={User}>
@@ -476,23 +529,9 @@ export default function AdminProfileSettingsPage() {
                 { label: "Profile Visibility",      desc: "Allow other staff members to see your profile",        icon: User,    on: true  },
                 { label: "Activity Status",          desc: "Show when you were last active in the dashboard",      icon: Clock,   on: true  },
                 { label: "Analytics Participation",  desc: "Help improve the platform with anonymous usage data",  icon: Globe,   on: false },
-              ].map(({ label, desc, icon: Icon, on }, i) => {
-                const [toggled, setToggled] = useState(on);
-                return (
-                  <div key={i} className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-100 bg-white hover:border-[#144835]/20 transition-all">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 shrink-0">
-                        <Icon size={14} />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-gray-900">{label}</p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">{desc}</p>
-                      </div>
-                    </div>
-                    <Toggle checked={toggled} onChange={setToggled} />
-                  </div>
-                );
-              })}
+              ].map(({ label, desc, icon: Icon, on }, i) => (
+                <PrivacySettingRow key={i} label={label} desc={desc} icon={Icon} initialOn={on} />
+              ))}
             </div>
 
             <div className="rounded-2xl border border-red-100 bg-red-50/40 p-5">

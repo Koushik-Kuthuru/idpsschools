@@ -7,6 +7,7 @@ import { ChevronDown, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { buildNavGroups } from "./navigation";
+import { useAuth } from "@/contexts/AuthContext";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,6 +31,18 @@ export default function Sidebar({
   const pathname = usePathname();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const [headerHovered, setHeaderHovered] = useState(false);
+  const { user } = useAuth();
+
+  const userInitials = useMemo(() => {
+    if (!user) return "BA";
+    const name = user.displayName || user.email || "Branch Admin";
+    return name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }, [user]);
 
   const schoolId = useMemo(() => {
     const match = pathname.match(/^\/schools\/([^/]+)/);
@@ -289,16 +302,20 @@ export default function Sidebar({
 
       <div className="p-4 border-t border-white/10 bg-black/20 shrink-0">
         <Link
-          href={`/schools/${schoolId}/admin/settings`}
+          href={`/schools/${schoolId}/admin/profile/settings`}
           className={cn(
             "flex items-center px-2 py-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group",
             sidebarExpanded ? "gap-3 justify-start" : "justify-center"
           )}
-          title={!sidebarExpanded ? "Settings" : undefined}
+          title={!sidebarExpanded ? "Profile Settings" : undefined}
         >
           <div className="relative shrink-0">
-            <div className="h-10 w-10 rounded-full bg-[#144835] border-2 border-white/20 group-hover:border-[#a2c144] transition-colors flex items-center justify-center text-white font-bold">
-              BA
+            <div className="h-10 w-10 rounded-full bg-[#144835] border-2 border-white/20 group-hover:border-[#a2c144] transition-colors flex items-center justify-center text-white font-bold overflow-hidden">
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="Avatar" className="h-full w-full object-cover" />
+              ) : (
+                userInitials
+              )}
             </div>
             <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-[#0f3628] rounded-full" />
           </div>
@@ -309,9 +326,11 @@ export default function Sidebar({
             )}
           >
             <span className="font-bold text-xs text-white truncate group-hover:text-[#a2c144] transition-colors whitespace-nowrap">
-              Branch Admin
+              {user?.displayName || "Branch Admin"}
             </span>
-            <span className="text-xs text-gray-400 truncate whitespace-nowrap">admin@school.edu</span>
+            <span className="text-xs text-gray-400 truncate whitespace-nowrap">
+              {user?.email || "admin@school.edu"}
+            </span>
           </div>
         </Link>
       </div>

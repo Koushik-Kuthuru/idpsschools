@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Bell, Lock, Search, ShieldAlert, Smartphone, User, Laptop, Pencil, LogOut } from "lucide-react";
+import { Bell, Lock, Search, ShieldAlert, Smartphone, User, Laptop, Pencil, LogOut, Save, CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Tab = "Basic Info" | "Password" | "Preferences" | "Privacy" | "Sessions";
 
@@ -14,8 +15,55 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function AdminProfileSettingsPage() {
+ const { user, role, updateProfile } = useAuth();
  const [tab, setTab] = useState<Tab>("Basic Info");
  const [digest, setDigest] = useState("Summarized (Once daily at 8 AM)");
+ const [saved, setSaved] = useState(false);
+ const [error, setError] = useState<string | null>(null);
+
+ // Form State
+ const [profileForm, setProfileForm] = useState({
+   displayName: user?.displayName ?? "",
+   email: user?.email ?? "",
+   phone: user?.phone ?? "",
+   designation: user?.designation || (role === "admin" ? "Senior Operations Manager" : role ?? "Admin Role"),
+   department: user?.department ?? "Logistics - Mumbai South",
+   employeeId: "EMP-2024-045",
+ });
+
+ useEffect(() => {
+   if (user) {
+     setProfileForm(p => ({
+       ...p,
+       displayName: user.displayName ?? p.displayName,
+       email: user.email ?? p.email,
+       phone: user.phone ?? p.phone,
+       designation: user.designation ?? p.designation,
+       department: user.department ?? p.department,
+     }));
+   }
+ }, [user]);
+
+ const userInitials = useMemo(() => {
+   const name = profileForm.displayName || profileForm.email || "SS";
+   return name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+ }, [profileForm.displayName, profileForm.email]);
+
+ const handleSaveProfile = async () => {
+   try {
+     setError(null);
+     await updateProfile({
+       displayName: profileForm.displayName,
+       phone: profileForm.phone,
+       designation: profileForm.designation,
+       department: profileForm.department,
+     });
+     setSaved(true);
+     setTimeout(() => setSaved(false), 2500);
+   } catch (err: any) {
+     setError(err.message || "Failed to update profile");
+   }
+ };
 
  const sessions = useMemo(() => {
  return [
@@ -25,37 +73,47 @@ export default function AdminProfileSettingsPage() {
  ] as const;
  }, []);
 
- return (
- <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- {/* Header */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div className="flex items-center gap-3">
- <div className="h-12 w-12 rounded-[12px] bg-[#144835]/10 border-2 border-white shadow-sm flex items-center justify-center text-lg font-black text-[#144835] shrink-0">
- SS
- </div>
- <div>
- <h1 className="text-lg sm:text-xl font-bold text-gray-900 tracking-tight">Siddharth Sharma</h1>
- <div className="flex flex-wrap items-center gap-2 mt-1">
- <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-[10px] font-bold">
- Senior Operations Manager
- </span>
- <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-100 text-[10px] font-bold">
- Admin Role
- </span>
- </div>
- </div>
- </div>
- 
- <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
- <div className="relative w-full sm:w-[240px]">
- <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
- <input
- className="w-full h-8 bg-white border border-gray-200 rounded-lg pl-9 pr-4 text-[10px] font-medium text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm"
- placeholder="Search settings..."
- />
- </div>
- </div>
- </div>
+  return (
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 font-jost pb-20 sm:pb-24 max-w-[1600px] mx-auto -mx-0.5 sm:mx-auto">
+      {/* ── Profile Hero ── */}
+      <div className="relative bg-gradient-to-br from-[#144835] via-[#1a5a40] to-[#0d2e22] text-white border border-[#0d2e22] ring-1 ring-inset ring-white/10 rounded-2xl overflow-hidden shadow-xl">
+        <div className="absolute -right-8 -top-8 h-32 sm:h-40 w-32 sm:w-40 rounded-full bg-[#a2c144]/20 blur-2xl pointer-events-none" />
+        <div className="relative z-10 p-6 flex flex-col sm:flex-row items-center sm:items-end gap-5">
+          {/* Avatar */}
+          <div className="relative group shrink-0">
+            <div className="h-20 w-20 rounded-2xl border-4 border-white/30 shadow-xl overflow-hidden bg-white/10 flex items-center justify-center">
+              {user?.photoURL ? (
+                <img src={user.photoURL} alt="Avatar" className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-2xl font-black text-white">{userInitials}</span>
+              )}
+            </div>
+          </div>
+
+          {/* Info */}
+          <div className="flex-1 text-center sm:text-left">
+            <h1 className="text-xl font-black text-white tracking-tight">{profileForm.displayName || "Admin User"}</h1>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
+              <span className="inline-flex items-center px-2.5 py-1 bg-white/10 rounded-lg text-[10px] font-bold text-white border border-white/10">
+                {profileForm.designation}
+              </span>
+              <span className="inline-flex items-center px-2.5 py-1 bg-[#a2c144]/80 rounded-lg text-[10px] font-black text-[#144835]">
+                {role === "super_admin" ? "Super Admin" : "Admin Role"}
+              </span>
+            </div>
+            <p className="text-xs text-white/60 mt-1.5 font-medium">{profileForm.email}</p>
+          </div>
+
+          {/* Search bar inside hero */}
+          <div className="relative w-full sm:w-[240px] mt-4 sm:mt-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" size={14} />
+            <input
+              className="w-full h-9 bg-white/10 border border-white/20 rounded-xl pl-9 pr-4 text-xs font-medium text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/20 focus:bg-white/15 transition-all shadow-sm"
+              placeholder="Search settings..."
+            />
+          </div>
+        </div>
+      </div>
 
  {/* Tabs */}
  <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
@@ -89,26 +147,74 @@ export default function AdminProfileSettingsPage() {
  </div>
  <p className="text-sm font-bold text-gray-900">Basic Information</p>
  </div>
- <button type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#144835] px-3 h-8 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
- <Pencil size={14} /> Edit Profile
- </button>
- </div>
+  <button onClick={handleSaveProfile} type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#144835] px-3 h-8 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
+  <Save size={14} /> Save Profile
+  </button>
+  </div>
 
- <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
- {[
- { label: "Full Name", value: "Siddharth Sharma" },
- { label: "Email Address", value: "s.sharma@idps-erp.com" },
- { label: "Phone Number", value: "+91 98765 43210" },
- { label: "Employee ID", value: "EMP-2024-045" },
- { label: "Designation / Role", value: "Senior Operations Manager" },
- { label: "Department & Branch", value: "Logistics - Mumbai South" },
- ].map((f) => (
- <div key={f.label} className="rounded-[12px] border border-gray-100 bg-gray-50 p-3 transition-colors hover:border-[#144835]/30 hover:bg-[#144835]/5">
- <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">{f.label}</p>
- <p className="mt-1.5 text-xs font-bold text-gray-900">{f.value}</p>
- </div>
- ))}
- </div>
+  {error && (
+    <div className="mx-4 mt-4 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-[10px] font-bold flex items-center gap-2 animate-in fade-in duration-200">
+      <ShieldAlert size={14} /> {error}
+    </div>
+  )}
+
+  {saved && (
+    <div className="mx-4 mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 text-[10px] font-bold flex items-center gap-2 animate-in fade-in duration-200">
+      <CheckCircle2 size={14} /> Profile updated successfully
+    </div>
+  )}
+
+  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Full Name</label>
+      <input
+        value={profileForm.displayName}
+        onChange={e => setProfileForm(p => ({ ...p, displayName: e.target.value }))}
+        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
+      />
+    </div>
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Email Address</label>
+      <input
+        value={profileForm.email}
+        disabled
+        className="w-full h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[10px] font-medium text-gray-500 focus:outline-none shadow-sm transition-all cursor-not-allowed"
+      />
+    </div>
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Phone Number</label>
+      <input
+        value={profileForm.phone}
+        onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
+        placeholder="+91 98765 43210"
+        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
+      />
+    </div>
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Employee ID</label>
+      <input
+        value={profileForm.employeeId}
+        disabled
+        className="w-full h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[10px] font-medium text-gray-500 focus:outline-none shadow-sm transition-all cursor-not-allowed"
+      />
+    </div>
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Designation / Role</label>
+      <input
+        value={profileForm.designation}
+        onChange={e => setProfileForm(p => ({ ...p, designation: e.target.value }))}
+        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
+      />
+    </div>
+    <div className="space-y-1">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Department & Branch</label>
+      <input
+        value={profileForm.department}
+        onChange={e => setProfileForm(p => ({ ...p, department: e.target.value }))}
+        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
+      />
+    </div>
+  </div>
  </div>
 
  <div className="lg:col-span-4 bg-white rounded-[12px] border border-gray-100 shadow-sm overflow-hidden flex flex-col h-full">
@@ -280,7 +386,7 @@ export default function AdminProfileSettingsPage() {
  <button type="button" className="h-8 rounded-lg border border-gray-200 bg-white px-5 text-[10px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
  Discard Changes
  </button>
- <button type="button" className="h-8 rounded-lg bg-[#144835] px-5 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
+ <button onClick={handleSaveProfile} type="button" className="h-8 rounded-lg bg-[#144835] px-5 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
  Save All Changes
  </button>
  </div>

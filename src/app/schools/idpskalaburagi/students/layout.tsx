@@ -26,7 +26,7 @@ export default function AdminLayout({
 
  // Handle initial hydration state mismatch
  useEffect(() => {
- setIsSidebarOpen(false); // Only collapse after mount to prevent hydration mismatch
+
  setMounted(true);
  }, []);
 

@@ -55,6 +55,13 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
+    // ── users (extended profiles) ────────────────────────────────────────────
+    // Users can read/write their own profiles. Super admins can read/write all.
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow read, write: if isSuperAdmin();
+    }
+
     // ── global_announcements ─────────────────────────────────────────────────
     match /global_announcements/{announcementId} {
       allow read: if isAuthenticated();

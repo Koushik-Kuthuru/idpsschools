@@ -15,7 +15,7 @@ function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
 import { type LucideIcon } from "lucide-react";
 
-type SectionKey = "general" | "academic" | "exams" | "holidays" | "notifications" | "fees" | "staff";
+type SectionKey = "general" | "academic" | "exams" | "holidays" | "notifications" | "fees" | "staff" | "integrations";
 
 const sections: { key: SectionKey; label: string; desc: string; icon: LucideIcon }[] = [
   { key: "general",       label: "General",       desc: "Branch info & branding",     icon: Building2 },
@@ -25,6 +25,7 @@ const sections: { key: SectionKey; label: string; desc: string; icon: LucideIcon
   { key: "notifications", label: "Notifications", desc: "Alerts & digest settings",    icon: Bell },
   { key: "fees",          label: "Fees",          desc: "Billing & reminders",         icon: IndianRupee },
   { key: "staff",         label: "Staff Policy",  desc: "Working hours & leaves",      icon: Users },
+  { key: "integrations",  label: "Integrations",  desc: "SMS & WhatsApp API credentials", icon: Globe },
 ];
 
 const sectionColors: Record<SectionKey, { bg: string; text: string; ring: string }> = {
@@ -35,6 +36,7 @@ const sectionColors: Record<SectionKey, { bg: string; text: string; ring: string
   notifications: { bg: "bg-amber-50",    text: "text-amber-600",    ring: "ring-amber-200"    },
   fees:          { bg: "bg-teal-50",     text: "text-teal-700",     ring: "ring-teal-200"     },
   staff:         { bg: "bg-violet-50",   text: "text-violet-700",   ring: "ring-violet-200"   },
+  integrations:  { bg: "bg-rose-50",     text: "text-rose-700",     ring: "ring-rose-200"     },
 };
 
 function FieldCard({ label, children }: { label: string; children: React.ReactNode }) {
@@ -132,6 +134,15 @@ export default function AdminBranchSettingsPage() {
   // ── Notifications toggles ────────────────────────────────────────────────────
   const [notifs, setNotifs] = useState({ email: true, sms: false, inApp: true, digest: true });
 
+  // ── Twilio Credentials ────────────────────────────────────────────────────────
+  const [twilioCreds, setTwilioCreds] = useState({
+    accountSid: "",
+    authToken: "",
+    fromSms: "",
+    fromWhatsapp: "whatsapp:+14155238886",
+    testPhone: "",
+  });
+
   // ── Persist ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!schoolId) return;
@@ -144,6 +155,7 @@ export default function AdminBranchSettingsPage() {
     load("sessions", setSessions);
     load("holidays", setHolidays);
     load("notifs", setNotifs);
+    load("twilioCreds", setTwilioCreds);
   }, [schoolId]);
 
   useEffect(() => { localStorage.setItem(`branchDetails_${schoolId}`, JSON.stringify(branchDetails)); }, [branchDetails, schoolId]);
@@ -151,6 +163,7 @@ export default function AdminBranchSettingsPage() {
   useEffect(() => { localStorage.setItem(`sessions_${schoolId}`, JSON.stringify(sessions)); }, [sessions, schoolId]);
   useEffect(() => { localStorage.setItem(`holidays_${schoolId}`, JSON.stringify(holidays)); }, [holidays, schoolId]);
   useEffect(() => { localStorage.setItem(`notifs_${schoolId}`, JSON.stringify(notifs)); }, [notifs, schoolId]);
+  useEffect(() => { localStorage.setItem(`twilioCreds_${schoolId}`, JSON.stringify(twilioCreds)); }, [twilioCreds, schoolId]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
   const handleSaveGeneral = () => {
@@ -209,19 +222,22 @@ export default function AdminBranchSettingsPage() {
 
 
   return (
-    <div className="animate-in fade-in duration-500 font-jost pb-12">
-      {/* ── Page Header ── */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-black text-gray-900">Settings</h1>
-          <p className="text-xs font-medium text-gray-500 mt-1">{activeBranch.name} · Branch Configuration</p>
-        </div>
-        {saved && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 text-xs font-bold animate-in fade-in duration-200">
-            <CheckCircle2 size={14} /> Saved successfully
+    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 font-jost pb-20 sm:pb-24 max-w-[1600px] mx-auto -mx-0.5 sm:mx-auto">
+      {/* ── Page Header Banner ── */}
+      <section className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#144835] via-[#1a5a40] to-[#0d2e22] text-white border border-[#0d2e22] ring-1 ring-inset ring-white/10">
+        <div className="absolute -right-8 -top-8 h-32 sm:h-40 w-32 sm:w-40 rounded-full bg-[#a2c144]/20 blur-2xl pointer-events-none" />
+        <div className="relative p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-black tracking-tight leading-tight">Settings</h1>
+            <p className="text-xs sm:text-sm text-white/75 mt-1">{activeBranch.name} · Branch Configuration</p>
           </div>
-        )}
-      </div>
+          {saved && (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/15 rounded-xl text-white text-xs font-bold animate-in fade-in duration-200">
+              <CheckCircle2 size={14} className="text-[#a2c144]" /> Saved successfully
+            </div>
+          )}
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
         {/* ── Sidebar Nav ── */}
@@ -678,6 +694,70 @@ export default function AdminBranchSettingsPage() {
                     className="h-9 inline-flex items-center gap-2 rounded-xl bg-violet-600 text-white px-4 text-xs font-bold hover:bg-violet-700 shadow-md shadow-violet-200 transition-all shrink-0">
                     <ShieldCheck size={14} /> Configure
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* ════ INTEGRATIONS ════ */}
+            {activeSection === "integrations" && (
+              <div>
+                <SectionHeader sectionKey="integrations" title="SMS & WhatsApp Integrations"
+                  subtitle="Configure your Twilio credentials to enable sending real SMS and WhatsApp messages"
+                  onSave={() => showSaved()} />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <FieldCard label="Twilio Account SID">
+                    <input
+                      value={twilioCreds.accountSid}
+                      placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      onChange={e => setTwilioCreds(p => ({ ...p, accountSid: e.target.value }))}
+                      className={inputCls}
+                    />
+                  </FieldCard>
+                  <FieldCard label="Twilio Auth Token">
+                    <input
+                      type="password"
+                      value={twilioCreds.authToken}
+                      placeholder="Your Twilio Auth Token"
+                      onChange={e => setTwilioCreds(p => ({ ...p, authToken: e.target.value }))}
+                      className={inputCls}
+                    />
+                  </FieldCard>
+                  <FieldCard label="Twilio SMS From Number">
+                    <input
+                      value={twilioCreds.fromSms}
+                      placeholder="+1234567890"
+                      onChange={e => setTwilioCreds(p => ({ ...p, fromSms: e.target.value }))}
+                      className={inputCls}
+                    />
+                  </FieldCard>
+                  <FieldCard label="Twilio WhatsApp Sender Number">
+                    <input
+                      value={twilioCreds.fromWhatsapp}
+                      placeholder="whatsapp:+14155238886"
+                      onChange={e => setTwilioCreds(p => ({ ...p, fromWhatsapp: e.target.value }))}
+                      className={inputCls}
+                    />
+                  </FieldCard>
+                  <div className="md:col-span-2">
+                    <FieldCard label="Test Recipient Number">
+                      <input
+                        value={twilioCreds.testPhone}
+                        placeholder="+919876543210"
+                        onChange={e => setTwilioCreds(p => ({ ...p, testPhone: e.target.value }))}
+                        className={inputCls}
+                      />
+                    </FieldCard>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
+                  <p className="text-xs font-bold text-rose-900">Integration Guidelines</p>
+                  <p className="text-[10px] text-rose-600 mt-1 leading-relaxed">
+                    1. Direct WhatsApp Web sending is free and requires no configuration. Just select the channel when composing.<br />
+                    2. Automated SMS and WhatsApp Business messaging requires a Twilio developer account. Input your credentials above.<br />
+                    3. Credentials are saved locally in this browser's secure context.
+                  </p>
                 </div>
               </div>
             )}

@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Search, Bell, Menu, LogOut, User, X } from "lucide-react";
 import { flatNav } from "./navigation";
 import { auth } from "@/lib/firebase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -40,6 +41,18 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+
+  const userInitials = React.useMemo(() => {
+    if (!user) return "BA";
+    const name = user.displayName || user.email || "Branch Admin";
+    return name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -137,9 +150,13 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                   setNotificationsOpen(false);
                   setUserMenuOpen((open) => !open);
                 }}
-                className="h-8 w-8 rounded-full bg-[#144835] text-white flex items-center justify-center border-2 border-white shadow-sm hover:bg-[#0f3628] transition-colors"
+                className="h-8 w-8 rounded-full bg-[#144835] text-white flex items-center justify-center border-2 border-white shadow-sm hover:bg-[#0f3628] transition-colors overflow-hidden font-bold text-xs"
               >
-                <User size={16} />
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  userInitials
+                )}
               </button>
 
               {userMenuOpen && (
@@ -148,8 +165,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                   className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
                 >
                   <div className="px-3 py-2 border-b border-gray-50">
-                    <p className="text-[11px] font-bold text-gray-800">Manager</p>
-                    <p className="text-[10px] text-gray-500">Admin account</p>
+                    <p className="text-[11px] font-bold text-gray-800 truncate">{user?.displayName || "Branch Admin"}</p>
+                    <p className="text-[10px] text-gray-500 truncate">{user?.email || "admin@school.edu"}</p>
                   </div>
                   <button
                     type="button"

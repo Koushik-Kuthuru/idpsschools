@@ -5,15 +5,20 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
+  updateProfile as firebaseUpdateProfile,
   type User as FirebaseUser,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 export interface User {
   uid: string;
   email: string | null;
   displayName: string | null;
+  photoURL: string | null;
+  phone?: string;
+  designation?: string;
+  department?: string;
 }
 
 interface AuthContextType {
@@ -23,6 +28,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (details: Partial<User>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -32,6 +38,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => {},
   logout: async () => {},
+  updateProfile: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -77,10 +84,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         const { role: userRole, schoolId: userSchoolId } = await fetchUserRole(firebaseUser.uid);
+        
+        // Fetch extended profile from Firestore
+        let extendedProfile = {};
+        try {
+          const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (userDoc.exists()) {
+            extendedProfile = userDoc.data();
+          }
+        } catch (e) {
+          console.error("Failed to fetch extended profile:", e);
+        }
+
         setUser({
           uid: firebaseUser.uid,
           email: firebaseUser.email,
           displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          ...extendedProfile,
         });
         setRole(userRole);
         setSchoolId(userSchoolId);
@@ -96,18 +117,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    // signInWithEmailAndPassword triggers onAuthStateChanged above,
-    // which will set user/role/schoolId automatically.
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
     await signOut(auth);
-    // onAuthStateChanged will clear state automatically
+  };
+
+  const updateProfile = async (details: Partial<User>) => {
+    if (!auth.currentUser) throw new Error("No authenticated user found");
+    
+    // 1. Update Firebase Auth Profile
+    await firebaseUpdateProfile(auth.currentUser, {
+      displayName: details.displayName !== undefined ? details.displayName : auth.currentUser.displayName,
+      photoURL: details.photoURL !== undefined ? details.photoURL : auth.currentUser.photoURL,
+    });
+
+    // 2. Persist profile details to Firestore
+    const userDocRef = doc(db, "users", auth.currentUser.uid);
+    const existingDoc = await getDoc(userDocRef);
+    const existingData = existingDoc.exists() ? existingDoc.data() : {};
+
+    const updatedData = {
+      ...existingData,
+      displayName: details.displayName !== undefined ? details.displayName : (existingData.displayName || auth.currentUser.displayName || ""),
+      photoURL: details.photoURL !== undefined ? details.photoURL : (existingData.photoURL || auth.currentUser.photoURL || ""),
+      phone: details.phone !== undefined ? details.phone : (existingData.phone || ""),
+      designation: details.designation !== undefined ? details.designation : (existingData.designation || ""),
+      department: details.department !== undefined ? details.department : (existingData.department || ""),
+      email: auth.currentUser.email,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await setDoc(userDocRef, updatedData, { merge: true });
+
+    // 3. Update state
+    setUser(prev => prev ? {
+      ...prev,
+      ...updatedData,
+    } : null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, role, schoolId, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, role, schoolId, loading, login, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
