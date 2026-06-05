@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detailed Attendance | IDPS Student Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#e2e2e5",
+                      "secondary-container": "#fed488",
+                      "surface-container-low": "#f3f3f6",
+                      "error-container": "#ffdad6",
+                      "on-secondary-container": "#785a1a",
+                      "tertiary": "#00342d",
+                      "on-primary-fixed-variant": "#065043",
+                      "secondary-fixed": "#ffdea5",
+                      "on-tertiary-fixed-variant": "#005047",
+                      "outline": "#707975",
+                      "on-background": "#1a1c1e",
+                      "tertiary-fixed-dim": "#7ad7c6",
+                      "on-secondary-fixed-variant": "#5d4201",
+                      "primary-fixed": "#afefdd",
+                      "on-error-container": "#93000a",
+                      "gold-muted": "#E5D5B0",
+                      "status-success": "#2E7D32",
+                      "on-surface-variant": "#3f4945",
+                      "inverse-surface": "#2f3133",
+                      "primary": "#00342b",
+                      "primary-container": "#004d40",
+                      "surface-card": "#FFFFFF",
+                      "surface-container-high": "#e8e8ea",
+                      "surface-tint": "#29695b",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#f9f9fc",
+                      "status-info": "#0277BD",
+                      "on-secondary": "#ffffff",
+                      "surface-dim": "#dadadc",
+                      "secondary-fixed-dim": "#e9c176",
+                      "on-primary-fixed": "#00201a",
+                      "inverse-on-surface": "#f0f0f3",
+                      "on-tertiary-fixed": "#00201b",
+                      "tertiary-container": "#004d44",
+                      "tertiary-fixed": "#97f3e2",
+                      "on-primary-container": "#7ebdac",
+                      "outline-variant": "#bfc9c4",
+                      "inverse-primary": "#94d3c1",
+                      "on-tertiary-container": "#64c1b0",
+                      "on-error": "#ffffff",
+                      "error": "#ba1a1a",
+                      "on-surface": "#1a1c1e",
+                      "surface-container-highest": "#e2e2e5",
+                      "surface-container": "#eeeef0",
+                      "secondary": "#775a19",
+                      "primary-fixed-dim": "#94d3c1",
+                      "on-tertiary": "#ffffff",
+                      "on-secondary-fixed": "#261900",
+                      "surface-background": "#F4F7F6",
+                      "status-error": "#D32F2F",
+                      "on-primary": "#ffffff",
+                      "surface-bright": "#f9f9fc",
+                      "background": "#f9f9fc"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "md": "24px",
+                      "sm": "16px",
+                      "xl": "48px",
+                      "gutter": "24px",
+                      "lg": "32px",
+                      "margin-mobile": "16px",
+                      "xs": "8px",
+                      "margin-desktop": "32px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "body-lg": ["IBM Plex Sans"],
+                      "headline-lg": ["IBM Plex Sans"],
+                      "label-sm": ["IBM Plex Sans"],
+                      "body-sm": ["IBM Plex Sans"],
+                      "headline-md": ["IBM Plex Sans"],
+                      "display-lg": ["IBM Plex Sans"],
+                      "label-md": ["IBM Plex Sans"],
+                      "body-md": ["IBM Plex Sans"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                      "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "500"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                      "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: #F4F7F6; }
+        .attendance-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+    </style>
+</head>
+<body class="bg-surface-background text-on-surface">
+<div class="flex min-h-screen">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-72 left-0 sticky bg-surface-card border-r border-outline-variant flex flex-col py-md px-sm gap-base z-50">
+<div class="px-sm mb-lg">
+<h1 class="font-headline-sm text-headline-sm font-black text-primary">IDPS Portal</h1>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-70">Academic Year 2024-25</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-sm px-sm py-xs text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-sm px-sm py-xs text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">grade</span>
+                    Marks
+                </a>
+<!-- Active State: Attendance -->
+<a class="flex items-center gap-sm px-sm py-xs bg-secondary-container text-on-secondary-container font-bold rounded-lg transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+                    Attendance
+                </a>
+<a class="flex items-center gap-sm px-sm py-xs text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">payments</span>
+                    Fees
+                </a>
+<a class="flex items-center gap-sm px-sm py-xs text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-all font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">person</span>
+                    Profile
+                </a>
+</nav>
+<div class="mt-auto px-sm py-sm">
+<button class="w-full bg-primary text-white py-sm rounded-lg font-label-md text-label-md flex items-center justify-center gap-xs active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+                    Support Desk
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col">
+<!-- TopNavBar Component -->
+<header class="w-full top-0 sticky bg-surface-container-lowest border-b border-outline-variant shadow-sm z-40 flex justify-between items-center px-margin-desktop py-base h-16">
+<div class="flex items-center gap-md flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="w-full pl-10 pr-4 py-xs bg-surface-container border-none rounded-full font-body-sm text-body-sm focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search academic records..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md ml-auto">
+<button class="p-xs rounded-full hover:bg-surface-container-high transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-xs rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">help</span>
+</button>
+<div class="h-8 w-px bg-outline-variant mx-xs"></div>
+<div class="flex items-center gap-sm">
+<div class="text-right hidden sm:block">
+<p class="font-label-md text-label-md text-on-surface leading-none">Aryan Sharma</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">ID: 20240982</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-primary-container overflow-hidden">
+<img alt="Student Profile Avatar" class="w-full h-full object-cover" data-alt="A clean, professional headshot of a young South Asian male student with a friendly expression. He is wearing a dark academic blazer. The lighting is bright and studio-quality with a neutral grey background, consistent with a high-end educational institution portal's aesthetic. Sharp focus and high-fidelity textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyJPIoM895972cEmJYW2nCmmrVAODhky-4b0olDp2iwY2cJiPQift72MBl0QxNVOD1l1gsr7W4_5JX0BrYMkjSHT8zH5DMLl1U8_573JiSkBEvJYDPHRc0DJetma35MTsb0orjRgsUJOiNfY6DMlExNVKOcU5ccMcTlN5KU1HsYt7tLCDs8ZgNuCbOWUhKRATBL4NeG5IJmE58cXZQ6OYcvYoXHdRFjnXhfTB8LaDpdrHDWGZfPsGuYT6sEmUSo2iK2HjmlTGa4NxF"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content Canvas -->
+<div class="p-lg max-w-6xl mx-auto w-full">
+<!-- Page Header -->
+<div class="mb-lg">
+<nav class="flex items-center gap-xs text-on-surface-variant font-label-md text-label-md mb-xs">
+<a class="hover:text-primary transition-colors" href="#">Portal</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Attendance</a>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-primary font-bold">Detailed View</span>
+</nav>
+<h2 class="font-headline-lg text-headline-lg text-primary">Attendance Record</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Track your academic presence and leave history for the current semester.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Statistics Side Card -->
+<div class="col-span-12 lg:col-span-4 flex flex-col gap-gutter">
+<!-- Summary Card -->
+<div class="bg-surface-card border border-outline-variant rounded-lg p-md">
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wider">Overall Summary</h3>
+<div class="flex items-center justify-between mb-md">
+<div class="text-display-lg font-display-lg text-primary leading-tight">92<span class="text-headline-md">%</span></div>
+<div class="bg-secondary-container px-sm py-1 rounded-full text-on-secondary-container font-label-md text-label-md">Above Avg</div>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between items-center text-body-sm font-body-sm">
+<span class="text-on-surface-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-status-success"></span> Present
+                                    </span>
+<span class="font-bold">140 Days</span>
+</div>
+<div class="flex justify-between items-center text-body-sm font-body-sm">
+<span class="text-on-surface-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-status-error"></span> Absent
+                                    </span>
+<span class="font-bold">8 Days</span>
+</div>
+<div class="flex justify-between items-center text-body-sm font-body-sm">
+<span class="text-on-surface-variant flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-status-info"></span> Leave
+                                    </span>
+<span class="font-bold">4 Days</span>
+</div>
+</div>
+</div>
+<!-- Info Card -->
+<div class="bg-primary text-white rounded-lg p-md flex flex-col justify-between h-full min-h-[200px]">
+<div>
+<span class="material-symbols-outlined text-[32px] mb-sm opacity-80">info</span>
+<h4 class="font-headline-md text-headline-md mb-xs">Attendance Policy</h4>
+<p class="font-body-sm text-body-sm opacity-90">Maintain 75% attendance to be eligible for end-semester examinations. Medical certificates must be submitted within 3 days.</p>
+</div>
+<a class="mt-md font-label-md text-label-md underline underline-offset-4 hover:text-gold-muted transition-colors" href="#">Download Rules (PDF)</a>
+</div>
+</div>
+<!-- Main Calendar Card -->
+<div class="col-span-12 lg:col-span-8 bg-surface-card border border-outline-variant rounded-lg p-md overflow-hidden">
+<div class="flex items-center justify-between mb-lg">
+<div class="flex items-center gap-sm">
+<h3 class="font-headline-md text-headline-md text-primary">January 2025</h3>
+<div class="flex border border-outline-variant rounded-lg">
+<button class="p-xs hover:bg-surface-container-high transition-colors border-r border-outline-variant">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="p-xs hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant">
+<span class="material-symbols-outlined text-status-success text-[16px]">check_circle</span> Present
+                                </div>
+<div class="flex items-center gap-xs font-label-md text-label-md text-on-surface-variant">
+<span class="material-symbols-outlined text-status-error text-[16px]">cancel</span> Absent
+                                </div>
+</div>
+</div>
+<div class="attendance-calendar-grid border-t border-l border-outline-variant">
+<!-- Weekdays Header -->
+<div class="p-xs text-center font-label-md text-label-md bg-surface-container border-r border-b border-outline-variant">MON</div>
+<div class="p-xs text-center font-label-md text-label-md bg-surface-container border-r border-b border-outline-variant">TUE</div>
+<div class="p-xs text-center font-label-md text-label-md bg-surface-container border-r border-b border-outline-variant">WED</div>
+<div class="p-xs text-center font-label-md text-label-md bg-surface-container border-r border-b border-outline-variant">THU</div>
+<div class="p-xs text-center font-label-md text-label-md bg-surface-container border-r border-b border-outline-variant">FRI</div>
+<div class="p-xs text-center font-label-md text-label-md bg-surface-container border-r border-b border-outline-variant">SAT</div>
+<div class="p-xs text-center font-label-md text-label-md bg-surface-container border-r border-b border-outline-variant">SUN</div>
+<!-- Calendar Days -->
+<!-- Row 1: 1 (Wed) - 5 -->
+<div class="p-xs h-20 bg-surface-container-low border-r border-b border-outline-variant"></div>
+<div class="p-xs h-20 bg-surface-container-low border-r border-b border-outline-variant"></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between">
+<span class="font-label-md text-label-md opacity-60">1</span>
+<span class="material-symbols-outlined text-on-surface-variant self-center text-[18px]">fiber_manual_record</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-low">
+<span class="font-label-md text-label-md opacity-60">2</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-low">
+<span class="font-label-md text-label-md opacity-60">3</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface">
+<span class="font-label-md text-label-md opacity-60">4</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface">
+<span class="font-label-md text-label-md opacity-60">5</span>
+</div>
+<!-- Row 2: 6 - 12 -->
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-error-container/20">
+<span class="font-label-md text-label-md font-bold">6</span>
+<span class="material-symbols-outlined text-status-error self-center text-[22px]">close</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-error-container/20">
+<span class="font-label-md text-label-md font-bold">7</span>
+<span class="material-symbols-outlined text-status-error self-center text-[22px]">close</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-low">
+<span class="font-label-md text-label-md opacity-60">8</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-low">
+<span class="font-label-md text-label-md opacity-60">9</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-low">
+<span class="font-label-md text-label-md opacity-60">10</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface">
+<span class="font-label-md text-label-md opacity-60">11</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface">
+<span class="font-label-md text-label-md opacity-60">12</span>
+</div>
+<!-- Row 3: 13 - 19 -->
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-status-info/10">
+<span class="font-label-md text-label-md font-bold">13</span>
+<span class="material-symbols-outlined text-status-info self-center text-[18px]">remove</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-low">
+<span class="font-label-md text-label-md opacity-60">14</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-high ring-2 ring-primary ring-inset">
+<span class="font-label-md text-label-md font-bold text-primary">15</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-low">
+<span class="font-label-md text-label-md opacity-60">16</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant flex flex-col justify-between bg-surface-container-low">
+<span class="font-label-md text-label-md opacity-60">17</span>
+<span class="material-symbols-outlined text-status-success self-center text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface">
+<span class="font-label-md text-label-md opacity-60">18</span>
+</div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface">
+<span class="font-label-md text-label-md opacity-60">19</span>
+</div>
+<!-- Rest of the days generic -->
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">20</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">21</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">22</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">23</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">24</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface"><span class="font-label-md text-label-md opacity-60">25</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface"><span class="font-label-md text-label-md opacity-60">26</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">27</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">28</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">29</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">30</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container-low"><span class="font-label-md text-label-md opacity-60">31</span></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container"></div>
+<div class="p-xs h-20 border-r border-b border-outline-variant bg-surface-container"></div>
+</div>
+</div>
+<!-- Detailed Attendance Log Table -->
+<div class="col-span-12 bg-surface-card border border-outline-variant rounded-lg overflow-hidden">
+<div class="px-md py-sm bg-surface-container border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider">Detailed Attendance Log</h3>
+<button class="flex items-center gap-xs font-label-md text-label-md text-primary hover:underline">
+<span class="material-symbols-outlined text-[16px]">filter_list</span> Filter
+                            </button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low">
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">Date</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">Day</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">Status</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">Reason</th>
+<th class="px-md py-sm font-label-md text-label-md text-on-surface-variant">Remarks</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-gold-muted/10 transition-colors">
+<td class="px-md py-sm font-body-sm text-body-sm">Jan 15, 2025</td>
+<td class="px-md py-sm font-body-sm text-body-sm">Wednesday</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center gap-xs px-sm py-1 rounded-full bg-status-success/10 text-status-success font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px]">check</span> Present
+                                            </span>
+</td>
+<td class="px-md py-sm font-body-sm text-body-sm text-on-surface-variant">—</td>
+<td class="px-md py-sm font-body-sm text-body-sm text-on-surface-variant">Attended all lectures</td>
+</tr>
+<tr class="hover:bg-gold-muted/10 transition-colors">
+<td class="px-md py-sm font-body-sm text-body-sm">Jan 13, 2025</td>
+<td class="px-md py-sm font-body-sm text-body-sm">Monday</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center gap-xs px-sm py-1 rounded-full bg-status-info/10 text-status-info font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px]">remove</span> Leave
+                                            </span>
+</td>
+<td class="px-md py-sm font-body-sm text-body-sm">Family Event</td>
+<td class="px-md py-sm font-body-sm text-body-sm text-on-surface-variant">Approved by HOD</td>
+</tr>
+<tr class="hover:bg-gold-muted/10 transition-colors">
+<td class="px-md py-sm font-body-sm text-body-sm">Jan 07, 2025</td>
+<td class="px-md py-sm font-body-sm text-body-sm">Tuesday</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center gap-xs px-sm py-1 rounded-full bg-status-error/10 text-status-error font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px]">close</span> Absent
+                                            </span>
+</td>
+<td class="px-md py-sm font-body-sm text-body-sm">Sick Leave</td>
+<td class="px-md py-sm font-body-sm text-body-sm text-on-surface-variant">Medical cert pending</td>
+</tr>
+<tr class="hover:bg-gold-muted/10 transition-colors">
+<td class="px-md py-sm font-body-sm text-body-sm">Jan 06, 2025</td>
+<td class="px-md py-sm font-body-sm text-body-sm">Monday</td>
+<td class="px-md py-sm">
+<span class="inline-flex items-center gap-xs px-sm py-1 rounded-full bg-status-error/10 text-status-error font-label-md text-label-md">
+<span class="material-symbols-outlined text-[14px]">close</span> Absent
+                                            </span>
+</td>
+<td class="px-md py-sm font-body-sm text-body-sm">Sick Leave</td>
+<td class="px-md py-sm font-body-sm text-body-sm text-on-surface-variant">Reported via portal</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-md py-sm bg-surface-container-lowest flex justify-center">
+<button class="font-label-md text-label-md text-primary hover:bg-surface-container-high px-md py-xs rounded transition-colors">View More Records</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Button: Contextual for main screens -->
+<div class="fixed bottom-lg right-lg group">
+<button class="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center group-active:scale-95 transition-all">
+<span class="material-symbols-outlined">add</span>
+</button>
+<span class="absolute right-full mr-md top-1/2 -translate-y-1/2 bg-inverse-surface text-inverse-on-surface px-sm py-1 rounded font-label-md text-label-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+            Request Leave
+        </span>
+</div>
+<script>
+        // Micro-interactions and subtle effects
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.transform = 'translateX(4px)';
+                row.style.transition = 'transform 0.2s ease-out';
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.transform = 'translateX(0)';
+            });
+        });
+    </script>
+</body></html>

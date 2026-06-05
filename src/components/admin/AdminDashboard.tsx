@@ -227,7 +227,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
         query(collection(db, "schools", schoolId, "events"), orderBy("date", "asc"), limit(20)),
         (snap) => {
           const upcoming = snap.docs
-            .map((d) => ({ id: d.id, ...d.data() }))
+            .map((d) => ({ id: d.id, ...d.data() } as any))
             .filter((ev) => isUpcomingEvent(ev.date, today))
             .slice(0, 3);
           setEvents(upcoming);

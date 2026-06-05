@@ -156,7 +156,7 @@ export default function AdminEditStudentPage({
  hasSibling: "No", enqNo: "", session: "2024-2025",
  
  // Student Profile
- photo: null, registrationNo: "", grade: "", section: "", srnNo: "", formNo: "", studentType: "", studentName: "", gender: "", dob: "", aadharNo: "", house: "", stream: "", email: "", prevAttendance: "", motherTongue: "", onlyChild: false, adoptedChild: "", minority: "", minoritySpecify: "", nationality: "INDIAN", mediumOfInstruction: "ENGLISH", casteCategory: "", optionalSubject: "", offeredSubject: "", penNo: "",
+ photo: null, registrationNo: "", grade: "", section: "", srnNo: "", formNo: "", studentType: "", username: "", portalPassword: "", studentName: "", gender: "", dob: "", aadharNo: "", house: "", stream: "", email: "", prevAttendance: "", motherTongue: "", onlyChild: false, adoptedChild: "", minority: "", minoritySpecify: "", nationality: "INDIAN", mediumOfInstruction: "ENGLISH", casteCategory: "", optionalSubject: "", offeredSubject: "", penNo: "",
 
  // Health
  bloodGroup: "", leftVision: "", rightVision: "", weightTerm1: "", heightTerm1: "", weightTerm2: "", heightTerm2: "", disability: "", sportsActivity: "", admissionDate: new Date().toISOString().split('T')[0],
@@ -248,6 +248,7 @@ export default function AdminEditStudentPage({
  setSaving(true);
  const payload = {
  ...formData,
+ username: (formData.username || "").toLowerCase(),
  firstName: formData.studentName.split(' ')[0],
  lastName: formData.studentName.split(' ').slice(1).join(' '),
  classId: formData.grade,
@@ -461,7 +462,33 @@ export default function AdminEditStudentPage({
  <Select label="Offered Subject" value={formData.offeredSubject} onChange={(e: any) => handleChange('offeredSubject', e.target.value)} options={["Math", "Biology"]} tooltip="Select a core offered subject if applicable" />
  <Input label="Pen No" value={formData.penNo} onChange={(e: any) => handleChange('penNo', e.target.value)} tooltip="Enter the Permanent Education Number (PEN) if applicable" />
  </FormGroup>
- </div>
+
+ {/* Prominent Credentials Card */}
+ <div className="mt-4 p-5 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-sm flex flex-col md:grid md:grid-cols-5 gap-4">
+    <div className="col-span-full border-b border-amber-200/50 pb-2.5 mb-1 flex items-center gap-2">
+      <span className="text-lg">🔒</span>
+      <div>
+        <h3 className="text-xs font-black text-amber-800 uppercase tracking-wide">Portal Access Credentials</h3>
+        <p className="text-[9px] text-amber-600 font-bold uppercase mt-0.5">Critical information required for student/parent dashboard login</p>
+      </div>
+    </div>
+    <div className="col-span-2">
+      <Input label="Portal User ID / Username" value={formData.username || ""} onChange={(e: any) => handleChange('username', e.target.value)} tooltip="Defaults to the student's Registration/Admission Number." required />
+    </div>
+    <div className="col-span-2">
+      <Input label="Portal Login Password" value={formData.portalPassword || ""} onChange={(e: any) => handleChange('portalPassword', e.target.value)} tooltip="Portal access password." required />
+    </div>
+    <div className="col-span-1 flex items-end">
+      <button 
+        type="button" 
+        onClick={() => handleChange('username', formData.registrationNo || formData.admissionNo || formData.rollNumber)}
+        className="w-full h-8 rounded-lg border border-amber-300 hover:bg-amber-100/50 text-[10px] font-black uppercase text-amber-800 transition-all tracking-wide shadow-sm"
+      >
+        Reset to Roll No
+      </button>
+    </div>
+  </div>
+  </div>
 
  {/* STEP 2: HEALTH & BANK */}
  <div className={currentStep === 2 ? "block animate-in fade-in slide-in-from-bottom-2 duration-300" : "hidden"}>

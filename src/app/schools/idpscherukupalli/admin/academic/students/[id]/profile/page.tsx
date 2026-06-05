@@ -610,6 +610,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <InfoField label="SRN No" value={student.srnNo} />
  <InfoField label="Form No" value={student.formNo} />
  <InfoField label="Pen No" value={student.penNo} />
+ <InfoField label="User ID / Username" value={student.username} />
+ <InfoField label="Portal Password" value={student.portalPassword} />
  </div>
  </div>
 

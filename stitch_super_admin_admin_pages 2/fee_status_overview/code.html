@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Fee Status Overview - IDPS Student Portal</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: IBM Plex Sans -->
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#afefdd",
+                    "on-surface": "#1a1c1e",
+                    "error-container": "#ffdad6",
+                    "on-primary": "#ffffff",
+                    "primary": "#00342b",
+                    "outline-variant": "#bfc9c4",
+                    "surface": "#f9f9fc",
+                    "surface-variant": "#e2e2e5",
+                    "surface-tint": "#29695b",
+                    "on-secondary": "#ffffff",
+                    "surface-background": "#F4F7F6",
+                    "on-tertiary-fixed": "#00201b",
+                    "surface-container": "#eeeef0",
+                    "surface-container-lowest": "#ffffff",
+                    "status-success": "#2E7D32",
+                    "on-primary-fixed-variant": "#065043",
+                    "surface-container-highest": "#e2e2e5",
+                    "tertiary-container": "#004d44",
+                    "on-secondary-fixed-variant": "#5d4201",
+                    "outline": "#707975",
+                    "on-secondary-container": "#785a1a",
+                    "on-primary-fixed": "#00201a",
+                    "tertiary": "#00342d",
+                    "secondary": "#775a19",
+                    "on-tertiary-container": "#64c1b0",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "status-error": "#D32F2F",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed-dim": "#e9c176",
+                    "surface-bright": "#f9f9fc",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#97f3e2",
+                    "surface-card": "#FFFFFF",
+                    "surface-dim": "#dadadc",
+                    "surface-container-low": "#f3f3f6",
+                    "surface-container-high": "#e8e8ea",
+                    "primary-fixed-dim": "#94d3c1",
+                    "tertiary-fixed-dim": "#7ad7c6",
+                    "secondary-container": "#fed488",
+                    "on-primary-container": "#7ebdac",
+                    "on-background": "#1a1c1e",
+                    "secondary-fixed": "#ffdea5",
+                    "inverse-on-surface": "#f0f0f3",
+                    "primary-container": "#004d40",
+                    "inverse-primary": "#94d3c1",
+                    "on-surface-variant": "#3f4945",
+                    "on-tertiary-fixed-variant": "#005047",
+                    "status-info": "#0277BD",
+                    "inverse-surface": "#2f3133",
+                    "gold-muted": "#E5D5B0",
+                    "on-secondary-fixed": "#261900",
+                    "background": "#f9f9fc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "xl": "48px",
+                    "lg": "32px",
+                    "xs": "8px",
+                    "gutter": "24px",
+                    "md": "24px",
+                    "sm": "16px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "32px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["IBM Plex Sans"],
+                    "body-sm": ["IBM Plex Sans"],
+                    "label-sm": ["IBM Plex Sans"],
+                    "display-lg": ["IBM Plex Sans"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "headline-md": ["IBM Plex Sans"],
+                    "body-md": ["IBM Plex Sans"],
+                    "label-md": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #F4F7F6;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .zebra-row:hover {
+            background-color: rgba(197, 160, 89, 0.08); /* Gold-ish tint */
+        }
+    </style>
+</head>
+<body class="flex min-h-screen overflow-hidden text-on-surface">
+<!-- Sidebar (SideNavBar) -->
+<aside class="h-screen w-[280px] bg-surface-container dark:bg-surface-container-highest flex flex-col p-md space-y-xs shrink-0 z-20">
+<div class="mb-lg px-xs">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">IDPS Portal</h1>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-70">Academic Year 2023-24</p>
+</div>
+<nav class="flex-1 space-y-xs">
+<!-- Dashboard Tab -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all duration-200 cursor-pointer" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Marks Tab -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all duration-200 cursor-pointer" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-label-md text-label-md">Marks Overview</span>
+</a>
+<!-- Attendance Tab -->
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all duration-200 cursor-pointer" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Attendance</span>
+</a>
+<!-- Fee Management Tab (Active) -->
+<a class="flex items-center gap-sm px-sm py-sm bg-primary-container text-on-primary-container font-bold rounded-lg transition-all duration-200 cursor-pointer active:scale-[0.98]" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Fee Management</span>
+</a>
+</nav>
+<div class="pt-md border-t border-outline-variant space-y-xs">
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all duration-200 cursor-pointer" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Help Center</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-sm text-on-surface-variant hover:bg-surface-variant rounded-lg transition-all duration-200 cursor-pointer" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-10 bg-surface border-b border-outline-variant flex justify-between items-center px-lg py-sm w-full h-16 shrink-0">
+<div class="flex items-center gap-md">
+<div class="relative w-96">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-lg pl-xl pr-sm py-xs text-body-md focus:ring-2 focus:ring-primary-container" placeholder="Search invoices, records..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full cursor-pointer">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:bg-surface-container-high transition-colors rounded-full cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-[1px] h-6 bg-outline-variant mx-xs"></div>
+<div class="flex items-center gap-sm cursor-pointer">
+<img alt="Student Profile Avatar" class="w-10 h-10 rounded-full object-cover" data-alt="A professional studio portrait of a young male university student with a friendly expression. He is wearing a dark academic-style sweater over a crisp white collared shirt. The lighting is bright and even against a clean, neutral background, reflecting a modern institutional and scholarly aesthetic with high-key lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCU8vM0QnK7ZRzLl0nnv8SbpwmQ7YermHyAQ93TaamjuRoWm6EpZ1YQPo0gD31DqyAwzB-HGIUsjMXlykVaOYm7MSMohkg2wTQKr7l8gY6XXFBC4l26K-NwgVGrCWsbMYwTD9Er0VmNUauKEt4b1D0wT2qokO3XdeQBMPTInl_TC2Eqxh9cmgvKCd1ePk1ZUxVA4PLw05KHCFdL5YYs0I7YA7Xn49-K-6_2b2uVdLPPTXhPo35T3t-tQqJgh4J7mlhXteoL8URcLT-8"/>
+<div class="hidden xl:block">
+<p class="font-label-md text-label-md text-on-surface leading-none">Alex Johnson</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-1">Grade 12-A</p>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="p-lg max-w-[1440px] mx-auto w-full space-y-md">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-xs text-on-surface-variant mb-xs">
+<span class="font-label-md text-label-md hover:text-primary cursor-pointer">Dashboard</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="font-label-md text-label-md text-primary font-bold">Fees</span>
+</nav>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-md items-start">
+<!-- Fee Status Alert Card -->
+<div class="lg:col-span-8 bg-surface-card border border-outline-variant p-lg rounded-xl flex flex-col gap-md relative overflow-hidden">
+<!-- Subtle background pattern/texture -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 -mr-16 -mt-16 rounded-full"></div>
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface mb-xs">Current Fee Status</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Billing Cycle: Quarter 4 (Jan - Mar 2025)</p>
+</div>
+<div class="bg-error-container text-on-error-container px-sm py-xs rounded flex items-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wider">OVERDUE BY 15 DAYS</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md py-md border-y border-outline-variant border-dashed">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-xs">Amount Due</p>
+<p class="font-display-lg text-display-lg text-primary">$2,650.00</p>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase mb-xs">Due Date</p>
+<p class="font-headline-md text-headline-md text-on-surface">Jan 20, 2025</p>
+</div>
+<div class="flex items-center">
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-md rounded px-lg hover:bg-primary-container transition-all shadow-md active:scale-95 uppercase tracking-widest font-bold">
+                                PAY NOW
+                            </button>
+</div>
+</div>
+<div class="bg-surface-container-low p-sm rounded border-l-4 border-status-error flex gap-sm items-start">
+<span class="material-symbols-outlined text-status-error">report_problem</span>
+<p class="font-body-md text-body-md text-on-surface">
+<strong>Important Note:</strong> Overdue fees may affect exam eligibility. Please pay immediately to avoid administrative blocks on your student profile.
+                        </p>
+</div>
+</div>
+<!-- Last Payment Sidebar Card -->
+<div class="lg:col-span-4 bg-surface-card border border-outline-variant p-lg rounded-xl flex flex-col gap-sm">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase">Last Payment Information</h3>
+<div class="mt-xs">
+<p class="font-headline-md text-headline-md text-on-surface">$2,650.00</p>
+<div class="flex items-center gap-xs text-status-success mt-xs">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="font-label-md text-label-md">Payment Successful</span>
+</div>
+</div>
+<div class="flex justify-between items-center py-sm border-b border-outline-variant">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Date</span>
+<span class="font-label-md text-label-md">Dec 15, 2024</span>
+</div>
+<div class="flex justify-between items-center py-sm border-b border-outline-variant">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Method</span>
+<span class="font-label-md text-label-md">Online Transfer</span>
+</div>
+<div class="flex justify-between items-center py-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Transaction ID</span>
+<span class="font-label-md text-label-md font-mono">TXN-8829410</span>
+</div>
+<button class="mt-md flex items-center justify-center gap-xs text-primary font-label-md text-label-md py-sm border border-primary rounded hover:bg-primary hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                        Download Receipt
+                    </button>
+</div>
+<!-- Fee Structure Table -->
+<div class="lg:col-span-12 bg-surface-card border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<div class="p-lg border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">Detailed Fee Structure</h3>
+<div class="flex gap-sm">
+<button class="px-sm py-xs border border-outline text-on-surface font-label-md text-label-md rounded flex items-center gap-xs hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[16px]">print</span>
+                                Print Breakdown
+                            </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container text-on-surface-variant">
+<tr>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Item Description</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Per Month</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Annual Total</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Current Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="zebra-row transition-colors">
+<td class="px-lg py-md font-body-md text-body-md font-medium">Tuition Fees (Science Stream)</td>
+<td class="px-lg py-md font-body-md text-body-md">$1,500.00</td>
+<td class="px-lg py-md font-body-md text-body-md">$18,000.00</td>
+<td class="px-lg py-md">
+<span class="px-xs py-[2px] bg-secondary-container text-on-secondary-container rounded font-label-sm text-label-sm">Monthly Billing</span>
+</td>
+</tr>
+<tr class="zebra-row transition-colors">
+<td class="px-lg py-md font-body-md text-body-md font-medium">Sports &amp; Athletics Fund</td>
+<td class="px-lg py-md font-body-md text-body-md">$250.00</td>
+<td class="px-lg py-md font-body-md text-body-md">$3,000.00</td>
+<td class="px-lg py-md">
+<span class="px-xs py-[2px] bg-primary-fixed text-on-primary-fixed-variant rounded font-label-sm text-label-sm">Included in Plan</span>
+</td>
+</tr>
+<tr class="zebra-row transition-colors">
+<td class="px-lg py-md font-body-md text-body-md font-medium">Transport Services (Zone B)</td>
+<td class="px-lg py-md font-body-md text-body-md">$400.00</td>
+<td class="px-lg py-md font-body-md text-body-md">$4,800.00</td>
+<td class="px-lg py-md">
+<span class="px-xs py-[2px] bg-secondary-container text-on-secondary-container rounded font-label-sm text-label-sm">Monthly Billing</span>
+</td>
+</tr>
+<tr class="zebra-row transition-colors">
+<td class="px-lg py-md font-body-md text-body-md font-medium">Miscellaneous &amp; Lab Fees</td>
+<td class="px-lg py-md font-body-md text-body-md">$500.00</td>
+<td class="px-lg py-md font-body-md text-body-md">$6,000.00</td>
+<td class="px-lg py-md">
+<span class="px-xs py-[2px] bg-primary-fixed text-on-primary-fixed-variant rounded font-label-sm text-label-sm">Included in Plan</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Payment History Table -->
+<div class="lg:col-span-12 bg-surface-card border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<div class="p-lg border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-on-surface">Recent Payment History</h3>
+<button class="text-primary font-label-md text-label-md hover:underline flex items-center gap-xs">
+                            View Full History
+                            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container text-on-surface-variant">
+<tr>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Date</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Amount</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Mode</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Status</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Receipt ID</th>
+<th class="px-lg py-md font-label-md text-label-md uppercase">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="zebra-row transition-colors">
+<td class="px-lg py-md font-body-md text-body-md">Dec 15, 2024</td>
+<td class="px-lg py-md font-body-md text-body-md font-bold">$2,650.00</td>
+<td class="px-lg py-md font-body-md text-body-md">Online</td>
+<td class="px-lg py-md font-body-md text-body-md text-status-success font-medium">✓ Paid</td>
+<td class="px-lg py-md font-body-md text-body-md font-mono">IDPS-77421</td>
+<td class="px-lg py-md">
+<button class="text-primary hover:text-primary-container p-xs rounded-full">
+<span class="material-symbols-outlined">download_for_offline</span>
+</button>
+</td>
+</tr>
+<tr class="zebra-row transition-colors">
+<td class="px-lg py-md font-body-md text-body-md">Nov 20, 2024</td>
+<td class="px-lg py-md font-body-md text-body-md font-bold">$2,650.00</td>
+<td class="px-lg py-md font-body-md text-body-md">Check #9021</td>
+<td class="px-lg py-md font-body-md text-body-md text-status-success font-medium">✓ Paid</td>
+<td class="px-lg py-md font-body-md text-body-md font-mono">IDPS-76290</td>
+<td class="px-lg py-md">
+<button class="text-primary hover:text-primary-container p-xs rounded-full">
+<span class="material-symbols-outlined">download_for_offline</span>
+</button>
+</td>
+</tr>
+<tr class="zebra-row transition-colors">
+<td class="px-lg py-md font-body-md text-body-md">Oct 18, 2024</td>
+<td class="px-lg py-md font-body-md text-body-md font-bold">$2,650.00</td>
+<td class="px-lg py-md font-body-md text-body-md">Online</td>
+<td class="px-lg py-md font-body-md text-body-md text-status-success font-medium">✓ Paid</td>
+<td class="px-lg py-md font-body-md text-body-md font-mono">IDPS-75103</td>
+<td class="px-lg py-md">
+<button class="text-primary hover:text-primary-container p-xs rounded-full">
+<span class="material-symbols-outlined">download_for_offline</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Decoration -->
+<footer class="p-lg mt-auto text-center">
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-50">© 2024 International District Public School. All rights reserved. Secure Payment Gateway Active.</p>
+</footer>
+</div>
+<script>
+        // Simple micro-interaction for the PAY NOW button
+        const payBtn = document.querySelector('button.bg-primary');
+        if (payBtn) {
+            payBtn.addEventListener('click', () => {
+                payBtn.innerHTML = '<span class="material-symbols-outlined animate-spin mr-2">progress_activity</span>PROCESSING...';
+                payBtn.style.opacity = '0.8';
+                setTimeout(() => {
+                    alert('Redirecting to the secure IDPS payment gateway...');
+                    payBtn.innerHTML = 'PAY NOW';
+                    payBtn.style.opacity = '1';
+                }, 1500);
+            });
+        }
+
+        // Zebra row hover tracking script (Enhanced visual focus)
+        document.querySelectorAll('.zebra-row').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.boxShadow = 'inset 4px 0 0 0 #C5A059'; // Gold highlight on left
+            });
+            row.addEventListener('mouseleave', () => {
+                row.style.boxShadow = 'none';
+            });
+        });
+    </script>
+</body></html>

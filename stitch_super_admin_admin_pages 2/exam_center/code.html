@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Exam Center | IDPS Student Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container": "#eeeef0",
+            "surface-container-high": "#e8e8ea",
+            "on-background": "#1a1c1e",
+            "background": "#f9f9fc",
+            "on-primary-container": "#7ebdac",
+            "on-error": "#ffffff",
+            "surface": "#f9f9fc",
+            "on-secondary-fixed": "#261900",
+            "primary-fixed-dim": "#94d3c1",
+            "on-secondary-fixed-variant": "#5d4201",
+            "secondary-fixed": "#ffdea5",
+            "primary-container": "#004d40",
+            "surface-bright": "#f9f9fc",
+            "outline-variant": "#bfc9c4",
+            "on-tertiary-fixed-variant": "#005047",
+            "inverse-on-surface": "#f0f0f3",
+            "tertiary-container": "#004d44",
+            "on-primary": "#ffffff",
+            "secondary-container": "#fed488",
+            "surface-variant": "#e2e2e5",
+            "secondary-fixed-dim": "#e9c176",
+            "surface-container-low": "#f3f3f6",
+            "tertiary-fixed": "#97f3e2",
+            "surface-container-lowest": "#ffffff",
+            "on-surface": "#1a1c1e",
+            "status-info": "#0277BD",
+            "status-success": "#2E7D32",
+            "on-secondary-container": "#785a1a",
+            "inverse-primary": "#94d3c1",
+            "on-error-container": "#93000a",
+            "on-tertiary": "#ffffff",
+            "tertiary-fixed-dim": "#7ad7c6",
+            "error-container": "#ffdad6",
+            "surface-container-highest": "#e2e2e5",
+            "status-error": "#D32F2F",
+            "on-secondary": "#ffffff",
+            "surface-dim": "#dadadc",
+            "inverse-surface": "#2f3133",
+            "error": "#ba1a1a",
+            "secondary": "#775a19",
+            "surface-background": "#F4F7F6",
+            "on-primary-fixed-variant": "#065043",
+            "gold-muted": "#E5D5B0",
+            "on-surface-variant": "#3f4945",
+            "primary": "#00342b",
+            "on-tertiary-fixed": "#00201b",
+            "on-tertiary-container": "#64c1b0",
+            "primary-fixed": "#afefdd",
+            "on-primary-fixed": "#00201a",
+            "surface-card": "#FFFFFF",
+            "tertiary": "#00342d",
+            "surface-tint": "#29695b",
+            "outline": "#707975"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "xl": "48px",
+            "sm": "16px",
+            "xs": "8px",
+            "margin-mobile": "16px",
+            "margin-desktop": "32px",
+            "lg": "32px",
+            "base": "4px",
+            "md": "24px",
+            "gutter": "24px"
+          },
+          "fontFamily": {
+            "headline-lg": ["IBM Plex Sans"],
+            "display-lg": ["IBM Plex Sans"],
+            "label-sm": ["IBM Plex Sans"],
+            "label-md": ["IBM Plex Sans"],
+            "body-sm": ["IBM Plex Sans"],
+            "body-lg": ["IBM Plex Sans"],
+            "headline-md": ["IBM Plex Sans"],
+            "body-md": ["IBM Plex Sans"]
+          },
+          "fontSize": {
+            "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+            "display-lg": ["48px", {"lineHeight": "60px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+            "label-sm": ["11px", {"lineHeight": "14px", "fontWeight": "500"}],
+            "label-md": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+            "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      background-color: #F4F7F6;
+      font-family: 'IBM Plex Sans', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid #E0E4E3;
+    }
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 24px;
+    }
+    .countdown-glow {
+      text-shadow: 0 0 10px rgba(0, 77, 64, 0.2);
+    }
+  </style>
+</head>
+<body class="text-on-surface">
+<!-- SideNavBar Anchor -->
+<aside class="fixed left-0 top-0 h-full w-64 z-50 bg-surface-container dark:bg-surface-container-low flex flex-col gap-xs p-sm border-r border-outline-variant dark:border-outline hidden md:flex">
+<div class="mb-lg px-xs">
+<h1 class="font-headline-sm text-headline-sm font-black text-primary dark:text-primary-fixed">IDPS Portal</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Student Management</p>
+</div>
+<nav class="flex-grow flex flex-col gap-base">
+<a class="flex items-center gap-sm p-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm p-sm bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary rounded-lg font-bold transition-all duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined">grade</span>
+<span class="font-label-md text-label-md">Marks</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-label-md text-label-md">Attendance</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-md text-label-md">Fees</span>
+</a>
+<a class="flex items-center gap-sm p-sm text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-container-high transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<button class="mt-auto bg-primary text-on-primary py-sm px-md font-label-md text-label-md rounded-lg flex items-center justify-center gap-xs hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[18px]">support_agent</span>
+      Contact Support
+    </button>
+</aside>
+<!-- TopNavBar Anchor -->
+<header class="fixed top-0 w-full z-40 bg-surface dark:bg-surface-container-high border-b border-outline-variant dark:border-outline flex justify-between items-center px-md h-16 md:pl-72">
+<div class="flex items-center gap-md">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-full w-64 focus:ring-2 focus:ring-primary text-body-sm font-body-sm" placeholder="Search exams, marks..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex gap-sm">
+<span class="material-symbols-outlined text-primary cursor-pointer active:opacity-80">notifications</span>
+<span class="material-symbols-outlined text-primary cursor-pointer active:opacity-80">settings</span>
+</div>
+<div class="h-8 w-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Student Profile Picture" data-alt="A professional studio portrait of a university student with a friendly expression. He is wearing a modern charcoal sweater against a neutral, high-key educational background. The lighting is soft and even, highlighting a clean, sophisticated academic aesthetic with high-fidelity detail and a calm, reliable atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAeVTdhd8vr7pYsiRcbB-_lccaYV4LrUCUcIPGDiBNRyHvDpsKOC9BraITz-UedjSK-Y170cfBkC0tB1zbx1UfFsIW0U7jzQ0TOcaIi1zcYbhS9zhVAy3iYwtUmBkoFulvWOfFmp-59KmSBKGttgMyz0h1DIJV4nf52jCAXTgzJ3kIWbGlcC_RVoVvMj5PzX0MyEe5oQnauHMaaHHQrim_Q0OHFqNww6Ts6FqNtkoHLzI4RKbGiDF7WODLtevgzVjKKfgSIpYHDFlI"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pt-24 pb-xl px-md md:pl-72 max-w-[1440px] mx-auto min-h-screen">
+<!-- Hero Section / Header -->
+<section class="mb-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<span class="font-label-md text-label-md text-primary uppercase tracking-widest">Academic Year 2023-24</span>
+<h2 class="font-headline-lg text-headline-lg text-primary mt-xs">Exam Center</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage your schedules, hall tickets, and review academic performance.</p>
+</div>
+<div class="flex gap-sm">
+<button class="bg-surface-card border border-outline-variant text-primary px-md py-sm rounded-lg font-label-md text-label-md flex items-center gap-xs hover:bg-surface-container-low transition-colors shadow-sm">
+<span class="material-symbols-outlined">download_for_offline</span>
+             Download Schedule
+           </button>
+<button class="bg-primary text-on-primary px-md py-sm rounded-lg font-label-md text-label-md flex items-center gap-xs hover:opacity-95 transition-opacity shadow-sm">
+<span class="material-symbols-outlined">receipt_long</span>
+             Hall Ticket
+           </button>
+</div>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="bento-grid">
+<!-- Upcoming Exams Section (Large Card) -->
+<section class="col-span-12 lg:col-span-8 bg-surface-card border border-outline-variant rounded-xl p-md shadow-sm">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-md text-headline-md text-primary flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary-container">event_upcoming</span>
+            Upcoming Exams
+          </h3>
+<span class="text-status-info bg-blue-50 px-sm py-xs rounded-full font-label-md text-label-md">3 Exams Pending</span>
+</div>
+<div class="space-y-sm">
+<!-- Exam Card 1 -->
+<div class="group flex items-center gap-md p-md border border-outline-variant rounded-lg hover:border-primary hover:bg-primary/[0.02] transition-all cursor-default">
+<div class="flex flex-col items-center justify-center bg-surface-container h-16 w-16 rounded-lg text-primary">
+<span class="font-headline-md text-headline-md leading-none">24</span>
+<span class="font-label-sm text-label-sm uppercase">Oct</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-body-lg text-body-lg font-semibold text-primary">Advanced Macroeconomics</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Hall B-12 • 09:00 AM - 12:00 PM
+              </p>
+</div>
+<div class="text-right">
+<div class="font-headline-md text-headline-md text-primary countdown-glow">02d : 14h</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Time Remaining</p>
+</div>
+</div>
+<!-- Exam Card 2 -->
+<div class="group flex items-center gap-md p-md border border-outline-variant rounded-lg hover:border-primary hover:bg-primary/[0.02] transition-all cursor-default">
+<div class="flex flex-col items-center justify-center bg-surface-container h-16 w-16 rounded-lg text-primary">
+<span class="font-headline-md text-headline-md leading-none">27</span>
+<span class="font-label-sm text-label-sm uppercase">Oct</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-body-lg text-body-lg font-semibold text-primary">Corporate Law &amp; Governance</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Main Auditorium • 02:00 PM - 05:00 PM
+              </p>
+</div>
+<div class="text-right">
+<div class="font-headline-md text-headline-md text-on-surface-variant">05d : 19h</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Time Remaining</p>
+</div>
+</div>
+<!-- Exam Card 3 -->
+<div class="group flex items-center gap-md p-md border border-outline-variant rounded-lg hover:border-primary hover:bg-primary/[0.02] transition-all cursor-default opacity-80">
+<div class="flex flex-col items-center justify-center bg-surface-container h-16 w-16 rounded-lg text-primary">
+<span class="font-headline-md text-headline-md leading-none">31</span>
+<span class="font-label-sm text-label-sm uppercase">Oct</span>
+</div>
+<div class="flex-grow">
+<h4 class="font-body-lg text-body-lg font-semibold text-primary">Financial Econometrics</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Hall A-04 • 09:00 AM - 12:00 PM
+              </p>
+</div>
+<div class="text-right">
+<div class="font-headline-md text-headline-md text-on-surface-variant">09d : 14h</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Time Remaining</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Notice Board (Vertical Card) -->
+<section class="col-span-12 lg:col-span-4 bg-primary text-on-primary rounded-xl p-md shadow-lg flex flex-col">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-secondary-container">campaign</span>
+<h3 class="font-headline-md text-headline-md">Notice Board</h3>
+</div>
+<div class="space-y-md flex-grow overflow-y-auto pr-xs">
+<div class="border-l-4 border-secondary-fixed-dim pl-md py-xs">
+<h5 class="font-label-md text-label-md text-secondary-fixed">Mandatory ID Policy</h5>
+<p class="font-body-sm text-body-sm opacity-90 mt-xs">Students must carry their original ID card and the printed Hall Ticket for all exams. Soft copies will not be accepted.</p>
+</div>
+<div class="border-l-4 border-outline-variant pl-md py-xs">
+<h5 class="font-label-md text-label-md text-primary-fixed">Reporting Time</h5>
+<p class="font-body-sm text-body-sm opacity-90 mt-xs">Please report to your assigned examination hall at least 30 minutes before the scheduled start time.</p>
+</div>
+<div class="border-l-4 border-outline-variant pl-md py-xs">
+<h5 class="font-label-md text-label-md text-primary-fixed">Electronic Devices</h5>
+<p class="font-body-sm text-body-sm opacity-90 mt-xs">All electronic devices, including smartwatches and programmable calculators, are strictly prohibited.</p>
+</div>
+</div>
+<div class="mt-xl pt-md border-t border-white/10">
+<button class="w-full bg-secondary-container text-on-secondary-container font-label-md text-label-md py-sm rounded-lg hover:brightness-105 transition-all">
+            View All Guidelines
+          </button>
+</div>
+</section>
+<!-- Recent Results Summary (Medium Card) -->
+<section class="col-span-12 lg:col-span-7 bg-surface-card border border-outline-variant rounded-xl p-md shadow-sm">
+<div class="flex items-center justify-between mb-lg">
+<h3 class="font-headline-md text-headline-md text-primary">Recent Results</h3>
+<button class="text-primary font-label-md text-label-md flex items-center gap-xs hover:underline">
+            Detailed Statement <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Result Item -->
+<div class="p-md rounded-lg bg-surface-background border border-outline-variant flex justify-between items-center">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Microeconomics</p>
+<h4 class="font-headline-md text-headline-md text-primary">88/100</h4>
+</div>
+<div class="text-right">
+<span class="text-status-success font-label-md text-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> Grade: A
+              </span>
+</div>
+</div>
+<!-- Result Item -->
+<div class="p-md rounded-lg bg-surface-background border border-outline-variant flex justify-between items-center">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Business Ethics</p>
+<h4 class="font-headline-md text-headline-md text-primary">92/100</h4>
+</div>
+<div class="text-right">
+<span class="text-status-success font-label-md text-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">workspace_premium</span> Grade: A+
+              </span>
+</div>
+</div>
+<!-- Result Item -->
+<div class="p-md rounded-lg bg-surface-background border border-outline-variant flex justify-between items-center">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Quantitative Methods</p>
+<h4 class="font-headline-md text-headline-md text-primary">76/100</h4>
+</div>
+<div class="text-right">
+<span class="text-secondary font-label-md text-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">remove</span> Grade: B+
+              </span>
+</div>
+</div>
+<!-- Result Item -->
+<div class="p-md rounded-lg bg-surface-background border border-outline-variant flex justify-between items-center">
+<div>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Supply Chain Mgmt</p>
+<h4 class="font-headline-md text-headline-md text-primary">84/100</h4>
+</div>
+<div class="text-right">
+<span class="text-status-success font-label-md text-label-md flex items-center gap-xs">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> Grade: A-
+              </span>
+</div>
+</div>
+</div>
+</section>
+<!-- Quick Links / Hall Ticket (Small Card) -->
+<section class="col-span-12 lg:col-span-5 flex flex-col gap-md">
+<div class="bg-gold-muted/20 border border-gold-muted rounded-xl p-md flex flex-col justify-between h-1/2">
+<div>
+<h4 class="font-body-lg text-body-lg font-bold text-secondary">Download Hall Ticket</h4>
+<p class="font-body-sm text-body-sm text-on-secondary-container mt-xs">Mid-Semester Examinations (Oct 2023)</p>
+</div>
+<button class="mt-md bg-secondary text-on-secondary py-sm px-md rounded-lg font-label-md text-label-md flex items-center justify-center gap-sm shadow-md hover:bg-secondary/90 transition-all">
+<span class="material-symbols-outlined">download</span>
+            Download PDF (2.4 MB)
+          </button>
+</div>
+<div class="bg-surface-card border border-outline-variant rounded-xl p-md flex flex-col justify-between h-1/2">
+<div>
+<h4 class="font-body-lg text-body-lg font-bold text-primary">Re-evaluation Request</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Last date for submission: 15th Nov 2023</p>
+</div>
+<button class="mt-md border border-primary text-primary py-sm px-md rounded-lg font-label-md text-label-md flex items-center justify-center gap-sm hover:bg-surface-container transition-all">
+            Apply for Re-evaluation
+          </button>
+</div>
+</section>
+</div>
+<!-- Bottom Illustration / Atmospheric Decoration -->
+<div class="mt-xl relative h-64 w-full rounded-2xl overflow-hidden shadow-sm border border-outline-variant">
+<img alt="University Library Background" class="w-full h-full object-cover grayscale opacity-20" data-alt="An expansive, modern university library interior with floor-to-ceiling glass windows and rows of neatly arranged study desks. The space is filled with soft, natural morning light, creating a focused and serene academic atmosphere. The color palette is dominated by muted grays and deep bottle greens, echoing the institutional design theme with a high-fidelity, architectural photography style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZrMmshQzkN83HtDfbxkEKDMDcfbhuLjuS85OIo03Sjo_TUSjcA81oB5jrm053Q2kt8qEx372g1t5PlYQO-H1TncHynhU0BAhRg-F0WJ20-4htUE3NIh_ArzHoO2vi7guT1mAgOLIStl6GZPfC3CBIPEl3ne7E8Wja_9_zAHTbsZb0aV_xoZ_m5dTJndhm2GuB_uODS8McCsEh-lIgwVun9wkX_vegV1AGHCFV_bUOASDVc9VbFgOO8ZcufKHOguUghfxV3x6zCHD1"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface to-transparent flex flex-col justify-end p-lg">
+<h3 class="font-headline-md text-headline-md text-primary">Academic Integrity</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">IDPS Student Portal upholds the highest standards of academic integrity. Ensure you are familiar with the code of conduct before appearing for your examinations.</p>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-outline-variant px-sm py-xs flex justify-around items-center z-50">
+<div class="flex flex-col items-center p-xs text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-sm text-[10px]">Home</span>
+</div>
+<div class="flex flex-col items-center p-xs text-primary border-t-2 border-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grade</span>
+<span class="font-label-sm text-[10px]">Exams</span>
+</div>
+<div class="flex flex-col items-center p-xs text-on-surface-variant">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-label-sm text-[10px]">Fees</span>
+</div>
+<div class="flex flex-col items-center p-xs text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-[10px]">Profile</span>
+</div>
+</nav>
+<script>
+    // Micro-interaction for hover glow effect on countdowns
+    document.querySelectorAll('.countdown-glow').forEach(el => {
+      el.addEventListener('mouseenter', () => {
+        el.style.textShadow = "0 0 15px rgba(0, 77, 64, 0.4)";
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.textShadow = "0 0 10px rgba(0, 77, 64, 0.2)";
+      });
+    });
+
+    // Simple smooth scroll or entry animation logic
+    window.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.bento-grid > section');
+      cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          card.style.transition = 'all 0.5s ease-out';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+    });
+  </script>
+</body></html>

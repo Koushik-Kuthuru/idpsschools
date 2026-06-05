@@ -87,6 +87,11 @@ service cloud.firestore {
       allow read, write: if isSuperAdmin();
       allow read, write: if isSchoolMember(schoolId);
 
+      match /students/{studentId} {
+        allow read: if true;
+        allow write: if isSuperAdmin() || isSchoolAdmin(schoolId);
+      }
+
       match /{subcollection}/{document=**} {
         allow read, write: if isSuperAdmin();
         allow read, write: if isSchoolMember(schoolId);

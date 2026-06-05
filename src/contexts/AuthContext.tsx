@@ -8,7 +8,7 @@ import {
   updateProfile as firebaseUpdateProfile,
   type User as FirebaseUser,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 
 export interface User {
@@ -19,6 +19,8 @@ export interface User {
   phone?: string;
   designation?: string;
   department?: string;
+  studentName?: string;
+  photo?: string;
 }
 
 interface AuthContextType {
@@ -106,6 +108,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setRole(userRole);
         setSchoolId(userSchoolId);
       } else {
+        // Fallback: check if a student session is stored in localStorage
+        const sessionStr = typeof window !== "undefined" ? localStorage.getItem("student_session") : null;
+        if (sessionStr) {
+          try {
+            const { student: studentDoc, schoolId: userSchoolId } = JSON.parse(sessionStr);
+            setUser({
+              uid: studentDoc.id,
+              email: studentDoc.email || `${studentDoc.username}@student.idps`,
+              displayName: studentDoc.studentName,
+              photoURL: studentDoc.photo || null,
+              ...studentDoc,
+            });
+            setRole("student");
+            setSchoolId(userSchoolId);
+            setLoading(false);
+            return;
+          } catch (e) {
+            console.error("Failed to parse student session", e);
+          }
+        }
         setUser(null);
         setRole(null);
         setSchoolId(null);
@@ -117,10 +139,72 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    // 1. Try to search for a student doc with this username and password in both school branches
+    let studentDoc: any = null;
+    let foundSchoolId: string | null = null;
+    
+    let schoolsToCheck = ["idpscherukupalli", "idpskalaburagi"];
+    if (typeof window !== "undefined") {
+      const hostname = window.location.hostname.toLowerCase();
+      if (hostname.includes("cherukupalli")) {
+        schoolsToCheck = ["idpscherukupalli"];
+      } else if (hostname.includes("kalaburagi")) {
+        schoolsToCheck = ["idpskalaburagi"];
+      }
+    }
+    
+    for (const sch of schoolsToCheck) {
+      try {
+        const usernames = Array.from(new Set([email.toLowerCase(), email]));
+        const q = query(
+          collection(db, "schools", sch, "students"),
+          where("username", "in", usernames),
+          where("portalPassword", "==", password)
+        );
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          studentDoc = { id: snap.docs[0].id, ...snap.docs[0].data() };
+          foundSchoolId = sch;
+          break;
+        }
+      } catch (err) {
+        console.error(`Error searching student credentials in ${sch}:`, err);
+      }
+    }
+
+    if (studentDoc && foundSchoolId) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("student_session", JSON.stringify({
+          student: studentDoc,
+          schoolId: foundSchoolId,
+        }));
+      }
+      setUser({
+        uid: studentDoc.id,
+        email: studentDoc.email || `${studentDoc.username}@student.idps`,
+        displayName: studentDoc.studentName,
+        photoURL: studentDoc.photo || null,
+        ...studentDoc,
+      });
+      setRole("student");
+      setSchoolId(foundSchoolId);
+      return;
+    }
+
+    // 2. Default fallback to standard Firebase Auth user login
+    if (email.includes("@")) {
+      await signInWithEmailAndPassword(auth, email, password);
+    } else {
+      const error = new Error("Invalid username or password.");
+      (error as any).code = "auth/invalid-credential";
+      throw error;
+    }
   };
 
   const logout = async () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("student_session");
+    }
     await signOut(auth);
   };
 

@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import Sidebar from "@/components/students/Sidebar";
-import Header from "@/components/students/Header";
+import Sidebar from "@/components/erp-students/Sidebar";
+import Header from "@/components/erp-students/Header";
 import { BranchProvider } from "@/components/admin/BranchContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
