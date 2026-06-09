@@ -224,11 +224,16 @@ export default function AdminAttendancePage() {
  {loadError}
  </div>
  )}
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Attendance"
+  description="Mark and review daily student attendance by class and section"
+ />
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col lg:flex-row items-start lg:items-end justify-between gap-4">
  <div className="flex flex-wrap items-end gap-3 w-full lg:w-auto">
  <div className="flex flex-col gap-1.5 w-full sm:w-[240px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Date</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Date</label>
  <div className="flex items-center gap-1.5">
    <button 
      type="button"
@@ -267,7 +272,7 @@ export default function AdminAttendancePage() {
  </div>
 
  <div className="flex flex-col gap-1.5 w-full sm:w-[140px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Class</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Class</label>
  <select
  value={grade}
  onChange={(e) => setGrade(e.target.value)}
@@ -280,7 +285,7 @@ export default function AdminAttendancePage() {
  </div>
 
  <div className="flex flex-col gap-1.5 w-full sm:w-[120px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Section</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Section</label>
  <select
  value={section}
  onChange={(e) => setSection(e.target.value)}
@@ -294,14 +299,14 @@ export default function AdminAttendancePage() {
  </select>
  </div>
 
- <button onClick={handleReset} className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors text-[11px] font-bold shrink-0 mt-1" title="Reset Filters">
+ <button onClick={handleReset} className="h-9 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors text-xs font-bold shrink-0 mt-1" title="Reset Filters">
   <RotateCw size={12} /> Reset
  </button>
  </div>
 
  <div className="flex flex-wrap items-end gap-3 w-full lg:w-auto">
  <div className="flex flex-col gap-1.5 w-full sm:w-[160px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Sort By</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Sort By</label>
  <select
    value={sortBy}
    onChange={(e) => setSortBy(e.target.value as any)}
@@ -312,7 +317,7 @@ export default function AdminAttendancePage() {
  </select>
  </div>
  <div className="flex flex-col gap-1.5 w-full sm:w-[240px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Search</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Search</label>
  <div className="relative">
  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
  <input
@@ -327,11 +332,11 @@ export default function AdminAttendancePage() {
  </div>
 
  {/* Main Content Area */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="px-5 py-3 border-b border-gray-100 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
  <div className="flex items-center gap-3">
- <h2 className="text-sm font-black text-gray-800">Attendance Roster</h2>
- <div className="hidden sm:flex items-center gap-2 text-[10px] font-bold bg-gray-50 px-2 py-1 rounded border border-gray-200">
+ <h2 className="text-sm font-bold text-gray-800">Attendance Roster</h2>
+ <div className="hidden sm:flex items-center gap-2 text-xs font-bold bg-gray-50 px-2 py-1 rounded border border-gray-200">
  <span className="text-gray-600">Total: {totals.total}</span>
  <div className="w-1 h-1 rounded-full bg-gray-300"></div>
  <span className="text-emerald-600">Present: {totals.present}</span>
@@ -341,11 +346,11 @@ export default function AdminAttendancePage() {
  </div>
  
  <div className="flex items-center gap-2">
- <ExportButton data={filteredRoster} filename="Attendance" className="h-8 inline-flex items-center gap-1.5 rounded-lg bg-white border border-gray-200 px-3 text-[11px] font-bold text-gray-600 hover:bg-gray-50 transition-colors shadow-sm" iconSize={12} />
+ <ExportButton data={filteredRoster} filename="Attendance" className="h-8 inline-flex items-center gap-1.5 rounded-lg bg-white border border-gray-200 px-3 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors shadow-sm" iconSize={12} />
  <button
  onClick={handleSave}
  disabled={isSaving}
- className="h-8 inline-flex items-center gap-1.5 rounded-lg bg-[#144835] px-4 text-[11px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all disabled:opacity-70"
+ className="h-8 inline-flex items-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all disabled:opacity-70"
  >
  {isSaving ? <RotateCw size={12} className="animate-spin" /> : <Save size={12} />}
  {isSaving ? "Saving..." : "Save"}
@@ -357,7 +362,7 @@ export default function AdminAttendancePage() {
  {selectedCount > 0 && (
  <div className="px-4 py-2 border-b border-gray-100 bg-blue-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-in slide-in-from-top-2">
  <div className="flex items-center gap-1.5">
- <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+ <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
  {selectedCount}
  </span>
  <span className="text-xs font-bold text-blue-900">students selected</span>
@@ -366,14 +371,14 @@ export default function AdminAttendancePage() {
  <button
  type="button"
  onClick={() => setRoster((prev) => prev.map((r) => (selected[r.studentId] ? { ...r, status: "P" } : r)))}
- className="h-7 inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-2.5 text-[10px] font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
+ className="h-7 inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
  >
  <CheckCircle2 size={12} /> Mark Present
  </button>
  <button
  type="button"
  onClick={() => setRoster((prev) => prev.map((r) => (selected[r.studentId] ? { ...r, status: "A" } : r)))}
- className="h-7 inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-2.5 text-[10px] font-bold text-red-700 hover:bg-red-100 transition-colors"
+ className="h-7 inline-flex items-center gap-1 rounded border border-red-200 bg-red-50 px-2.5 text-xs font-bold text-red-700 hover:bg-red-100 transition-colors"
  >
  <AlertCircle size={12} /> Mark Absent
  </button>
@@ -381,7 +386,7 @@ export default function AdminAttendancePage() {
  <button 
  type="button" 
  onClick={() => setSelected({})}
- className="h-7 inline-flex items-center gap-1 rounded text-[10px] font-bold text-blue-700 hover:bg-blue-100/50 px-2 transition-colors"
+ className="h-7 inline-flex items-center gap-1 rounded text-xs font-bold text-blue-700 hover:bg-blue-100/50 px-2 transition-colors"
  >
  Clear
  </button>
@@ -410,11 +415,11 @@ export default function AdminAttendancePage() {
  }}
  />
  </th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider w-20">Roll</th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Student</th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-center w-48">Attendance</th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Remarks</th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right w-12"></th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-20">Roll</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Student</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center w-48">Attendance</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Remarks</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right w-12"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -440,14 +445,14 @@ export default function AdminAttendancePage() {
  </td>
  <td className="px-5 py-2.5">
  <div className="flex items-center gap-2.5">
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-black shrink-0", avatarColor)}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0", avatarColor)}>
  {initials}
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900">{r.name}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">{r.studentId}</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">{r.studentId}</p>
  {grade === "All" && (
- <p className="text-[10px] font-bold text-gray-600 mt-0.5">
+ <p className="text-xs font-bold text-gray-600 mt-0.5">
  {gradeLabel(r.classId)}-{r.section}
  </p>
  )}
@@ -461,7 +466,7 @@ export default function AdminAttendancePage() {
  type="button"
  onClick={() => setRoster((prev) => prev.map((x) => (x.studentId === r.studentId ? { ...x, status: "P" } : x)))}
  className={cn(
- "px-3 py-1 rounded text-[11px] font-bold transition-all",
+ "px-3 py-1 rounded text-xs font-bold transition-all",
  r.status === "P" ? "bg-emerald-500 text-white shadow-sm" : "text-gray-600 hover:bg-white hover:text-emerald-600"
  )}
  >
@@ -471,7 +476,7 @@ export default function AdminAttendancePage() {
  type="button"
  onClick={() => setRoster((prev) => prev.map((x) => (x.studentId === r.studentId ? { ...x, status: "A" } : x)))}
  className={cn(
- "px-3 py-1 rounded text-[11px] font-bold transition-all",
+ "px-3 py-1 rounded text-xs font-bold transition-all",
  r.status === "A" ? "bg-red-500 text-white shadow-sm" : "text-gray-600 hover:bg-white hover:text-red-600"
  )}
  >
@@ -481,7 +486,7 @@ export default function AdminAttendancePage() {
  </div>
  <div className="mt-1.5 flex items-center justify-center">
  <span className={cn(
- "text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-widest",
+ "text-xs font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide",
  r.attendancePercent >= 75 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
  )}>
  {Math.round(r.attendancePercent)}% Overall

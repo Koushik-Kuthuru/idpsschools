@@ -106,8 +106,13 @@ export default function AdminDepartmentsPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Departments"
+  description="Organize faculty and staff across school departments"
+ />
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="relative flex-1 sm:w-[320px]">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -139,45 +144,45 @@ export default function AdminDepartmentsPage() {
 
  {/* KPI Cards */}
  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <Building2 size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Departments</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Departments</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.totalDepartments}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
  <UserCheck size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Active</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.active}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
  <Users size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Staff</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Staff</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.totalStaff}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className={cn("h-10 w-10 rounded-full flex items-center justify-center shrink-0", stats.pendingHods > 0 ? "bg-orange-50 text-orange-600" : "bg-gray-50 text-gray-600")}>
  <AlertTriangle size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pending HODs</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending HODs</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.pendingHods}</p>
  </div>
@@ -185,22 +190,22 @@ export default function AdminDepartmentsPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
- <h2 className="text-sm font-black text-gray-800">Departments Directory</h2>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{filtered.length} departments</p>
+ <h2 className="text-sm font-bold text-gray-800">Departments Directory</h2>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{filtered.length} departments</p>
  </div>
 
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Dept ID</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Department Info</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Head of Dept (HOD)</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Staff Count</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Dept ID</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Department Info</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Head of Dept (HOD)</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Staff Count</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -214,38 +219,38 @@ export default function AdminDepartmentsPage() {
  return (
  <tr key={d.id} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5">
- <span className="text-[10px] font-bold text-gray-700 bg-gray-100/80 px-2 py-0.5 rounded border border-gray-200">
+ <span className="text-xs font-bold text-gray-700 bg-gray-100/80 px-2 py-0.5 rounded border border-gray-200">
  {d.id}
  </span>
  </td>
  <td className="px-4 py-2.5">
  <p className="text-xs font-bold text-gray-900">{d.name}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">{d.subtitle}</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">{d.subtitle}</p>
  </td>
  <td className="px-4 py-2.5">
  {d.hodName ? (
  <div className="flex items-center gap-2.5">
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold border", avatarColor)}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border", avatarColor)}>
  {initials}
  </div>
  <p className="text-xs font-bold text-gray-800">{d.hodName}</p>
  </div>
  ) : (
  <div className="flex items-center gap-2.5">
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold border border-dashed", avatarColor)}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border border-dashed", avatarColor)}>
  ?
  </div>
- <p className="text-[10px] font-bold text-orange-600 italic">Not Assigned</p>
+ <p className="text-xs font-bold text-orange-600 italic">Not Assigned</p>
  </div>
  )}
  </td>
  <td className="px-4 py-2.5">
- <span className="inline-flex items-center justify-center rounded bg-indigo-50 text-indigo-700 border border-indigo-100/50 px-2 py-0.5 text-[10px] font-bold">
+ <span className="inline-flex items-center justify-center rounded bg-indigo-50 text-indigo-700 border border-indigo-100/50 px-2 py-0.5 text-xs font-bold">
  {d.staffCount} Staff
  </span>
  </td>
  <td className="px-4 py-2.5">
- <span className={cn("inline-flex px-2 py-0.5 rounded text-[10px] font-bold border", statusTone(d.status))}>
+ <span className={cn("inline-flex px-2 py-0.5 rounded text-xs font-bold border", statusTone(d.status))}>
  {d.status}
  </span>
  </td>
@@ -272,10 +277,10 @@ export default function AdminDepartmentsPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No departments found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your search.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search.</p>
  <button 
  onClick={() => setSearchQuery("")}
- className="mt-2 text-[10px] font-bold text-[#144835] hover:underline"
+ className="mt-2 text-xs font-bold text-[#144835] hover:underline"
  >
  Clear search
  </button>

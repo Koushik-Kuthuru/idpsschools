@@ -203,8 +203,13 @@ export default function AdminFeeManagementPage() {
  {loadError}
  </div>
  )}
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Fee Structure"
+  description="Configure fee plans, dues, and grade-level billing"
+ />
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="relative flex-1 sm:w-[240px]">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -249,12 +254,12 @@ export default function AdminFeeManagementPage() {
  {/* KPI Cards */}
  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
  {kpiData.map((kpi, index) => (
- <div key={index} className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div key={index} className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className={`h-10 w-10 rounded-full ${kpi.color.replace('bg-', 'bg-').replace('500', '50')} ${kpi.color.replace('bg-', 'text-').replace('500', '600')} flex items-center justify-center shrink-0`}>
  <kpi.icon size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{kpi.title}</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{kpi.title}</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{kpi.value}</p>
  </div>
@@ -279,7 +284,7 @@ export default function AdminFeeManagementPage() {
  </div>
 
  {/* Main Content Area */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] flex flex-col overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 flex flex-col overflow-hidden">
  {/* Tabs & Toolbar */}
  <div className="border-b border-gray-100 px-4 py-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
  <div className="flex items-center bg-gray-50/80 p-1 rounded-lg border border-gray-100">
@@ -310,7 +315,7 @@ export default function AdminFeeManagementPage() {
  </div>
  
  <div className="flex items-center gap-2">
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
  {loading ? "Loading..." : `${activeTab === "structures" ? filteredFees.length : filteredCollections.length} records`}
  </p>
  </div>
@@ -322,13 +327,13 @@ export default function AdminFeeManagementPage() {
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Grade Level</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Academic Year</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Tuition</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Other Fees</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Total/Student</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Grade Level</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Academic Year</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Tuition</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Other Fees</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Total/Student</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -345,12 +350,12 @@ export default function AdminFeeManagementPage() {
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900">{gradeLabel(fee.grade)}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">{fee.students} Students</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">{fee.students} Students</p>
  </div>
  </div>
  </td>
  <td className="px-4 py-2.5">
- <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700 border border-gray-200">
+ <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200">
  {fee.academicYear}
  </span>
  </td>
@@ -359,14 +364,14 @@ export default function AdminFeeManagementPage() {
  </td>
  <td className="px-4 py-2.5">
  <p className="text-xs font-bold text-gray-700">₹{otherFees.toLocaleString()}</p>
- <p className="text-[9px] font-medium text-gray-500 mt-0.5">Sports, Transport, etc.</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">Sports, Transport, etc.</p>
  </td>
  <td className="px-4 py-2.5 text-xs font-bold text-[#144835]">
  ₹{total.toLocaleString()}
  </td>
  <td className="px-4 py-2.5">
  <span className={cn(
- "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border",
+ "inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border",
  fee.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
  'bg-amber-50 text-amber-700 border-amber-200'
  )}>
@@ -396,7 +401,7 @@ export default function AdminFeeManagementPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No fee structures found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
  </td>
  </tr>
  )}
@@ -408,12 +413,12 @@ export default function AdminFeeManagementPage() {
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Grade Level</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Expected Revenue</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Collected</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Pending</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Collection Progress</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right">Action</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Grade Level</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Expected Revenue</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Collected</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Pending</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Collection Progress</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Action</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -445,11 +450,11 @@ export default function AdminFeeManagementPage() {
  style={{ width: `${col.progress}%` }}
  />
  </div>
- <span className="text-[10px] font-bold text-gray-700 w-8">{col.progress}%</span>
+ <span className="text-xs font-bold text-gray-700 w-8">{col.progress}%</span>
  </div>
  </td>
  <td className="px-4 py-2.5 text-right">
- <button className="text-[10px] font-bold text-[#144835] hover:text-[#144835]/80 inline-flex items-center gap-1 justify-end transition-colors">
+ <button className="text-xs font-bold text-[#144835] hover:text-[#144835]/80 inline-flex items-center gap-1 justify-end transition-colors">
  View Details <ChevronRight size={14} />
  </button>
  </td>
@@ -462,7 +467,7 @@ export default function AdminFeeManagementPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No collection records found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
  </td>
  </tr>
  )}

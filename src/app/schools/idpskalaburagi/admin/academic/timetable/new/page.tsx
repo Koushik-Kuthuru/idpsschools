@@ -274,11 +274,11 @@ export default function AdminCreateTimetableSchedulePage() {
 
  <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
  <div className="xl:col-span-1 space-y-6">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
- <h2 className="text-xs font-black text-gray-900">Schedule Scope</h2>
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
+ <h2 className="text-xs font-bold text-gray-900">Schedule Scope</h2>
  <div className="mt-4 space-y-3">
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Scope</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Scope</label>
  <select value={scope} onChange={(e) => setScope(e.target.value as any)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800">
  <option value="term">Term</option>
  <option value="month">Month</option>
@@ -288,30 +288,30 @@ export default function AdminCreateTimetableSchedulePage() {
 
  {scope === "term" && (
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Term Key</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Term Key</label>
  <input value={termKey} onChange={(e) => setTermKey(e.target.value)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  )}
  {scope === "month" && (
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Month</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Month</label>
  <input type="month" value={monthKey} onChange={(e) => setMonthKey(e.target.value)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  )}
  {scope === "date" && (
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Date</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Date</label>
  <input type="date" value={dateKey} onChange={(e) => setDateKey(e.target.value)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  )}
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
- <h2 className="text-xs font-black text-gray-900">Class</h2>
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
+ <h2 className="text-xs font-bold text-gray-900">Class</h2>
  <div className="mt-4 space-y-3">
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Grade</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Grade</label>
  <div className="relative">
  <select value={grade} onChange={(e) => setGrade(e.target.value)} className="w-full h-9 appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-xs font-semibold text-gray-800">
  {gradeCatalog.map((g) => (
@@ -324,7 +324,7 @@ export default function AdminCreateTimetableSchedulePage() {
  </div>
  </div>
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
  <div className="relative">
  <select value={section} onChange={(e) => setSection(e.target.value)} className="w-full h-9 appearance-none rounded-lg border border-gray-200 bg-white px-4 pr-10 text-xs font-semibold text-gray-800">
  {sectionOptions.map((s) => (
@@ -345,10 +345,10 @@ export default function AdminCreateTimetableSchedulePage() {
  </div>
 
  <div className="xl:col-span-3">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="p-4 border-b border-gray-100 flex items-center justify-between">
  <div>
- <h2 className="text-base font-black text-gray-900">Schedule Grid</h2>
+ <h2 className="text-base font-bold text-gray-900">Schedule Grid</h2>
  <p className="text-xs font-bold text-gray-500 mt-1">Click a slot to edit</p>
  </div>
  <button onClick={() => setEditorOpen(true)} type="button" className="h-10 px-4 rounded-lg bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-sm inline-flex items-center gap-2">
@@ -358,7 +358,7 @@ export default function AdminCreateTimetableSchedulePage() {
  <div className="overflow-x-auto">
  <table className="min-w-[980px] w-full">
  <thead className="bg-gray-50/80">
- <tr className="text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+ <tr className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
  <th className="px-4 py-2.5 w-[140px] border-b border-gray-100">Time</th>
  {days.map((d) => (
  <th key={d} className="px-4 py-2.5 border-b border-gray-100">
@@ -384,7 +384,7 @@ export default function AdminCreateTimetableSchedulePage() {
  )}
  >
  <p className="text-xs font-bold">{cell.subject}</p>
- <p className="mt-1 text-[10px] font-bold opacity-80">{cell.room || "—"}</p>
+ <p className="mt-1 text-xs font-bold opacity-80">{cell.room || "—"}</p>
  </button>
  </td>
  );
@@ -395,7 +395,7 @@ export default function AdminCreateTimetableSchedulePage() {
  <tr className="bg-gray-50/50">
  <td className="px-6 py-3" />
  <td colSpan={5} className="px-6 py-3">
- <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
+ <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wide">
  <span className="w-10 h-px bg-gray-200"></span>
  ☕ BREAK (10:00 - 10:30)
  <span className="w-10 h-px bg-gray-200"></span>
@@ -418,7 +418,7 @@ export default function AdminCreateTimetableSchedulePage() {
  )}
  >
  <p className="text-xs font-bold">{cell.subject}</p>
- <p className="mt-1 text-[10px] font-bold opacity-80">{cell.room || "—"}</p>
+ <p className="mt-1 text-xs font-bold opacity-80">{cell.room || "—"}</p>
  </button>
  </td>
  );
@@ -447,15 +447,15 @@ export default function AdminCreateTimetableSchedulePage() {
  ) : (
  <>
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject</label>
  <input value={editSubject} onChange={(e) => setEditSubject(e.target.value)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Room</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Room</label>
  <input value={editRoom} onChange={(e) => setEditRoom(e.target.value)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Accent</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Accent</label>
  <select value={editAccent} onChange={(e) => setEditAccent(e.target.value as any)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800">
  <option value="emerald">Emerald</option>
  <option value="blue">Blue</option>

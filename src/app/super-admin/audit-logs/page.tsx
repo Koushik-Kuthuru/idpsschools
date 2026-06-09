@@ -149,7 +149,7 @@ export default function AuditLogsPage() {
       </div>
 
       {/* Main Content Card */}
-      <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
         {/* Filters Bar */}
         <div className="p-4 border-b border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between bg-gray-50/30">
           <div className="relative w-full lg:w-96">
@@ -187,7 +187,7 @@ export default function AuditLogsPage() {
         {/* Logs Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50/50 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+            <thead className="bg-gray-50/50 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
               <tr>
                 <th className="px-4 py-2.5">Action</th>
                 <th className="px-4 py-2.5">Entity</th>

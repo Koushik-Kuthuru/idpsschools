@@ -46,7 +46,7 @@ export default function AdminNonTeachingStaffProfilePage({
  return (
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10">
  <div>
- <h1 className="text-xl font-black tracking-tight text-[#1A1A1A]">Non-Teaching Staff Profile</h1>
+ <h1 className="text-xl font-bold tracking-tight text-[#1A1A1A]">Non-Teaching Staff Profile</h1>
  <p className="mt-2 text-xs font-semibold text-slate-600">Staff not found: {employeeId}</p>
  </div>
  <Link

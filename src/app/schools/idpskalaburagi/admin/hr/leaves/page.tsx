@@ -203,8 +203,13 @@ export default function AdminLeavesPage() {
  {loadError}
  </div>
  )}
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Leave Management"
+  description="Review, approve, and track staff leave requests"
+ />
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="relative flex-1 sm:w-[280px]">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -260,7 +265,7 @@ export default function AdminLeavesPage() {
 
  {/* KPI Cards */}
  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
  <CalendarDays size={18} />
  </div>
@@ -271,7 +276,7 @@ export default function AdminLeavesPage() {
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
  <Filter size={18} />
  </div>
@@ -282,7 +287,7 @@ export default function AdminLeavesPage() {
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <Clock size={18} />
  </div>
@@ -293,7 +298,7 @@ export default function AdminLeavesPage() {
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
  <PieChart size={18} />
  </div>
@@ -312,16 +317,16 @@ export default function AdminLeavesPage() {
  <h2 className="text-xs font-bold text-gray-800">Pending & Recent Requests</h2>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Employee</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Type</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">From - To</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Employee</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Type</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">From - To</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -334,12 +339,12 @@ export default function AdminLeavesPage() {
  <tr key={r.id || r.employeeId} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5">
  <div className="flex items-center gap-2.5">
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 border border-white/20", avatarColor)}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 border border-white/20", avatarColor)}>
  {initials}
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900">{r.employeeName}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">
+ <p className="text-xs font-medium text-gray-500 mt-0.5">
  #{r.employeeId}
  {(r.designation || r.departmentId) ? ` • ${[r.designation, r.departmentId].filter(Boolean).join(" • ")}` : ""}
  </p>
@@ -347,14 +352,14 @@ export default function AdminLeavesPage() {
  </div>
  </td>
  <td className="px-4 py-2.5">
- <span className="text-[10px] font-bold text-gray-700 bg-gray-100/80 px-2 py-0.5 rounded-md">{r.type}</span>
+ <span className="text-xs font-bold text-gray-700 bg-gray-100/80 px-2 py-0.5 rounded-md">{r.type}</span>
  </td>
  <td className="px-4 py-2.5">
  <p className="text-xs font-bold text-gray-900">{r.from}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">to {r.to}</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">to {r.to}</p>
  </td>
  <td className="px-4 py-2.5">
- <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border", statusTone(r.status))}>
+ <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-bold border", statusTone(r.status))}>
  {r.status === "Approved" ? <CheckCircle2 size={10}/> : r.status === "Pending" ? <Clock size={10}/> : <AlertCircle size={10}/>}
  {r.status}
  </span>
@@ -400,10 +405,10 @@ export default function AdminLeavesPage() {
  <Search size={18} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No requests found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your filters.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your filters.</p>
  <button 
  onClick={() => { setQuery(""); setStatusFilter("All Status"); setTypeFilter("Leave Type"); }}
- className="mt-4 text-[10px] font-bold text-[#144835] hover:underline"
+ className="mt-4 text-xs font-bold text-[#144835] hover:underline"
  >
  Clear all filters
  </button>
@@ -414,12 +419,12 @@ export default function AdminLeavesPage() {
  </table>
 
  <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
- <p className="text-[10px] font-medium text-gray-500">Showing {filteredRequests.length} requests</p>
+ <p className="text-xs font-medium text-gray-500">Showing {filteredRequests.length} requests</p>
  <div className="flex items-center gap-2">
- <button className="h-7 px-3 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-[10px] font-bold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50">
+ <button className="h-7 px-3 flex items-center justify-center rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors disabled:opacity-50">
  Previous
  </button>
- <button className="h-7 px-3 flex items-center justify-center rounded-lg bg-[#144835] text-[10px] font-bold text-white shadow-sm hover:bg-[#144835]/90 transition-colors">
+ <button className="h-7 px-3 flex items-center justify-center rounded-lg bg-[#144835] text-xs font-bold text-white shadow-sm hover:bg-[#144835]/90 transition-colors">
  Next
  </button>
  </div>
@@ -433,8 +438,8 @@ export default function AdminLeavesPage() {
  <h2 className="text-xs font-bold text-gray-800">Leave Summary</h2>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden p-4">
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Most Approved Days (This Year)</p>
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden p-4">
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Most Approved Days (This Year)</p>
 
  <div className="mt-4 space-y-3">
  {(() => {
@@ -465,7 +470,7 @@ export default function AdminLeavesPage() {
  <div key={row.employeeId} className="flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/40 px-3 py-2">
  <div>
  <p className="text-xs font-bold text-gray-900">{name}</p>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mt-0.5">#{row.employeeId}</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-0.5">#{row.employeeId}</p>
  </div>
  <div className="text-xs font-extrabold text-[#144835]">{row.days.toFixed(1)}d</div>
  </div>
@@ -474,7 +479,7 @@ export default function AdminLeavesPage() {
  })()}
  </div>
 
- <p className="mt-3 text-center text-[10px] font-medium text-gray-400">Last updated: {new Date().toLocaleString("en-IN")}</p>
+ <p className="mt-3 text-center text-xs font-medium text-gray-400">Last updated: {new Date().toLocaleString("en-IN")}</p>
  </div>
  </div>
  </div>

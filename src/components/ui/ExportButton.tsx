@@ -98,7 +98,7 @@ export default function ExportButton({ data, filename, columns, className, iconS
     setIsOpen(false);
   };
 
-  const defaultClassName = "h-9 lg:h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 lg:px-4 text-[11px] lg:text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors";
+  const defaultClassName = "h-9 lg:h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 lg:px-4 text-xs lg:text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors";
 
   return (
     <div className="relative inline-block text-left" ref={dropdownRef}>

@@ -282,7 +282,7 @@ export default function AdminGenerateInvoicePage() {
  <div className="pt-4 border-t border-slate-100">
  <div className="flex justify-between items-end">
  <span className="text-slate-900 font-bold">Total Amount</span>
- <span className="text-xl font-black text-[#144835]">₹{total.toFixed(2)}</span>
+ <span className="text-xl font-bold text-[#144835]">₹{total.toFixed(2)}</span>
  </div>
  </div>
  </div>

@@ -142,7 +142,7 @@ export default function ResetPasswordPage() {
 
  {/* Password Strength */}
  <div className="space-y-2">
- <div className="flex justify-between items-center text-[10px] uppercase font-bold tracking-wider text-gray-400">
+ <div className="flex justify-between items-center text-xs uppercase font-bold tracking-wider text-gray-400">
  <span>Strength</span>
  <span>{
  requirements.filter(r => r.valid).length === 0 ? "Weak" :

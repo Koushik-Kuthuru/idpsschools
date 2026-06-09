@@ -139,7 +139,7 @@ export default function AdminNewSubjectPage() {
 
  return (
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+ <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
  <div className="flex items-center gap-3">
  <Link href={`/schools/${schoolId}/admin/academic/subjects`} className="p-2 rounded-lg hover:bg-gray-50 text-gray-600">
  <ArrowLeft size={18} />
@@ -158,11 +158,11 @@ export default function AdminNewSubjectPage() {
 
  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
  <div className="xl:col-span-1 space-y-6">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
- <h2 className="text-xs font-black text-gray-900">Class</h2>
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
+ <h2 className="text-xs font-bold text-gray-900">Class</h2>
  <div className="mt-4 space-y-3">
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Grade</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Grade</label>
  <select value={form.grade} onChange={(e) => setForm((p) => ({ ...p, grade: e.target.value }))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800">
  {gradeCatalog.map((g) => (
  <option key={g} value={g}>{/^\d+$/.test(g) ? `Grade ${g}` : g}</option>
@@ -170,7 +170,7 @@ export default function AdminNewSubjectPage() {
  </select>
  </div>
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
  <select value={form.section} onChange={(e) => setForm((p) => ({ ...p, section: e.target.value }))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800">
  {sectionOptions.map((s) => (
  <option key={s} value={s}>{String(s).toUpperCase()}</option>
@@ -180,19 +180,19 @@ export default function AdminNewSubjectPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
- <h2 className="text-xs font-black text-gray-900">Subject Info</h2>
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
+ <h2 className="text-xs font-bold text-gray-900">Subject Info</h2>
  <div className="mt-4 space-y-3">
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject Name</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject Name</label>
  <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Code</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Code</label>
  <input value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Description</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Description</label>
  <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} className="w-full min-h-[120px] rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs font-semibold text-gray-800" />
  </div>
  </div>
@@ -200,10 +200,10 @@ export default function AdminNewSubjectPage() {
  </div>
 
  <div className="xl:col-span-2">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="p-4 border-b border-gray-100 flex items-center justify-between">
  <div>
- <h2 className="text-base font-black text-gray-900">Portions</h2>
+ <h2 className="text-base font-bold text-gray-900">Portions</h2>
  <p className="text-xs font-bold text-gray-500 mt-1">Define syllabus/portion with date range and status</p>
  </div>
  <button
@@ -232,7 +232,7 @@ export default function AdminNewSubjectPage() {
 
  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
  <div className="md:col-span-2">
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Title</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Title</label>
  <input
  value={p.title}
  onChange={(e) =>
@@ -246,7 +246,7 @@ export default function AdminNewSubjectPage() {
  </div>
 
  <div className="md:col-span-2">
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Chapters / Portion</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Chapters / Portion</label>
  <textarea
  value={p.chapters}
  onChange={(e) =>
@@ -260,7 +260,7 @@ export default function AdminNewSubjectPage() {
  </div>
 
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">From</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">From</label>
  <input
  type="date"
  value={p.from}
@@ -274,7 +274,7 @@ export default function AdminNewSubjectPage() {
  />
  </div>
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">To</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">To</label>
  <input
  type="date"
  value={p.to}
@@ -289,7 +289,7 @@ export default function AdminNewSubjectPage() {
  </div>
 
  <div>
- <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Status</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Status</label>
  <select
  value={p.status}
  onChange={(e) =>

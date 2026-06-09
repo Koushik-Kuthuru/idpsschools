@@ -134,18 +134,18 @@ export default function AdminSubjectsPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div>
- <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Subjects</h1>
+ <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Subjects</h1>
  <p className="text-xs font-medium text-gray-500 mt-0.5">Different subjects for each class/section with portion planning</p>
  <div className="mt-2 flex flex-wrap items-center gap-2">
- <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-gray-100/80 text-gray-700">
+ <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-bold bg-gray-100/80 text-gray-700">
  <BookOpen size={12} className="text-gray-400" /> {counts.total} subjects
  </span>
- <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100/50">
+ <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100/50">
  {counts.planned} planned portions
  </span>
- <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100/50">
+ <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100/50">
  {counts.inProgress} in-progress portions
  </span>
  </div>
@@ -163,7 +163,7 @@ export default function AdminSubjectsPage() {
  </div>
  )}
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="relative flex-1 sm:w-[280px]">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -196,19 +196,19 @@ export default function AdminSubjectsPage() {
  </div>
  </div>
 
- <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${subjects.length} results`}</div>
+ <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${subjects.length} results`}</div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Subject</th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Class</th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Code</th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-center">Portions</th>
- <th className="px-5 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right"></th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Subject</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Class</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Code</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Portions</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -217,7 +217,7 @@ export default function AdminSubjectsPage() {
  <td className="px-5 py-2.5">
  <div className="min-w-0">
  <p className="text-xs font-extrabold text-gray-900 truncate">{s.name}</p>
- <p className="text-[10px] font-bold text-gray-500 truncate">{s.description || "—"}</p>
+ <p className="text-xs font-bold text-gray-500 truncate">{s.description || "—"}</p>
  </div>
  </td>
  <td className="px-5 py-2.5 text-xs font-bold text-gray-700">
@@ -225,12 +225,12 @@ export default function AdminSubjectsPage() {
  </td>
  <td className="px-5 py-2.5 text-xs font-semibold text-gray-700">{s.code || "—"}</td>
  <td className="px-5 py-2.5 text-center">
- <span className={cn("inline-flex items-center rounded-lg border px-2 py-0.5 text-[10px] font-bold", s.portions.length ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-gray-50 border-gray-200 text-gray-600")}>
+ <span className={cn("inline-flex items-center rounded-lg border px-2 py-0.5 text-xs font-bold", s.portions.length ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-gray-50 border-gray-200 text-gray-600")}>
  {s.portions.length}
  </span>
  </td>
  <td className="px-5 py-2.5 text-right">
- <Link href={`/schools/${schoolId}/admin/academic/subjects/${encodeURIComponent(s.id)}`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
+ <Link href={`/schools/${schoolId}/admin/academic/subjects/${encodeURIComponent(s.id)}`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
  View
  </Link>
  </td>
@@ -243,7 +243,7 @@ export default function AdminSubjectsPage() {
  <BookOpen size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No subjects found</p>
- <p className="text-[10px] text-gray-500 mt-1">Add subjects per class/section to use in Marks and planning.</p>
+ <p className="text-xs text-gray-500 mt-1">Add subjects per class/section to use in Marks and planning.</p>
  </td>
  </tr>
  )}

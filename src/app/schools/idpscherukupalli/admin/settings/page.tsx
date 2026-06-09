@@ -42,7 +42,7 @@ const sectionColors: Record<SectionKey, { bg: string; text: string; ring: string
 function FieldCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-[0_1px_4px_rgba(0,0,0,0.04)] hover:border-[#144835]/20 hover:shadow-[0_4px_12px_rgba(20,72,53,0.06)] transition-all">
-      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1.5">{label}</p>
       {children}
     </div>
   );
@@ -79,7 +79,7 @@ function SectionHeader({ sectionKey, title, subtitle, onSave, saving }: {
           <Icon size={20} />
         </div>
         <div>
-          <h2 className="text-base font-black text-gray-900">{title}</h2>
+          <h2 className="text-base font-bold text-gray-900">{title}</h2>
           <p className="text-xs font-medium text-gray-500 mt-0.5">{subtitle}</p>
         </div>
       </div>
@@ -228,7 +228,7 @@ export default function AdminBranchSettingsPage() {
         <div className="absolute -right-8 -top-8 h-32 sm:h-40 w-32 sm:w-40 rounded-full bg-[#a2c144]/20 blur-2xl pointer-events-none" />
         <div className="relative p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-lg sm:text-2xl font-black tracking-tight leading-tight">Settings</h1>
+            <h1 className="text-lg sm:text-2xl font-bold tracking-tight leading-tight">Settings</h1>
             <p className="text-xs sm:text-sm text-white/75 mt-1">{activeBranch.name} · Branch Configuration</p>
           </div>
           {saved && (
@@ -244,7 +244,7 @@ export default function AdminBranchSettingsPage() {
         <aside className="lg:col-span-1 h-fit">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-4 pt-4 pb-2">
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Configuration</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Configuration</p>
             </div>
             <div className="p-2 space-y-0.5">
               {sections.map((s) => {
@@ -270,7 +270,7 @@ export default function AdminBranchSettingsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn("text-xs font-bold truncate", active ? "text-white" : "text-gray-800")}>{s.label}</p>
-                      <p className={cn("text-[10px] truncate", active ? "text-white/60" : "text-gray-400")}>{s.desc}</p>
+                      <p className={cn("text-xs truncate", active ? "text-white/60" : "text-gray-400")}>{s.desc}</p>
                     </div>
                     {active && <ChevronRight size={13} className="text-white/60 shrink-0" />}
                   </button>
@@ -281,9 +281,9 @@ export default function AdminBranchSettingsPage() {
               <div className="rounded-xl bg-[#144835]/5 border border-[#144835]/10 p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <Lock size={12} className="text-[#144835]" />
-                  <p className="text-[10px] font-black text-[#144835] uppercase tracking-widest">Security</p>
+                  <p className="text-xs font-bold text-[#144835] uppercase tracking-wide">Security</p>
                 </div>
-                <p className="text-[10px] text-gray-500 font-medium leading-snug">All changes are logged and can be audited by your super admin.</p>
+                <p className="text-xs text-gray-500 font-medium leading-snug">All changes are logged and can be audited by your super admin.</p>
               </div>
             </div>
           </div>
@@ -354,7 +354,7 @@ export default function AdminBranchSettingsPage() {
                           </span>
                           <div>
                             <p className="text-xs font-bold text-gray-900">{branchDetails.status}</p>
-                            <p className="text-[10px] text-gray-500">Branch is live and accepting data</p>
+                            <p className="text-xs text-gray-500">Branch is live and accepting data</p>
                           </div>
                         </div>
                         <button type="button" className="h-8 inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors">
@@ -407,10 +407,10 @@ export default function AdminBranchSettingsPage() {
 
                   {/* Right — sessions table */}
                   <div>
-                    <p className="text-xs font-black text-gray-700 mb-3">Academic Year Sessions</p>
+                    <p className="text-xs font-bold text-gray-700 mb-3">Academic Year Sessions</p>
                     <div className="rounded-xl border border-gray-100 overflow-hidden shadow-sm">
                       <div className="bg-[#144835]/5 border-b border-[#144835]/10 px-4 py-2">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#144835]">Sessions</p>
+                        <p className="text-xs font-bold uppercase tracking-wide text-[#144835]">Sessions</p>
                       </div>
                       {sessions.length === 0 ? (
                         <div className="py-8 text-center text-xs text-gray-400">No sessions added yet</div>
@@ -418,10 +418,10 @@ export default function AdminBranchSettingsPage() {
                         <table className="w-full">
                           <thead className="bg-gray-50/60">
                             <tr>
-                              <th className="px-4 py-2 text-[10px] font-bold text-gray-500 text-left">#</th>
-                              <th className="px-4 py-2 text-[10px] font-bold text-gray-500 text-left">Year</th>
-                              <th className="px-4 py-2 text-[10px] font-bold text-gray-500 text-left">Status</th>
-                              <th className="px-4 py-2 text-[10px] font-bold text-gray-500 text-right">Action</th>
+                              <th className="px-4 py-2 text-xs font-bold text-gray-500 text-left">#</th>
+                              <th className="px-4 py-2 text-xs font-bold text-gray-500 text-left">Year</th>
+                              <th className="px-4 py-2 text-xs font-bold text-gray-500 text-left">Status</th>
+                              <th className="px-4 py-2 text-xs font-bold text-gray-500 text-right">Action</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-50">
@@ -430,7 +430,7 @@ export default function AdminBranchSettingsPage() {
                                 <td className="px-4 py-2.5 text-xs text-gray-400 font-bold">{i + 1}</td>
                                 <td className="px-4 py-2.5 text-xs font-bold text-gray-900">{s.year}</td>
                                 <td className="px-4 py-2.5">
-                                  <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full",
+                                  <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full",
                                     s.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500")}>
                                     {s.isActive ? "Active" : "Inactive"}
                                   </span>
@@ -500,7 +500,7 @@ export default function AdminBranchSettingsPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-gray-900 truncate">{exam.name}</p>
                           {exam.startDate && (
-                            <p className="text-[10px] text-gray-500 mt-0.5">
+                            <p className="text-xs text-gray-500 mt-0.5">
                               {exam.startDate}{exam.endDate && exam.endDate !== exam.startDate ? ` → ${exam.endDate}` : ""}
                             </p>
                           )}
@@ -566,9 +566,9 @@ export default function AdminBranchSettingsPage() {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs font-bold text-gray-900 truncate">{h.name}</p>
-                            <p className="text-[10px] text-gray-500">{h.date}</p>
+                            <p className="text-xs text-gray-500">{h.date}</p>
                           </div>
-                          <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full shrink-0", typeColors[h.type] ?? "bg-gray-100 text-gray-600")}>
+                          <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full shrink-0", typeColors[h.type] ?? "bg-gray-100 text-gray-600")}>
                             {h.type}
                           </span>
                           <button onClick={() => setHolidays(p => p.filter(x => x.id !== h.id))}
@@ -604,7 +604,7 @@ export default function AdminBranchSettingsPage() {
                         </div>
                         <div>
                           <p className="text-xs font-bold text-gray-900">{label}</p>
-                          <p className="text-[10px] text-gray-500 mt-0.5">{desc}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
                         </div>
                       </div>
                       <Toggle checked={notifs[key]} onChange={v => setNotifs(p => ({ ...p, [key]: v }))} />
@@ -687,7 +687,7 @@ export default function AdminBranchSettingsPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-violet-900">Policy Enforcement</p>
-                      <p className="text-[10px] text-violet-600 mt-0.5">Configure sign-in requirements, biometric rules and leave approval flows.</p>
+                      <p className="text-xs text-violet-600 mt-0.5">Configure sign-in requirements, biometric rules and leave approval flows.</p>
                     </div>
                   </div>
                   <button type="button"
@@ -753,7 +753,7 @@ export default function AdminBranchSettingsPage() {
 
                 <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
                   <p className="text-xs font-bold text-rose-900">Integration Guidelines</p>
-                  <p className="text-[10px] text-rose-600 mt-1 leading-relaxed">
+                  <p className="text-xs text-rose-600 mt-1 leading-relaxed">
                     1. Direct WhatsApp Web sending is free and requires no configuration. Just select the channel when composing.<br />
                     2. Automated SMS and WhatsApp Business messaging requires a Twilio developer account. Input your credentials above.<br />
                     3. Credentials are saved locally in this browser's secure context.

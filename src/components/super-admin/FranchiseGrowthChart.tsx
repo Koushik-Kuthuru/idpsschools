@@ -336,7 +336,7 @@ export default function FranchiseGrowthChart() {
                   x={padding.left - 15}
                   y={yScale(val) + 4}
                   textAnchor="end"
-                  className="text-[11px] fill-gray-400 font-medium"
+                  className="text-xs fill-gray-400 font-medium"
                 >
                   {val}
                 </text>
@@ -415,7 +415,7 @@ export default function FranchiseGrowthChart() {
                 x={xScale(i)}
                 y={height - 15}
                 textAnchor="middle"
-                className={`text-[11px] font-medium transition-colors duration-200 ${
+                className={`text-xs font-medium transition-colors duration-200 ${
                   hoveredPoint === i ? "fill-[#144835] font-bold scale-110" : "fill-gray-400"
                 }`}
               >

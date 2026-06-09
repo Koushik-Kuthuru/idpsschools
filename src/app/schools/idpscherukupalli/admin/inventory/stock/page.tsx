@@ -139,11 +139,17 @@ export default function AdminStockPage() {
  {loadError}
  </div>
  )}
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Stock & Inventory"
+  description="Monitor supplies, stock levels, and reorder alerts"
+ />
+
  {/* KPI Cards */}
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Items</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Items</p>
  <div className="mt-2">
  <p className="text-2xl font-extrabold text-gray-900">{stats.totalItems}</p>
  </div>
@@ -152,9 +158,9 @@ export default function AdminStockPage() {
  <Package size={18} />
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Low Stock</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Low Stock</p>
  <div className="mt-2">
  <p className="text-2xl font-extrabold text-gray-900">{stats.lowStock}</p>
  </div>
@@ -163,9 +169,9 @@ export default function AdminStockPage() {
  <AlertTriangle size={18} />
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Out of Stock</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Out of Stock</p>
  <div className="mt-2">
  <p className="text-2xl font-extrabold text-gray-900">{stats.outOfStock}</p>
  </div>
@@ -177,14 +183,14 @@ export default function AdminStockPage() {
  </div>
 
  {/* Main Content */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
  {/* Header & Filters */}
  <div className="p-4 border-b border-gray-100 flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between bg-gray-50/50">
  <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
  <div className="relative w-full sm:w-[260px]">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
  <input
- className="w-full h-9 bg-white border border-gray-200 rounded-lg pl-9 pr-4 text-[11px] font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm"
+ className="w-full h-9 bg-white border border-gray-200 rounded-lg pl-9 pr-4 text-xs font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm"
  placeholder="Search items by name or code..."
  value={queryInput}
  onChange={(e) => setQueryInput(e.target.value)}
@@ -193,7 +199,7 @@ export default function AdminStockPage() {
  <div className="relative w-full sm:w-[160px]">
  <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
  <select
- className="w-full h-9 appearance-none bg-white border border-gray-200 rounded-lg pl-9 pr-8 text-[11px] font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm cursor-pointer"
+ className="w-full h-9 appearance-none bg-white border border-gray-200 rounded-lg pl-9 pr-8 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm cursor-pointer"
  value={categoryFilter}
  onChange={(e) => setCategoryFilter(e.target.value)}
  >
@@ -205,7 +211,7 @@ export default function AdminStockPage() {
  </div>
  <div className="relative w-full sm:w-[140px]">
  <select
- className="w-full h-9 appearance-none bg-white border border-gray-200 rounded-lg px-3 pr-8 text-[11px] font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm cursor-pointer"
+ className="w-full h-9 appearance-none bg-white border border-gray-200 rounded-lg px-3 pr-8 text-xs font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm cursor-pointer"
  value={statusFilter}
  onChange={(e) => setStatusFilter(e.target.value as any)}
  >
@@ -218,10 +224,10 @@ export default function AdminStockPage() {
  </div>
  </div>
  <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
- <ExportButton data={filteredStock} filename="Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-[11px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
+ <ExportButton data={filteredStock} filename="Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
  <Link
  href={`/schools/${schoolId}/admin/inventory/stock/new`}
- className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-[11px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
+ className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
  >
  <Plus size={14} /> Add Stock
  </Link>
@@ -240,39 +246,39 @@ export default function AdminStockPage() {
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Item Details</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Category</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right">In Stock</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right">Reorder At</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-right text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Item Details</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Category</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">In Stock</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">Reorder At</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-3 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
- <tbody className="divide-y divide-gray-100 text-[11px]">
+ <tbody className="divide-y divide-gray-100 text-xs">
  {paginatedItems.map((s) => (
  <tr key={s.code} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-3">
  <div>
  <p className="font-extrabold text-gray-900">{s.name}</p>
- <p className="text-[10px] font-bold text-gray-400 mt-0.5">{s.code}</p>
+ <p className="text-xs font-bold text-gray-400 mt-0.5">{s.code}</p>
  </div>
  </td>
  <td className="px-4 py-3">
  <span className="font-bold text-gray-600">{s.category}</span>
  </td>
  <td className="px-4 py-3 text-right font-extrabold text-gray-900">
- {s.qty} <span className="text-[10px] text-gray-400 font-medium">{s.subtitle}</span>
+ {s.qty} <span className="text-xs text-gray-400 font-medium">{s.subtitle}</span>
  </td>
  <td className="px-4 py-3 text-right font-bold text-gray-500">
  {s.reorder}
  </td>
  <td className="px-4 py-3">
- <span className={cn("px-2 py-1 rounded-md text-[10px] font-bold border", statusTone(s.status))}>
+ <span className={cn("px-2 py-1 rounded-md text-xs font-bold border", statusTone(s.status))}>
  {s.status}
  </span>
  </td>
  <td className="px-4 py-3 text-right">
- <button type="button" className="h-7 px-3 rounded-md bg-white border border-gray-200 text-[10px] font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
+ <button type="button" className="h-7 px-3 rounded-md bg-white border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
  Edit
  </button>
  </td>
@@ -285,7 +291,7 @@ export default function AdminStockPage() {
 
  {/* Pagination Footer */}
  <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
  Showing <span className="font-extrabold text-gray-900">{filteredStock.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-extrabold text-gray-900">{Math.min(currentPage * itemsPerPage, filteredStock.length)}</span> of{" "}
  <span className="font-extrabold text-gray-900">{filteredStock.length}</span> entries
  </p>
@@ -306,14 +312,14 @@ export default function AdminStockPage() {
  key={p}
  type="button" 
  onClick={() => setCurrentPage(p)}
- className={cn("h-8 w-8 rounded-lg text-[10px] font-extrabold transition-colors", currentPage === p ? "bg-[#144835] text-white shadow-md shadow-[#144835]/15" : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50")}
+ className={cn("h-8 w-8 rounded-lg text-xs font-extrabold transition-colors", currentPage === p ? "bg-[#144835] text-white shadow-md shadow-[#144835]/15" : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50")}
  >
  {p}
  </button>
  );
  }
  if (p === currentPage - 2 || p === currentPage + 2) {
- return <span key={p} className="px-1 text-gray-400 text-[10px] font-extrabold">…</span>;
+ return <span key={p} className="px-1 text-gray-400 text-xs font-extrabold">…</span>;
  }
  return null;
  })}

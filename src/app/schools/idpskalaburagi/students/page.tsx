@@ -30,8 +30,8 @@ import {
 // Student Portal Sub-components
 const InfoField = ({ label, value }: { label: string, value: any }) => (
   <div className="flex flex-col group">
-    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">{label}</span>
-    <span className="text-[13px] font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100 break-words">{value || "-"}</span>
+    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">{label}</span>
+    <span className="text-sm font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100 break-words">{value || "-"}</span>
   </div>
 );
 
@@ -172,7 +172,7 @@ export default function StudentOrAdminDashboard() {
       {/* Page Title */}
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase">Branch Dashboard</h1>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900 uppercase">Branch Dashboard</h1>
           <p className="mt-1 text-lg text-slate-600">Central School (Kalaburagi)</p>
         </div>
         <div className="flex gap-3">
@@ -196,7 +196,7 @@ export default function StudentOrAdminDashboard() {
               </span>
             </div>
             <p className="text-xs font-semibold text-slate-500">{stat.title}</p>
-            <p className="text-xl font-black text-slate-900 mt-1">{stat.value}</p>
+            <p className="text-xl font-bold text-slate-900 mt-1">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -226,7 +226,7 @@ export default function StudentOrAdminDashboard() {
                   <div>
                     <p className="text-xs font-bold text-slate-900">{activity.title}</p>
                     <p className="text-xs text-slate-500 mt-0.5">{activity.desc}</p>
-                    <p className="mt-1 text-[10px] font-medium text-slate-400 uppercase tracking-wider">{activity.time}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-400 uppercase tracking-wider">{activity.time}</p>
                   </div>
                 </li>
               ))}

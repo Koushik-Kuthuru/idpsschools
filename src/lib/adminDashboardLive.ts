@@ -211,3 +211,89 @@ export function isUpcomingEvent(dateVal: unknown, today: string): boolean {
   const key = parseDateKey(dateVal);
   return key.length > 0 && key >= today;
 }
+
+export type TransportHostelMetrics = {
+  totalBuses: number;
+  activeRoutes: number;
+  studentsUsingTransport: number;
+  driversAssigned: number;
+  driverAttendancePct: number;
+  transportFeePending: number;
+  hostelStudents: number;
+  totalBeds: number;
+  occupiedBeds: number;
+  vacantBeds: number;
+  roomOccupancyPct: number;
+  hostelFeePending: number;
+};
+
+function sumFeeRowForMonth(
+  feeGrid: Array<{ name?: string; values?: unknown[] }> | undefined,
+  keyword: string,
+  monthIndex: number
+): number {
+  if (!Array.isArray(feeGrid)) return 0;
+  const row = feeGrid.find((r) => String(r.name ?? "").toUpperCase().includes(keyword));
+  if (!row || !Array.isArray(row.values)) return 0;
+  return Number(row.values[monthIndex]) || 0;
+}
+
+export function computeTransportHostelMetrics(
+  students: Array<Record<string, unknown>>,
+  monthIndex = new Date().getMonth()
+): Omit<
+  TransportHostelMetrics,
+  "totalBuses" | "activeRoutes" | "driverAttendancePct" | "totalBeds" | "occupiedBeds"
+> & {
+  busNos: Set<string>;
+  routeNames: Set<string>;
+  driverNames: Set<string>;
+} {
+  const busNos = new Set<string>();
+  const routeNames = new Set<string>();
+  const driverNames = new Set<string>();
+  let studentsUsingTransport = 0;
+  let transportFeePending = 0;
+  let hostelStudents = 0;
+  let hostelFeePending = 0;
+
+  for (const s of students) {
+    const td = s.transportDetails as Record<string, unknown> | undefined;
+    if (td && String(td.facility ?? "").toUpperCase() === "YES") {
+      studentsUsingTransport++;
+      const bus = String(td.busNo ?? "").trim();
+      if (bus && bus !== "--") busNos.add(bus);
+      const route = String(td.route ?? "").trim();
+      if (route && !["NO TRANSPORT", "NO TRANSPORT.", "--"].includes(route.toUpperCase())) {
+        routeNames.add(route);
+      }
+      const driver = String(td.driverName ?? "").trim();
+      if (driver) driverNames.add(driver);
+
+      const fees = td.fees;
+      if (Array.isArray(fees)) {
+        transportFeePending += Number(fees[monthIndex]) || 0;
+      }
+    }
+
+    if (String(s.studentType ?? "").toLowerCase() === "boarder") {
+      hostelStudents++;
+    }
+
+    const feeDetails = s.feeDetails as { feeGrid?: Array<{ name?: string; values?: unknown[] }> } | undefined;
+    hostelFeePending += sumFeeRowForMonth(feeDetails?.feeGrid, "HOSTEL", monthIndex);
+  }
+
+  return {
+    busNos,
+    routeNames,
+    driverNames,
+    studentsUsingTransport,
+    driversAssigned: driverNames.size,
+    transportFeePending,
+    hostelStudents,
+    vacantBeds: 0,
+    roomOccupancyPct: 0,
+    hostelFeePending,
+  };
+}

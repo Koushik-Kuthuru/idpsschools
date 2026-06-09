@@ -125,7 +125,7 @@ export default function AdminNonTeachingStaffPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div>
  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Non-Teaching Staff</h1>
  <p className="text-xs text-gray-500 mt-1">Administration, finance, operations, and support teams</p>
@@ -145,7 +145,7 @@ export default function AdminNonTeachingStaffPage() {
  )}
 
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <Users size={18} />
  </div>
@@ -156,7 +156,7 @@ export default function AdminNonTeachingStaffPage() {
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
  <UserCheck size={18} />
  </div>
@@ -167,7 +167,7 @@ export default function AdminNonTeachingStaffPage() {
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
  <CalendarX2 size={18} />
  </div>
@@ -180,7 +180,7 @@ export default function AdminNonTeachingStaffPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="relative flex-1 sm:w-[320px]">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -235,12 +235,12 @@ export default function AdminNonTeachingStaffPage() {
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Name</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Employee ID</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Role</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Department</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right"></th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Name</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Employee ID</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Role</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Department</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -248,12 +248,12 @@ export default function AdminNonTeachingStaffPage() {
  <tr key={e.id} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5">
  <div className="flex items-center gap-2.5">
- <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-700">
+ <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-700">
  {e.name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("")}
  </div>
  <div>
  <p className="text-xs font-extrabold text-gray-900">{e.name}</p>
- <p className="text-[10px] font-bold text-gray-500">{e.joinedDate}</p>
+ <p className="text-xs font-bold text-gray-500">{e.joinedDate}</p>
  </div>
  </div>
  </td>
@@ -261,12 +261,12 @@ export default function AdminNonTeachingStaffPage() {
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{e.position}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{departmentNameById[e.department] || e.department}</td>
  <td className="px-4 py-2.5">
- <span className={cn("inline-flex items-center rounded-lg border px-2 py-0.5 text-[10px] font-bold", e.status === "Active" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : e.status === "On Leave" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-gray-50 border-gray-200 text-gray-600")}>
+ <span className={cn("inline-flex items-center rounded-lg border px-2 py-0.5 text-xs font-bold", e.status === "Active" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : e.status === "On Leave" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-gray-50 border-gray-200 text-gray-600")}>
  {e.status}
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <Link href={`/schools/${schoolId}/admin/hr/non-teaching-staff/${encodeURIComponent(e.id)}/profile`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
+ <Link href={`/schools/${schoolId}/admin/hr/non-teaching-staff/${encodeURIComponent(e.id)}/profile`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
  View
  </Link>
  </td>
@@ -279,7 +279,7 @@ export default function AdminNonTeachingStaffPage() {
  <Search size={18} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No non-teaching staff found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your search filters.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search filters.</p>
  </td>
  </tr>
  )}

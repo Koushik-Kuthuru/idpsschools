@@ -144,53 +144,38 @@ export default function AdminNotificationsPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- {/* Top Header */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center relative overflow-hidden">
- <div className="flex items-center gap-4 relative z-10">
- <div className="relative">
- <div className="h-10 w-10 rounded-[16px] bg-[#144835]/10 text-[#144835] flex items-center justify-center shrink-0">
- <Bell size={18} />
- </div>
- <span className="absolute -top-1 -right-1 flex h-3 w-3">
- <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
- <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500 border-2 border-white"></span>
- </span>
- </div>
- <div>
- <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Notifications & Alerts</h1>
- <p className="text-[10px] font-medium text-gray-500 mt-1">
- You have <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-rose-50 text-rose-700 font-bold mx-1">3 unread</span> alerts across your modules
- </p>
- </div>
- </div>
- 
- <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end relative z-10">
+ <AdminPageHeader
+  title="Notifications & Alerts"
+  description="View and manage alerts across all school modules"
+  actions={
+   <>
  <button
  type="button"
- className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-[10px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 hover:text-rose-600 transition-colors"
+ className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 hover:text-rose-600 transition-colors"
  title="Clear All"
  >
  <XCircle size={14} /> <span className="hidden sm:inline">Clear All</span>
  </button>
  <button
  type="button"
- className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
+ className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
  title="Mark All Read"
  >
  <CheckCircle2 size={14} /> <span className="hidden sm:inline">Mark Read</span>
  </button>
  <span className="h-5 w-px bg-gray-200 hidden sm:block mx-1" />
  <Link
- href="/schools/${schoolId}/admin/profile/settings"
+ href={`/schools/${schoolId}/admin/profile/settings`}
  className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 hover:text-[#144835] transition-colors"
  title="Notification Settings"
  >
  <Settings2 size={16} />
  </Link>
- </div>
- </div>
+   </>
+  }
+ />
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
  <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
  <div className="flex flex-wrap items-center gap-2">
  {tabs.map((t) => {
@@ -201,7 +186,7 @@ export default function AdminNotificationsPage() {
  type="button"
  onClick={() => setTab(t)}
  className={cn(
- "px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all",
+ "px-3 py-1.5 text-xs font-bold rounded-lg transition-all",
  active ? "text-[#144835] bg-white border border-gray-200 shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100/50"
  )}
  >
@@ -237,23 +222,23 @@ export default function AdminNotificationsPage() {
  <div className="flex-1 min-w-0">
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
  <div className="flex items-center gap-2 min-w-0">
- <span className={cn("inline-flex rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border", badge)}>
+ <span className={cn("inline-flex rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-wider border", badge)}>
  {a.category}
  </span>
  <p className="text-xs font-bold text-gray-900 truncate">{a.title}</p>
  </div>
- <p className="text-[10px] font-bold text-gray-400 whitespace-nowrap">{a.timeLabel}</p>
+ <p className="text-xs font-bold text-gray-400 whitespace-nowrap">{a.timeLabel}</p>
  </div>
 
- <p className="mt-1.5 text-[10px] font-medium text-gray-600 leading-relaxed">{a.description}</p>
+ <p className="mt-1.5 text-xs font-medium text-gray-600 leading-relaxed">{a.description}</p>
 
  {a.actionLabel ? (
  <div className="mt-3 flex items-center gap-2">
- <button type="button" className={cn("rounded-lg px-4 h-8 text-[10px] font-bold shadow-sm transition-all", actionTone(a.tone))}>
+ <button type="button" className={cn("rounded-lg px-4 h-8 text-xs font-bold shadow-sm transition-all", actionTone(a.tone))}>
  {a.actionLabel}
  </button>
  {a.isNew ? (
- <button type="button" className="rounded-lg border border-gray-200 bg-white px-4 h-8 text-[10px] font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+ <button type="button" className="rounded-lg border border-gray-200 bg-white px-4 h-8 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
  Dismiss
  </button>
  ) : null}

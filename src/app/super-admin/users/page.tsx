@@ -390,7 +390,7 @@ export default function UsersPage() {
  </td>
  <td className="px-4 py-2">
  <div className="space-y-1">
- <span className={cn("inline-flex px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide border", getRoleBadgeStyle(user.role))}>
+ <span className={cn("inline-flex px-2.5 py-0.5 rounded-md text-xs font-extrabold uppercase tracking-wide border", getRoleBadgeStyle(user.role))}>
  {user.role?.replace('_', ' ')}
  </span>
  <div className="flex items-center gap-1 text-xs text-gray-500 font-medium">

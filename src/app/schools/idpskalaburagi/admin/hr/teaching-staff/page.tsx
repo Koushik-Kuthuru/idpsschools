@@ -126,18 +126,18 @@ export default function AdminTeachingStaffPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div>
- <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Teaching Staff</h1>
- <p className="text-xs font-medium text-gray-500 mt-0.5">Faculty directory, assignments, and profiles</p>
- </div>
- <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
+ <AdminPageHeader
+  title="Teaching Staff"
+  description="Faculty directory, assignments, and profiles"
+  actions={
+   <>
  <ExportButton data={filtered} filename="Export" className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors" iconSize={14} />
  <Link href={`/schools/${schoolId}/admin/hr/teaching-staff/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
  <UserPlus size={14} /> Add Teaching Staff
  </Link>
- </div>
- </div>
+   </>
+  }
+ />
 
  {loadError && (
  <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700">
@@ -146,34 +146,34 @@ export default function AdminTeachingStaffPage() {
  )}
 
  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <Users size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Faculty</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Faculty</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.totalStaff.toLocaleString()}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
  <UserCheck size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Faculty</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Active Faculty</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.active.toLocaleString()}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
  <CalendarX2 size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">On Leave</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">On Leave</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.onLeave.toLocaleString()}</p>
  </div>
@@ -181,7 +181,7 @@ export default function AdminTeachingStaffPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
  <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="relative w-full sm:w-[280px]">
@@ -229,19 +229,19 @@ export default function AdminTeachingStaffPage() {
  </div>
  </div>
 
- <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${filtered.length} members`}</div>
+ <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${filtered.length} members`}</div>
  </div>
 
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Name</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Employee ID</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Role</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Department</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Employee ID</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Department</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -249,12 +249,12 @@ export default function AdminTeachingStaffPage() {
  <tr key={e.id} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5">
  <div className="flex items-center gap-2.5">
- <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-700 border border-gray-200">
+ <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-700 border border-gray-200">
  {e.name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("")}
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900">{e.name}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">Joined: {e.joinedDate}</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">Joined: {e.joinedDate}</p>
  </div>
  </div>
  </td>
@@ -262,12 +262,12 @@ export default function AdminTeachingStaffPage() {
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{e.position}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{departmentNameById[e.department] || e.department}</td>
  <td className="px-4 py-2.5">
- <span className={cn("inline-flex items-center rounded px-2 py-0.5 text-[10px] font-bold border", e.status === "Active" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : e.status === "On Leave" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-gray-50 border-gray-200 text-gray-600")}>
+ <span className={cn("inline-flex items-center rounded px-2 py-0.5 text-xs font-bold border", e.status === "Active" ? "bg-emerald-50 border-emerald-200 text-emerald-700" : e.status === "On Leave" ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-gray-50 border-gray-200 text-gray-600")}>
  {e.status}
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <Link href={`/schools/${schoolId}/admin/hr/teaching-staff/${encodeURIComponent(e.id)}/profile`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
+ <Link href={`/schools/${schoolId}/admin/hr/teaching-staff/${encodeURIComponent(e.id)}/profile`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
  View
  </Link>
  </td>
@@ -280,7 +280,7 @@ export default function AdminTeachingStaffPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No teaching staff found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your search filters.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search filters.</p>
  </td>
  </tr>
  )}

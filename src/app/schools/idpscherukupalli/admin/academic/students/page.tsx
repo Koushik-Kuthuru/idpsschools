@@ -21,11 +21,11 @@ import {
  CheckCircle2,
  AlertCircle
 } from "lucide-react";
-import { useBranch } from "@/components/admin/BranchContext";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import ExportButton from "@/components/ui/ExportButton";
 import ImportExcelButton from "@/components/ui/ImportExcelButton";
 import { useSchoolId } from "@/hooks/useSchoolId";
@@ -70,7 +70,6 @@ function getAvatarColor(name: string) {
 }
 
 export default function AdminStudentsPage() {
- const { activeBranch } = useBranch();
  const schoolId = useSchoolId("idpscherukupalli");
  const allClassesKey = "all";
  const allSectionsKey = "all";
@@ -186,26 +185,17 @@ export default function AdminStudentsPage() {
 
  return (
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- {/* Top Header */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div className="min-w-0">
- <div className="flex flex-wrap items-center gap-2 mb-1">
- <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-[#144835]/10 text-[#144835] border border-[#144835]/15">
- <span className="h-1.5 w-1.5 rounded-full bg-[#144835]" />
- Academics
- </span>
- <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
- {activeBranch?.name || "All Branches"}
- </span>
+ {loadError && (
+ <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700">
+ {loadError}
  </div>
- <p className="text-xl font-black text-gray-900 tracking-tight truncate">
- Enrollment & Student Records
- </p>
- <p className="text-xs font-medium text-gray-500 mt-0.5">
- Profiles, status, and quick actions across classes & sections
- </p>
- </div>
- <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end mt-2 xl:mt-0">
+ )}
+
+ <AdminPageHeader
+  title="Enrollment & Student Records"
+  description="Profiles, status, and quick actions across classes & sections"
+  actions={
+   <>
  <ImportExcelButton
  label="Import Excel"
  className="h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors disabled:opacity-60"
@@ -235,59 +225,55 @@ export default function AdminStudentsPage() {
  >
  <UserPlus size={14} /> Add Student
  </Link>
- </div>
- </div>
- {loadError && (
- <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700">
- {loadError}
- </div>
- )}
+   </>
+  }
+ />
 
  {/* KPI Cards */}
  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
  <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <Users size={20} />
  </div>
  <div>
- <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total Students</p>
- <p className="text-xl font-black text-gray-900 tracking-tight">{stats.total.toLocaleString()}</p>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Total Students</p>
+ <p className="text-xl font-bold text-gray-900 tracking-tight">{stats.total.toLocaleString()}</p>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
  <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
  <UserCheck size={20} />
  </div>
  <div>
- <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Active</p>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Active</p>
  <div className="flex items-baseline gap-2">
- <p className="text-xl font-black text-gray-900 tracking-tight">{stats.active.toLocaleString()}</p>
- <p className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">
+ <p className="text-xl font-bold text-gray-900 tracking-tight">{stats.active.toLocaleString()}</p>
+ <p className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded">
  {stats.total ? `${Math.round((stats.active / stats.total) * 100)}%` : "0%"}
  </p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
  <ShieldAlert size={18} />
  </div>
  <div>
  <p className="text-xs font-bold text-gray-500">Inactive</p>
  <p className="text-xl font-extrabold text-gray-900">{stats.inactive.toLocaleString()}</p>
- <p className="text-[10px] font-medium text-gray-400 mt-0.5">Not currently enrolled</p>
+ <p className="text-xs font-medium text-gray-400 mt-0.5">Not currently enrolled</p>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
  <CalendarCheck2 size={18} />
  </div>
  <div>
  <p className="text-xs font-bold text-gray-500">Avg Attendance</p>
  <div className="flex items-baseline gap-2">
- <p className="text-xl font-black text-gray-900 tracking-tight">{stats.avgAttendance}%</p>
+ <p className="text-xl font-bold text-gray-900 tracking-tight">{stats.avgAttendance}%</p>
  {stats.avgAttendance < 80 && (
- <span className="text-[9px] font-bold text-red-500 flex items-center bg-red-50 px-1 py-0.5 rounded"><AlertCircle size={10} className="mr-0.5"/> Low</span>
+ <span className="text-xs font-bold text-red-500 flex items-center bg-red-50 px-1 py-0.5 rounded"><AlertCircle size={10} className="mr-0.5"/> Low</span>
  )}
  </div>
  </div>
@@ -295,7 +281,7 @@ export default function AdminStudentsPage() {
  </div>
 
  {/* Main Content Area */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  {/* Filter Bar */}
  <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col xl:flex-row gap-3 items-start xl:items-center justify-between">
  <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
@@ -359,20 +345,20 @@ export default function AdminStudentsPage() {
  {selectedCount > 0 && (
  <div className="px-4 py-2 border-b border-gray-100 bg-blue-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-in slide-in-from-top-2">
  <div className="flex items-center gap-1.5">
- <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
+ <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
  {selectedCount}
  </span>
  <span className="text-xs font-bold text-blue-900">students selected</span>
  </div>
  <div className="flex flex-wrap items-center gap-1.5">
- <button type="button" className="h-7 inline-flex items-center gap-1 rounded border border-blue-200 bg-white px-2.5 text-[10px] font-bold text-blue-700 hover:bg-blue-50 transition-colors">
+ <button type="button" className="h-7 inline-flex items-center gap-1 rounded border border-blue-200 bg-white px-2.5 text-xs font-bold text-blue-700 hover:bg-blue-50 transition-colors">
  <Mail size={12} /> Message
  </button>
- <button type="button" className="h-7 inline-flex items-center gap-1 rounded border border-blue-200 bg-white px-2.5 text-[10px] font-bold text-blue-700 hover:bg-blue-50 transition-colors">
+ <button type="button" className="h-7 inline-flex items-center gap-1 rounded border border-blue-200 bg-white px-2.5 text-xs font-bold text-blue-700 hover:bg-blue-50 transition-colors">
  <FileText size={12} /> Report Card
  </button>
  <div className="w-px h-3 bg-blue-200 mx-0.5"></div>
- <button type="button" className="h-7 inline-flex items-center gap-1 rounded border border-red-200 bg-white px-2.5 text-[10px] font-bold text-red-600 hover:bg-red-50 transition-colors">
+ <button type="button" className="h-7 inline-flex items-center gap-1 rounded border border-red-200 bg-white px-2.5 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors">
  <ShieldAlert size={12} /> Mark Inactive
  </button>
  </div>
@@ -405,12 +391,12 @@ export default function AdminStudentsPage() {
  }}
  />
  </th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">Student</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">ID & Roll</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider text-center">Class & Sec</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">Attendance</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Student</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">ID & Roll</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Class & Sec</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Attendance</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -433,27 +419,27 @@ export default function AdminStudentsPage() {
  </td>
  <td className="px-5 py-2.5">
  <div className="flex items-center gap-2.5">
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-black border", avatarColor)}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold border", avatarColor)}>
  {initials}
  </div>
  <div>
  <div className="text-xs font-bold text-gray-900">{s.name}</div>
- <div className="text-[10px] font-medium text-gray-500 mt-0.5">Joined 2023</div>
+ <div className="text-xs font-medium text-gray-500 mt-0.5">Joined 2023</div>
  </div>
  </div>
  </td>
  <td className="px-5 py-2.5">
  <div className="text-xs font-bold text-gray-700">#{s.id}</div>
- <div className="text-[10px] font-medium text-gray-500 mt-0.5">Roll: {s.roll}</div>
+ <div className="text-xs font-medium text-gray-500 mt-0.5">Roll: {s.roll}</div>
  </td>
  <td className="px-5 py-2.5 text-center">
- <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100/80 text-[11px] font-bold text-gray-700">
+ <span className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100/80 text-xs font-bold text-gray-700">
  {s.className}-{s.section}
  </span>
  </td>
  <td className="px-5 py-2.5">
  <span className={cn(
- "inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border",
+ "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold border",
  active ? "bg-emerald-50 text-emerald-700 border-emerald-100/50" : "bg-red-50 text-red-700 border-red-100/50"
  )}>
  {active ? <CheckCircle2 size={10}/> : <AlertCircle size={10}/>}
@@ -468,7 +454,7 @@ export default function AdminStudentsPage() {
  style={{ width: `${s.attendance}%` }} 
  />
  </div>
- <span className={cn("text-[10px] font-bold", isLowAttendance ? "text-red-600" : "text-gray-700")}>
+ <span className={cn("text-xs font-bold", isLowAttendance ? "text-red-600" : "text-gray-700")}>
  {s.attendance}%
  </span>
  </div>
@@ -496,7 +482,7 @@ export default function AdminStudentsPage() {
  <Search size={20} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No students found</p>
- <p className="text-[10px] text-gray-500 mt-0.5">Try adjusting your filters or search query.</p>
+ <p className="text-xs text-gray-500 mt-0.5">Try adjusting your filters or search query.</p>
  <button 
  onClick={() => {
  setSearchQuery("");

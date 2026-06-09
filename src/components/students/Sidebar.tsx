@@ -86,7 +86,7 @@ export default function Sidebar({
             sidebarExpanded ? "opacity-100 delay-100" : "opacity-0 w-0 overflow-hidden lg:hidden"
           )}>
             <span className="font-bold text-sm tracking-wide leading-none text-white whitespace-nowrap">IDPS ERP</span>
-            <span className="text-[10px] text-[#a2c144] uppercase tracking-widest mt-1 whitespace-nowrap">Branch Admin</span>
+            <span className="text-xs text-[#a2c144] uppercase tracking-wide mt-1 whitespace-nowrap">Branch Admin</span>
           </div>
         </Link>
         {sidebarExpanded && !isHovered ? (
@@ -110,7 +110,7 @@ export default function Sidebar({
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
         <div>
           <p className={cn(
-            "px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
+            "px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
             sidebarExpanded ? "opacity-100 delay-100" : "opacity-0 h-0 overflow-hidden m-0 p-0 lg:hidden"
           )}>
             Main Menu
@@ -130,7 +130,7 @@ export default function Sidebar({
                     key={group.id}
                     href={item.href}
                     className={cn(
-                      "flex items-center py-2.5 rounded-lg text-[13px] font-medium transition-all group relative",
+                      "flex items-center py-2.5 rounded-lg text-sm font-medium transition-all group relative",
                       sidebarExpanded ? "gap-3 px-3 justify-start" : "px-3 justify-center",
                       isActive
                         ? "bg-[#a2c144]/20 text-[#a2c144] shadow-sm border border-[#a2c144]/10"
@@ -167,7 +167,7 @@ export default function Sidebar({
                         setOpenGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }));
                       }}
                       className={cn(
-                        "w-full flex items-center py-2.5 rounded-lg text-[13px] font-medium transition-all group relative",
+                        "w-full flex items-center py-2.5 rounded-lg text-sm font-medium transition-all group relative",
                         sidebarExpanded ? "gap-3 px-3 justify-start" : "px-3 justify-center",
                       groupActive
                         ? "bg-white/5 text-white border border-white/5"

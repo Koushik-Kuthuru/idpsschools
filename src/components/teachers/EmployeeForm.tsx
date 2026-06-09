@@ -238,7 +238,7 @@ export default function EmployeeForm({
     >
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-[#1A1A1A]">{formTitle}</h1>
+          <h1 className="text-xl font-bold tracking-tight text-[#1A1A1A]">{formTitle}</h1>
           <p className="mt-2 text-xs font-medium text-gray-500">{formSubtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -259,7 +259,7 @@ export default function EmployeeForm({
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         <div className="space-y-6">
-          <section className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+          <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-gray-100 flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                 <User size={14} />
@@ -268,7 +268,7 @@ export default function EmployeeForm({
             </div>
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-4">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">First Name</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">First Name</label>
                 <input
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all placeholder:text-gray-400"
                   placeholder="e.g. Jonathan"
@@ -277,7 +277,7 @@ export default function EmployeeForm({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Last Name</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Last Name</label>
                 <input
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all placeholder:text-gray-400"
                   placeholder="e.g. Doe"
@@ -286,7 +286,7 @@ export default function EmployeeForm({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date of Birth</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Birth</label>
                 <input
                   type="date"
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all"
@@ -295,7 +295,7 @@ export default function EmployeeForm({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Gender</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Gender</label>
                 <select
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all"
                   value={form.gender}
@@ -308,7 +308,7 @@ export default function EmployeeForm({
                 </select>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Email Address</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email Address</label>
                 <input
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all placeholder:text-gray-400"
                   placeholder="j.doe@idps.edu"
@@ -317,7 +317,7 @@ export default function EmployeeForm({
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Phone Number</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Phone Number</label>
                 <input
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all placeholder:text-gray-400"
                   placeholder="+1 (555) 000-0000"
@@ -326,7 +326,7 @@ export default function EmployeeForm({
                 />
               </div>
               <div className="md:col-span-2 space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Residential Address</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Residential Address</label>
                 <textarea
                   className="min-h-[88px] w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all placeholder:text-gray-400"
                   placeholder="Street, Building, Apartment No, City, Zip"
@@ -337,7 +337,7 @@ export default function EmployeeForm({
             </div>
           </section>
 
-          <section className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+          <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-gray-100 flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
                 <ShieldCheck size={14} />
@@ -352,7 +352,7 @@ export default function EmployeeForm({
                   </div>
                   <div>
                     <p className="text-xs font-bold text-gray-900">Create User Account</p>
-                    <p className="text-[11px] font-medium text-gray-500 mt-0.5">Enable login access to the ERP system</p>
+                    <p className="text-xs font-medium text-gray-500 mt-0.5">Enable login access to the ERP system</p>
                   </div>
                 </div>
                 <button
@@ -377,7 +377,7 @@ export default function EmployeeForm({
                   </div>
                   <div>
                     <p className="text-xs font-bold text-gray-900">Send Welcome Email</p>
-                    <p className="text-[11px] font-medium text-gray-500 mt-0.5">Notify employee with credentials via email</p>
+                    <p className="text-xs font-medium text-gray-500 mt-0.5">Notify employee with credentials via email</p>
                   </div>
                 </div>
                 <button
@@ -399,7 +399,7 @@ export default function EmployeeForm({
         </div>
 
         <div className="space-y-6">
-          <section className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+          <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-4 py-2.5 border-b border-gray-100 flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <Briefcase size={14} />
@@ -408,21 +408,21 @@ export default function EmployeeForm({
             </div>
             <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-y-5 gap-x-4">
               <div className="md:col-span-2 space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Employee ID</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Employee ID</label>
                 <div className="relative">
                   <input
                     className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/80 px-4 pr-32 text-xs font-bold text-gray-600"
                     value={form.employeeId}
                     readOnly
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center rounded-md bg-gray-200/50 px-2 py-1 text-[10px] font-bold text-gray-500 border border-gray-200/50">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center rounded-md bg-gray-200/50 px-2 py-1 text-xs font-bold text-gray-500 border border-gray-200/50">
                     AUTO-GENERATED
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Department</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Department</label>
                 <div className="relative">
                   <Building2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <select
@@ -441,7 +441,7 @@ export default function EmployeeForm({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Position / Role</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Position / Role</label>
                 <select
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all"
                   value={form.position}
@@ -457,7 +457,7 @@ export default function EmployeeForm({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date of Joining</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Date of Joining</label>
                 <div className="relative">
                   <CalendarDays size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
@@ -470,7 +470,7 @@ export default function EmployeeForm({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Employment Type</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Employment Type</label>
                 <select
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all"
                   value={form.employmentType}
@@ -483,7 +483,7 @@ export default function EmployeeForm({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</label>
                 <select
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all"
                   value={form.status}
@@ -496,7 +496,7 @@ export default function EmployeeForm({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Base Salary (INR)</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Base Salary (INR)</label>
                 <div className="relative">
                   <IndianRupee size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
@@ -509,7 +509,7 @@ export default function EmployeeForm({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Reporting Manager</label>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Reporting Manager</label>
                 <select
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all"
                   value={form.reportingManager}
@@ -523,13 +523,13 @@ export default function EmployeeForm({
             </div>
           </section>
 
-          <section className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden p-4 flex items-center gap-4">
+          <section className="bg-white rounded-xl border border-gray-200 overflow-hidden p-4 flex items-center gap-4">
             <div className="h-16 w-16 rounded-[16px] border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center text-gray-400 shrink-0">
               <Camera size={20} />
             </div>
             <div className="flex-1">
               <p className="text-xs font-bold text-gray-900">Official Profile Photo</p>
-              <p className="mt-0.5 text-[11px] font-medium text-gray-500">
+              <p className="mt-0.5 text-xs font-medium text-gray-500">
                 JPG or PNG format. Max size 2MB.
               </p>
               <button type="button" className="mt-2 text-xs font-bold text-[#144835] hover:underline">

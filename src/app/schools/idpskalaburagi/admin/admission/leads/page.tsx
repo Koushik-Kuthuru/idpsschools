@@ -138,39 +138,25 @@ export default function AdminAdmissionLeadsPage() {
  {loadError}
  </div>
  )}
- {/* Header */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div>
- <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Leads</h1>
- <p className="text-xs font-medium text-gray-500 mt-0.5">
- Showing <span className="font-extrabold text-gray-900">{filteredLeads.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-extrabold text-gray-900">{Math.min(currentPage * itemsPerPage, filteredLeads.length)}</span> of{" "}
- <span className="font-extrabold text-gray-900">{filteredLeads.length}</span> leads
- </p>
- </div>
- <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
- <Link
- href={`/schools/${schoolId}/admin/admission/leads/new`}
- className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
- >
- <UserPlus size={14} /> New Lead
- </Link>
- <ExportButton data={filteredLeads} filename="Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
- </div>
- </div>
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Leads"
+  description="Manage prospective student leads through the admissions pipeline"
+ />
 
  {/* KPI Stats Grid */}
  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
  {/* KPI 1 */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
  <div className="flex items-center justify-between mb-3">
  <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
  <Users size={18} />
  </div>
- <span className="text-[10px] font-extrabold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{stats.session}</span>
+ <span className="text-xs font-extrabold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{stats.session}</span>
  </div>
  <div>
- <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.totalLeads}</p>
- <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Total Leads</p>
+ <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.totalLeads}</p>
+ <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Total Leads</p>
  </div>
  <div className="absolute -bottom-6 -right-6 text-blue-50 opacity-50 group-hover:scale-150 transition-transform duration-500">
  <Users size={80} />
@@ -178,16 +164,16 @@ export default function AdminAdmissionLeadsPage() {
  </div>
 
  {/* KPI 2 */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
  <div className="flex items-center justify-between mb-3">
  <div className="h-10 w-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
  <UserCheck size={18} />
  </div>
- <span className="text-[10px] font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{stats.qualifiedPct}%</span>
+ <span className="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{stats.qualifiedPct}%</span>
  </div>
  <div>
- <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.qualified}</p>
- <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Qualified</p>
+ <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.qualified}</p>
+ <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Qualified</p>
  </div>
  <div className="absolute -bottom-6 -right-6 text-indigo-50 opacity-50 group-hover:scale-150 transition-transform duration-500">
  <UserCheck size={80} />
@@ -195,16 +181,16 @@ export default function AdminAdmissionLeadsPage() {
  </div>
 
  {/* KPI 3 */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
  <div className="flex items-center justify-between mb-3">
  <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
  <CalendarCheck2 size={18} />
  </div>
- <span className="text-[10px] font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{stats.convertedPct}%</span>
+ <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">{stats.convertedPct}%</span>
  </div>
  <div>
- <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.converted}</p>
- <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Converted</p>
+ <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.converted}</p>
+ <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Converted</p>
  </div>
  <div className="absolute -bottom-6 -right-6 text-emerald-50 opacity-50 group-hover:scale-150 transition-transform duration-500">
  <CalendarCheck2 size={80} />
@@ -212,16 +198,16 @@ export default function AdminAdmissionLeadsPage() {
  </div>
 
  {/* KPI 4 */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
  <div className="flex items-center justify-between mb-3">
  <div className="h-10 w-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
  <UserMinus size={18} />
  </div>
- <span className="text-[10px] font-extrabold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{stats.pendingPct}%</span>
+ <span className="text-xs font-extrabold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{stats.pendingPct}%</span>
  </div>
  <div>
- <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.pending}</p>
- <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Pending</p>
+ <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.pending}</p>
+ <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Pending</p>
  </div>
  <div className="absolute -bottom-6 -right-6 text-amber-50 opacity-50 group-hover:scale-150 transition-transform duration-500">
  <UserMinus size={80} />
@@ -229,16 +215,16 @@ export default function AdminAdmissionLeadsPage() {
  </div>
 
  {/* KPI 5 */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
  <div className="flex items-center justify-between mb-3">
  <div className="h-10 w-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
  <UserX size={18} />
  </div>
- <span className="text-[10px] font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">{stats.lostPct}%</span>
+ <span className="text-xs font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">{stats.lostPct}%</span>
  </div>
  <div>
- <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.lost}</p>
- <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Lost</p>
+ <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.lost}</p>
+ <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Lost</p>
  </div>
  <div className="absolute -bottom-6 -right-6 text-rose-50 opacity-50 group-hover:scale-150 transition-transform duration-500">
  <UserX size={80} />
@@ -246,7 +232,7 @@ export default function AdminAdmissionLeadsPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
  {/* Filters */}
  <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-gray-50/50">
  <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -300,11 +286,11 @@ export default function AdminAdmissionLeadsPage() {
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Lead Info</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Contact</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Source</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-right text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Lead Info</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Contact</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Source</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-3 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -313,8 +299,8 @@ export default function AdminAdmissionLeadsPage() {
  <td className="px-4 py-2.5">
  <p className="text-xs font-bold text-gray-900">{l.studentName}</p>
  <div className="flex items-center gap-1.5 mt-0.5">
- <span className="text-[10px] font-bold text-[#144835]">#{l.id}</span>
- <span className="text-[10px] font-medium text-gray-500">Parent: {l.parentName}</span>
+ <span className="text-xs font-bold text-[#144835]">#{l.id}</span>
+ <span className="text-xs font-medium text-gray-500">Parent: {l.parentName}</span>
  </div>
  </td>
  <td className="px-4 py-2.5">
@@ -330,12 +316,12 @@ export default function AdminAdmissionLeadsPage() {
  </div>
  </td>
  <td className="px-4 py-2.5">
- <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border", sourceTone(l.source))}>
+ <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border", sourceTone(l.source))}>
  {l.source}
  </span>
  </td>
  <td className="px-4 py-2.5">
- <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border", statusTone(l.status))}>
+ <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border", statusTone(l.status))}>
  {l.status}
  </span>
  </td>

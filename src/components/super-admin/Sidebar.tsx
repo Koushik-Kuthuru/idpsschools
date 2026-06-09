@@ -75,7 +75,7 @@ export default function Sidebar({
             sidebarExpanded ? "opacity-100 delay-100" : "opacity-0 w-0 overflow-hidden lg:hidden"
           )}>
             <span className="font-bold text-sm tracking-wide leading-none text-white whitespace-nowrap">IDPS ERP</span>
-            <span className="text-[10px] text-[#a2c144] uppercase tracking-widest mt-1 whitespace-nowrap">Super Admin</span>
+            <span className="text-xs text-[#a2c144] uppercase tracking-wide mt-1 whitespace-nowrap">Super Admin</span>
           </div>
         </Link>
         {sidebarExpanded && !isHovered ? (
@@ -101,7 +101,7 @@ export default function Sidebar({
         {/* Main Menu */}
         <div>
           <p className={cn(
-            "px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
+            "px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
             sidebarExpanded ? "opacity-100 delay-100" : "opacity-0 h-0 overflow-hidden m-0 p-0 lg:hidden"
           )}>
             Main Menu
@@ -156,7 +156,7 @@ export default function Sidebar({
             sidebarExpanded ? "opacity-100 delay-100" : "opacity-0 w-0 overflow-hidden lg:hidden"
           )}>
             <span className="font-bold text-xs text-white truncate group-hover:text-[#a2c144] transition-colors whitespace-nowrap">Super Admin</span>
-            <span className="text-[10px] text-gray-400 truncate whitespace-nowrap">admin@dpiso.com</span>
+            <span className="text-xs text-gray-400 truncate whitespace-nowrap">admin@dpiso.com</span>
           </div>
         </Link>
       </div>

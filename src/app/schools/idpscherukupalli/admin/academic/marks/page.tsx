@@ -1,5 +1,6 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { 
  BarChart3, 
@@ -437,36 +438,15 @@ export default function AdminMarksPage() {
 
  return (
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- {/* Top Header */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div>
- <div className="flex flex-wrap items-center gap-2 mb-1">
- <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-[#144835]/10 text-[#144835] border border-[#144835]/15">
- <span className="h-1.5 w-1.5 rounded-full bg-[#144835]" />
- Academics
- </span>
- </div>
- <h1 className="text-xl font-black text-gray-900 tracking-tight">Marks & Grading</h1>
- <p className="text-xs font-medium text-gray-500 mt-0.5">Manage student examination scores and view performance analytics</p>
- </div>
- <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
- <div className="relative w-full sm:w-[240px]">
- <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
- <input
- value={query}
- onChange={(e) => setQuery(e.target.value)}
- className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 pl-9 pr-3 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all placeholder:text-gray-400"
- placeholder="Search students..."
+ <AdminPageHeader
+  title="Marks & Grading"
+  description="Manage student examination scores and view performance analytics"
  />
- </div>
- </div>
- </div>
-
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
- <div className="flex-1 min-w-[200px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Examination</label>
+ <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6 flex flex-col xl:flex-row gap-5 xl:gap-6 justify-between items-start xl:items-center">
+ <div className="flex flex-wrap items-end gap-4 w-full xl:w-auto">
+ <div className="flex-1 min-w-[200px] space-y-1.5">
+ <label className="erp-label block">Examination</label>
  <div className="relative">
  <select
  value={exam}
@@ -484,8 +464,8 @@ export default function AdminMarksPage() {
  </div>
  </div>
  </div>
- <div className="flex-1 min-w-[140px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Class</label>
+ <div className="flex-1 min-w-[140px] space-y-1.5">
+ <label className="erp-label block">Class</label>
  <div className="relative">
  <select
  value={cls}
@@ -501,8 +481,8 @@ export default function AdminMarksPage() {
  </div>
  </div>
  </div>
- <div className="flex-1 min-w-[140px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
+ <div className="flex-1 min-w-[140px] space-y-1.5">
+ <label className="erp-label block">Section</label>
  <div className="relative">
  <select
  value={sec}
@@ -518,8 +498,8 @@ export default function AdminMarksPage() {
  </div>
  </div>
  </div>
- <div className="flex-1 min-w-[160px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject</label>
+ <div className="flex-1 min-w-[160px] space-y-1.5">
+ <label className="erp-label block">Subject</label>
  <div className="relative">
  <select
  value={subject}
@@ -583,19 +563,19 @@ export default function AdminMarksPage() {
 
  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
  <div className="lg:col-span-3 space-y-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider w-20">Roll</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Student</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-20">Roll</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Student</th>
  {(cls === allClassesKey || sec === allSectionsKey) ? (
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider w-28">Class</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-28">Class</th>
  ) : null}
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-center w-32">Marks</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-center w-24">Grade</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right w-20">Action</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center w-32">Marks</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center w-24">Grade</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right w-20">Action</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -616,7 +596,7 @@ export default function AdminMarksPage() {
   <Info size={20} />
   </div>
   <p className="text-xs font-bold text-gray-900 mt-2">Subject Selection Required</p>
-  <p className="text-[10px] text-gray-500">Please select a specific subject from the dropdown to enter or view marks.</p>
+  <p className="text-xs text-gray-500">Please select a specific subject from the dropdown to enter or view marks.</p>
   </div>
   </td>
   </tr>
@@ -630,22 +610,22 @@ export default function AdminMarksPage() {
  return (
  <tr key={r.studentId} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-3">
- <span className="text-[10px] font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-md border border-gray-200">{r.roll}</span>
+ <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md border border-gray-200">{r.roll}</span>
  </td>
  <td className="px-4 py-3">
  <div className="flex items-center gap-3">
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0", avatarColor)}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0", avatarColor)}>
  {initials}
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900">{r.name}</p>
- {isLow && <p className="text-[9px] font-bold text-red-500 mt-0.5 flex items-center gap-1"><AlertCircle size={10}/> Needs Attention</p>}
+ {isLow && <p className="text-xs font-bold text-red-500 mt-0.5 flex items-center gap-1"><AlertCircle size={10}/> Needs Attention</p>}
  </div>
  </div>
  </td>
  {(cls === allClassesKey || sec === allSectionsKey) ? (
  <td className="px-4 py-3">
- <span className="text-[10px] font-black text-gray-600 bg-gray-100 px-2 py-1 rounded-md border border-gray-200">
+ <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-md border border-gray-200">
  {r.grade}-{r.section}
  </span>
  </td>
@@ -677,7 +657,7 @@ export default function AdminMarksPage() {
  </div>
  </td>
  <td className="px-4 py-3 text-center">
- <span className={cn("inline-flex items-center justify-center min-w-[2.5rem] rounded-md text-[10px] font-extrabold border px-2 py-1 shadow-sm", gradeTone(grade))}>
+ <span className={cn("inline-flex items-center justify-center min-w-[2.5rem] rounded-md text-xs font-extrabold border px-2 py-1 shadow-sm", gradeTone(grade))}>
  {grade}
  </span>
  </td>
@@ -700,10 +680,10 @@ export default function AdminMarksPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No students found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
  <button 
  onClick={() => setQuery("")}
- className="mt-2 text-[10px] font-bold text-[#144835] hover:underline"
+ className="mt-2 text-xs font-bold text-[#144835] hover:underline"
  >
  Clear search
  </button>
@@ -719,15 +699,15 @@ export default function AdminMarksPage() {
  {/* Right Side: Analysis & Actions (Col span 1) */}
  <div className="lg:col-span-1 space-y-4">
  <div className="flex items-center justify-between px-1">
- <h2 className="text-lg font-black text-gray-800 tracking-tight">Analysis</h2>
- <button className="h-8 inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 text-[10px] font-bold text-white shadow-sm shadow-orange-500/20 hover:bg-orange-600 transition-colors">
+ <h2 className="text-lg font-bold text-gray-800 tracking-tight">Analysis</h2>
+ <button className="h-8 inline-flex items-center gap-1.5 rounded-lg bg-orange-500 px-3 text-xs font-bold text-white shadow-sm shadow-orange-500/20 hover:bg-orange-600 transition-colors">
  <Check size={12} /> Publish
  </button>
  </div>
 
  {/* Grade Distribution */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4">
- <h3 className="text-xs font-black text-gray-800 mb-3 flex items-center gap-1.5">
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
+ <h3 className="text-xs font-bold text-gray-800 mb-3 flex items-center gap-1.5">
  <BarChart3 size={14} className="text-gray-400" />
  Grade Distribution
  </h3>
@@ -748,10 +728,10 @@ export default function AdminMarksPage() {
  <div key={g} className="group">
  <div className="flex items-center justify-between mb-1.5">
  <div className="flex items-center gap-2">
- <span className={cn("inline-flex items-center justify-center w-7 rounded-md border text-[10px] font-extrabold py-0.5", gradeTone(g))}>{g}</span>
+ <span className={cn("inline-flex items-center justify-center w-7 rounded-md border text-xs font-extrabold py-0.5", gradeTone(g))}>{g}</span>
  <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900 transition-colors">{count} students</span>
  </div>
- <span className="text-xs font-black text-gray-400">{pct}%</span>
+ <span className="text-xs font-bold text-gray-400">{pct}%</span>
  </div>
  <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
  <div className={cn("h-full rounded-full transition-all duration-1000 ease-out", tone)} style={{ width: `${pct}%` }} />
@@ -763,9 +743,9 @@ export default function AdminMarksPage() {
  </div>
 
  {/* Actions Card */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 relative overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 relative overflow-hidden">
  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-[#144835]/5 to-transparent rounded-bl-full pointer-events-none" />
- <h3 className="text-xs font-black text-gray-800 mb-4 flex items-center gap-2">
+ <h3 className="text-xs font-bold text-gray-800 mb-4 flex items-center gap-2">
  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
  Quick Actions
  </h3>
@@ -790,7 +770,7 @@ export default function AdminMarksPage() {
  Clear All Marks
  </button>
  </div>
- <p className="text-[10px] text-center text-gray-400 mt-4 font-bold uppercase tracking-widest flex items-center justify-center gap-1.5">
+ <p className="text-xs text-center text-gray-400 mt-4 font-bold uppercase tracking-wide flex items-center justify-center gap-1.5">
  <RotateCw size={10} /> Last saved: Just now
  </p>
  </div>

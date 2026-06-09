@@ -42,9 +42,9 @@ export default function MarksView() {
   return (
     <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
       {/* Header */}
-      <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight uppercase">Academics & Marks</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Academics & Marks</h2>
           <p className="text-xs font-medium text-gray-500 mt-0.5">Detailed grades and marks report card cards</p>
         </div>
         <div className="flex gap-2">
@@ -70,15 +70,15 @@ export default function MarksView() {
         <div className="bg-white border border-gray-100 p-6 rounded-[16px] flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.04)] relative overflow-hidden group">
           <div className="absolute -right-12 -top-12 w-48 h-48 bg-[#a2c144]/10 rounded-full blur-3xl pointer-events-none" />
           <div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">GPA Equivalent</span>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">GPA Equivalent</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-4xl font-black text-[#144835]">{averagePct >= 90 ? "3.9" : "3.7"}</span>
+              <span className="text-4xl font-bold text-[#144835]">{averagePct >= 90 ? "3.9" : "3.7"}</span>
               <span className="text-xs font-extrabold text-emerald-600 flex items-center bg-emerald-50 px-1.5 py-0.5 rounded">
                 <ArrowUpRight size={10} /> +0.2
               </span>
             </div>
           </div>
-          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-4">
+          <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-4">
             Based on current term average of {averagePct}%
           </div>
         </div>
@@ -86,18 +86,18 @@ export default function MarksView() {
         {/* Academic Rank */}
         <div className="bg-white border border-gray-100 p-6 rounded-[16px] flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
           <div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Class Rank</span>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Class Rank</span>
             <div className="flex items-center gap-4 mt-2">
-              <div className="w-14 h-14 rounded-full bg-[#F8FAFB] flex items-center justify-center border-4 border-[#a2c144]/20 text-md font-black text-[#144835]">
+              <div className="w-14 h-14 rounded-full bg-[#F8FAFB] flex items-center justify-center border-4 border-[#a2c144]/20 text-md font-bold text-[#144835]">
                 04
               </div>
               <div>
-                <p className="text-xs font-black text-gray-800">Top 5% Student</p>
-                <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">Out of 120 students in grade</p>
+                <p className="text-xs font-bold text-gray-800">Top 5% Student</p>
+                <p className="text-xs text-gray-500 font-bold uppercase mt-0.5">Out of 120 students in grade</p>
               </div>
             </div>
           </div>
-          <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-4 flex items-center gap-1.5">
+          <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-4 flex items-center gap-1.5">
             <Award size={13} className="text-[#a2c144]" /> Elite Academic Circle
           </div>
         </div>
@@ -106,12 +106,12 @@ export default function MarksView() {
         <div className="bg-amber-50/20 border border-dashed border-amber-200 p-6 rounded-[16px] flex flex-col justify-center shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
           <div className="flex items-center gap-2 mb-2">
             <CalendarDays className="text-amber-800 shrink-0" size={16} />
-            <h3 className="text-[10px] font-black text-amber-800 uppercase tracking-widest">Exam Seating Center</h3>
+            <h3 className="text-xs font-bold text-amber-800 uppercase tracking-wide">Exam Seating Center</h3>
           </div>
           <p className="text-xs text-amber-950 font-bold leading-normal">
             Room: <span className="underline">Block A, Hall 2</span> | Seat: <span className="underline">A-14</span>
           </p>
-          <p className="text-[10px] text-amber-700 font-bold uppercase mt-2">
+          <p className="text-xs text-amber-700 font-bold uppercase mt-2">
             Roll Number: {student.rollNumber || "-"}
           </p>
         </div>
@@ -120,10 +120,10 @@ export default function MarksView() {
       {/* Marks Table */}
       <div className="bg-white border border-gray-100 rounded-[16px] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
         <div className="px-6 py-4 border-b border-gray-100 bg-[#F8FAFB] flex justify-between items-center">
-          <h3 className="text-xs font-black text-[#144835] uppercase tracking-wider">Report Details: {selectedTerm}</h3>
+          <h3 className="text-xs font-bold text-[#144835] uppercase tracking-wider">Report Details: {selectedTerm}</h3>
           <button 
             onClick={() => alert("Report downloaded successfully!")}
-            className="flex items-center gap-1 text-[10px] font-black text-[#144835] uppercase tracking-wider hover:underline"
+            className="flex items-center gap-1 text-xs font-bold text-[#144835] uppercase tracking-wider hover:underline"
           >
             <Download size={12} />
             Download Marksheet
@@ -133,7 +133,7 @@ export default function MarksView() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-wider">
+              <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
                 <th className="px-6 py-3">Subject</th>
                 <th className="px-6 py-3">Subject Type</th>
                 <th className="px-6 py-3 text-center">Max Marks</th>
@@ -147,7 +147,7 @@ export default function MarksView() {
                 const percentage = Math.round((row.marksObtained / row.maxMarks) * 100);
                 return (
                   <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-black text-[#144835]">{row.name}</td>
+                    <td className="px-6 py-4 text-sm font-bold text-[#144835]">{row.name}</td>
                     <td className="px-6 py-4 text-gray-400">{row.type}</td>
                     <td className="px-6 py-4 text-center">{row.maxMarks}</td>
                     <td className="px-6 py-4 text-center text-gray-900 font-extrabold">{row.marksObtained}</td>
@@ -159,11 +159,11 @@ export default function MarksView() {
                             style={{ width: `${percentage}%` }} 
                           />
                         </div>
-                        <span className="text-gray-900 font-extrabold text-[11px] w-8">{percentage}%</span>
+                        <span className="text-gray-900 font-extrabold text-xs w-8">{percentage}%</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-black ${
+                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${
                         row.grade.includes("A") ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
                         row.grade.includes("B") ? "bg-blue-50 text-blue-700 border border-blue-100" :
                         "bg-gray-50 text-gray-600 border border-gray-200"

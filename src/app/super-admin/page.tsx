@@ -281,7 +281,7 @@ export default function SuperAdminDashboard() {
         <div className="xl:col-span-2 flex flex-col gap-8">
           <FranchiseGrowthChart />
 
-          <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-[#1A1A1A]">Branch Performance</h2>
@@ -293,7 +293,7 @@ export default function SuperAdminDashboard() {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50/50 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                <thead className="bg-gray-50/50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   <tr>
                     <th className="px-4 py-2.5">Campus</th>
                     <th className="px-4 py-2.5">Capacity</th>
@@ -372,7 +372,7 @@ export default function SuperAdminDashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-white truncate">{action.label}</p>
-                        <p className="text-[10px] text-white/50 mt-0.5">{action.branch} · {action.time}</p>
+                        <p className="text-xs text-white/50 mt-0.5">{action.branch} · {action.time}</p>
                       </div>
                       <ChevronRight size={14} className="text-white/30 shrink-0" />
                     </div>
@@ -391,15 +391,15 @@ export default function SuperAdminDashboard() {
           </div>
 
           {/* Recent Activity — live from all schools' /activity subcollection */}
-          <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="h-9 w-9 rounded-lg bg-[#144835]/5 text-[#144835] flex items-center justify-center border border-[#144835]/10">
                   <Activity size={16} strokeWidth={2} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-gray-900">Recent Activity</h2>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Across all branches · Live</p>
+                  <h2 className="text-sm font-bold text-gray-900">Recent Activity</h2>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Across all branches · Live</p>
                 </div>
               </div>
               <button onClick={() => setLogOpen(true)} className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-all hover:border-gray-300 group">
@@ -423,14 +423,14 @@ export default function SuperAdminDashboard() {
                         <p className="text-xs font-bold text-gray-900 group-hover:text-[#144835] transition-colors leading-snug">{activity.text}</p>
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                            <span className="text-xs font-bold text-gray-400 flex items-center gap-1 bg-gray-50 px-1.5 py-0.5 rounded uppercase tracking-wider">
                               <Clock size={9} /> {activity.time}
                             </span>
-                            <span className="text-[10px] font-bold text-[#144835]/60 bg-[#144835]/5 px-1.5 py-0.5 rounded uppercase tracking-wider max-w-[90px] truncate">
+                            <span className="text-xs font-bold text-[#144835]/60 bg-[#144835]/5 px-1.5 py-0.5 rounded uppercase tracking-wider max-w-[90px] truncate">
                               {activity.branch}
                             </span>
                           </div>
-                          <Link href={activity.href} className="text-[10px] font-bold text-[#144835] uppercase tracking-wider hover:underline flex items-center gap-0.5 shrink-0">
+                          <Link href={activity.href} className="text-xs font-bold text-[#144835] uppercase tracking-wider hover:underline flex items-center gap-0.5 shrink-0">
                             View <ArrowUpRight size={9} />
                           </Link>
                         </div>
@@ -457,7 +457,7 @@ export default function SuperAdminDashboard() {
           <div className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-white shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">All Branches · Live</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">All Branches · Live</p>
                 <h3 className="text-lg font-bold text-gray-900">Activity Log</h3>
               </div>
               <button onClick={() => setLogOpen(false)} className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50">
@@ -474,10 +474,10 @@ export default function SuperAdminDashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-gray-900">{item.text}</p>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
                             <Clock size={9} /> {item.time}
                           </span>
-                          <span className="text-[10px] font-bold text-[#144835]/70 bg-[#144835]/5 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                          <span className="text-xs font-bold text-[#144835]/70 bg-[#144835]/5 px-1.5 py-0.5 rounded uppercase tracking-wider">
                             {item.branch}
                           </span>
                         </div>

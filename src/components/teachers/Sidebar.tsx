@@ -105,7 +105,7 @@ export default function Sidebar({
               </div>
               <div className="flex min-w-0 flex-col">
                 <span className="text-sm font-bold leading-none tracking-wide text-white">IDPS ERP</span>
-                <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#a2c144]">Teacher Portal</span>
+                <span className="mt-1 text-xs font-bold uppercase tracking-wide text-[#a2c144]">Teacher Portal</span>
               </div>
             </Link>
             <button
@@ -133,7 +133,7 @@ export default function Sidebar({
               </div>
               <div className="flex min-w-0 flex-col">
                 <span className="text-sm font-bold leading-none tracking-wide text-white whitespace-nowrap">IDPS ERP</span>
-                <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#a2c144] whitespace-nowrap">
+                <span className="mt-1 text-xs font-bold uppercase tracking-wide text-[#a2c144] whitespace-nowrap">
                   Teacher Portal
                 </span>
               </div>
@@ -185,7 +185,7 @@ export default function Sidebar({
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
         <div>
           <p className={cn(
-            "px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
+            "px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
             sidebarExpanded ? "opacity-100" : "opacity-0 h-0 overflow-hidden m-0 p-0"
           )}>
             Main Menu
@@ -205,7 +205,7 @@ export default function Sidebar({
                     key={group.id}
                     href={item.href}
                     className={cn(
-                      "flex items-center py-2.5 rounded-lg text-[13px] font-medium transition-all group relative",
+                      "flex items-center py-2.5 rounded-lg text-sm font-medium transition-all group relative",
                       sidebarExpanded ? "gap-3 px-3 justify-start" : "px-3 justify-center",
                       isActive
                         ? "bg-[#a2c144]/20 text-[#a2c144] shadow-sm border border-[#a2c144]/10"
@@ -242,7 +242,7 @@ export default function Sidebar({
                       setOpenGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }));
                     }}
                     className={cn(
-                      "w-full flex items-center py-2.5 rounded-lg text-[13px] font-medium transition-all group relative",
+                      "w-full flex items-center py-2.5 rounded-lg text-sm font-medium transition-all group relative",
                       sidebarExpanded ? "gap-3 px-3 justify-start" : "px-3 justify-center",
                       groupActive
                         ? "bg-white/5 text-white border border-white/5"
@@ -333,7 +333,7 @@ export default function Sidebar({
             sidebarExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
           )}>
             <span className="font-bold text-xs text-white truncate whitespace-nowrap group-hover:text-[#a2c144] transition-colors">{user?.displayName || user?.studentName || "Teacher"}</span>
-            <span className="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5 whitespace-nowrap">{role === "teacher" ? "Teacher" : "Staff"}</span>
+            <span className="text-xs text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap">{role === "teacher" ? "Teacher" : "Staff"}</span>
           </div>
         </Link>
 

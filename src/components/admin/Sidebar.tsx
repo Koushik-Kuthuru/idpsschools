@@ -98,7 +98,7 @@ export default function Sidebar({
               </div>
               <div className="flex min-w-0 flex-col">
                 <span className="text-sm font-bold leading-none tracking-wide text-white">IDPS ERP</span>
-                <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#a2c144]">Branch Admin</span>
+                <span className="mt-1 text-xs font-bold uppercase tracking-wide text-[#a2c144]">Branch Admin</span>
               </div>
             </Link>
             <button
@@ -126,7 +126,7 @@ export default function Sidebar({
               </div>
               <div className="flex min-w-0 flex-col">
                 <span className="text-sm font-bold leading-none tracking-wide text-white whitespace-nowrap">IDPS ERP</span>
-                <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#a2c144] whitespace-nowrap">
+                <span className="mt-1 text-xs font-bold uppercase tracking-wide text-[#a2c144] whitespace-nowrap">
                   Branch Admin
                 </span>
               </div>
@@ -178,7 +178,7 @@ export default function Sidebar({
         <div>
           <p
             className={cn(
-              "px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
+              "px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
               sidebarExpanded ? "opacity-100" : "opacity-0 h-0 overflow-hidden m-0 p-0"
             )}
           >
@@ -199,7 +199,7 @@ export default function Sidebar({
                     key={group.id}
                     href={item.href}
                     className={cn(
-                      "flex items-center py-2.5 rounded-lg text-[13px] font-medium transition-all group relative",
+                      "flex items-center py-2.5 rounded-lg text-sm font-medium transition-all group relative",
                       sidebarExpanded ? "gap-3 px-3 justify-start" : "px-3 justify-center",
                       isActive
                         ? "bg-[#a2c144]/20 text-[#a2c144] border border-[#a2c144]/10"
@@ -232,7 +232,7 @@ export default function Sidebar({
                       setOpenGroups((prev) => ({ ...prev, [group.id]: !prev[group.id] }));
                     }}
                     className={cn(
-                      "w-full flex items-center py-2.5 rounded-lg text-[13px] font-medium transition-all group relative",
+                      "w-full flex items-center py-2.5 rounded-lg text-sm font-medium transition-all group relative",
                       sidebarExpanded ? "gap-3 px-3 justify-start" : "px-3 justify-center",
                       !sidebarExpanded && "cursor-default",
                       groupActive

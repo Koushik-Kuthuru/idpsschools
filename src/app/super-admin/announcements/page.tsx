@@ -180,7 +180,7 @@ export default function AnnouncementsPage() {
  <div key={item.id} className="group bg-white p-4 rounded-[16px] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden">
  {item.isNew && (
  <div className="absolute top-0 right-0 w-20 h-20 overflow-hidden z-10">
- <div className="absolute top-0 right-0 bg-gradient-to-r from-red-500 to-rose-600 text-white text-[10px] font-bold px-8 py-1.5 transform rotate-45 translate-x-5 translate-y-3 shadow-md">
+ <div className="absolute top-0 right-0 bg-gradient-to-r from-red-500 to-rose-600 text-white text-xs font-bold px-8 py-1.5 transform rotate-45 translate-x-5 translate-y-3 shadow-md">
  NEW
  </div>
  </div>
@@ -194,7 +194,7 @@ export default function AnnouncementsPage() {
  <div className="flex-1 min-w-0 w-full">
  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
  <div className="flex items-center gap-3">
- <span className={cn("px-3 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-widest border", item.badgeColor)}>
+ <span className={cn("px-3 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wide border", item.badgeColor)}>
  {item.type}
  </span>
  <div className="flex items-center gap-1.5 text-xs text-gray-400 font-bold tracking-wider">
@@ -226,7 +226,7 @@ export default function AnnouncementsPage() {
  <button
  key={idx}
  className={cn(
- "text-[10px] font-bold px-4 py-1.5 rounded-lg transition-all flex items-center gap-1.5 transform active:scale-95",
+ "text-xs font-bold px-4 py-1.5 rounded-lg transition-all flex items-center gap-1.5 transform active:scale-95",
  action.primary
  ? "bg-[#144835] text-white hover:bg-[#0f3628] shadow-sm hover:-translate-y-0.5"
  : "bg-gray-100/80 text-gray-700 hover:bg-gray-200 border border-gray-200/50 hover:border-gray-300"
@@ -280,7 +280,7 @@ export default function AnnouncementsPage() {
 
  <form onSubmit={handleCreate} className="p-4 space-y-4 bg-gray-50/30">
  <div className="space-y-1">
- <label className="text-[10px] font-extrabold text-gray-700 ml-1 uppercase tracking-wider">Announcement Title <span className="text-red-500">*</span></label>
+ <label className="text-xs font-extrabold text-gray-700 ml-1 uppercase tracking-wider">Announcement Title <span className="text-red-500">*</span></label>
  <input
  type="text"
  required
@@ -292,7 +292,7 @@ export default function AnnouncementsPage() {
  </div>
 
  <div className="space-y-1">
- <label className="text-[10px] font-extrabold text-gray-700 ml-1 uppercase tracking-wider">Category <span className="text-red-500">*</span></label>
+ <label className="text-xs font-extrabold text-gray-700 ml-1 uppercase tracking-wider">Category <span className="text-red-500">*</span></label>
  <div className="relative">
  <select
  value={newAnnouncement.type}
@@ -310,7 +310,7 @@ export default function AnnouncementsPage() {
  </div>
 
  <div className="space-y-1">
- <label className="text-[10px] font-extrabold text-gray-700 ml-1 uppercase tracking-wider">Message Content <span className="text-red-500">*</span></label>
+ <label className="text-xs font-extrabold text-gray-700 ml-1 uppercase tracking-wider">Message Content <span className="text-red-500">*</span></label>
  <textarea
  required
  rows={4}

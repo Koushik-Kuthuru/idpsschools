@@ -97,8 +97,13 @@ export default function AdminPayrollPage() {
  {loadError}
  </div>
  )}
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Payroll"
+  description="Manage staff salaries, disbursements, and pay cycles"
+ />
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="relative flex-1 sm:w-[240px]">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -142,45 +147,45 @@ export default function AdminPayrollPage() {
 
  {/* KPI Cards */}
  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <Users size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Staff</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Staff</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{payroll.length}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
  <IndianRupee size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Net Payable</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Net Payable</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">₹{(payroll.reduce((s, p) => s + p.net, 0) / 1000).toFixed(1)}k</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
  <Briefcase size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Gross Salary</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Gross Salary</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">₹{(payroll.reduce((s, p) => s + p.salary, 0) / 1000).toFixed(1)}k</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
  <AlertCircle size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Deductions</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Deductions</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">₹{(payroll.reduce((s, p) => s + p.tds + p.deduct, 0) / 1000).toFixed(1)}k</p>
  </div>
@@ -188,23 +193,23 @@ export default function AdminPayrollPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col overflow-hidden">
  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
- <h2 className="text-sm font-black text-gray-800">Payroll Directory</h2>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${filteredPayroll.length} records`}</p>
+ <h2 className="text-sm font-bold text-gray-800">Payroll Directory</h2>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${filteredPayroll.length} records`}</p>
  </div>
 
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Employee Info</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Gross Salary</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">TDS</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Other Deduct.</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Net Payable</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Employee Info</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Gross Salary</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">TDS</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Other Deduct.</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Net Payable</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -217,12 +222,12 @@ export default function AdminPayrollPage() {
  <tr key={p.id} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5">
  <div className="flex items-center gap-2.5">
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 border border-white/20", avatarColor)}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 border border-white/20", avatarColor)}>
  {initials}
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900">{p.employee}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">{p.employeeId} • {p.role}</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">{p.employeeId} • {p.role}</p>
  </div>
  </div>
  </td>
@@ -232,7 +237,7 @@ export default function AdminPayrollPage() {
  <td className="px-4 py-2.5 text-xs font-bold text-[#144835]">₹{p.net.toLocaleString("en-IN")}</td>
  <td className="px-4 py-2.5">
  <span className={cn(
- "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border",
+ "inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border",
  p.status === "Processed" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"
  )}>
  {p.status}
@@ -268,7 +273,7 @@ export default function AdminPayrollPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No payroll records found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
  </td>
  </tr>
  )}

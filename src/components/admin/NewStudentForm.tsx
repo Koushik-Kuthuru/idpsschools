@@ -14,7 +14,7 @@ const TooltipIcon = ({ text }: { text?: string }) => {
   return (
     <div className="relative flex items-center group/tooltip ml-1.5 cursor-help">
       <HelpCircle size={12} className="text-gray-400 group-hover/tooltip:text-[#144835] transition-colors" />
-      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-600 text-white text-[10px] font-medium px-2 py-1.5 rounded-md shadow-lg opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity z-50 whitespace-normal text-center leading-tight">
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-600 text-white text-xs font-medium px-2 py-1.5 rounded-md shadow-lg opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity z-50 whitespace-normal text-center leading-tight">
         {text}
         <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-4 border-transparent border-t-gray-600"></div>
       </div>
@@ -45,7 +45,7 @@ const Input = ({ label, type = "text", value, onChange, placeholder, required, d
   const hasValue = value !== undefined && value !== null && value !== "";
   return (
     <div className="flex flex-col group">
-      <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wide mb-1 flex items-center group-focus-within:text-[#144835] transition-colors relative">
+      <label className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 flex items-center group-focus-within:text-[#144835] transition-colors relative">
         <span>{label} {required && <span className="text-red-500">*</span>}</span>
         <TooltipIcon text={tooltip} />
       </label>
@@ -55,7 +55,7 @@ const Input = ({ label, type = "text", value, onChange, placeholder, required, d
         onChange={onChange}
         disabled={disabled}
         placeholder={placeholder}
-        className={`w-full h-8 rounded-lg border border-gray-200 px-2.5 text-[12px] font-semibold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm disabled:text-gray-400 disabled:cursor-not-allowed placeholder:text-gray-400 ${hasValue ? 'bg-emerald-50/50' : 'bg-gray-50/50'} ${disabled && hasValue ? 'bg-emerald-50/30' : ''} ${disabled && !hasValue ? 'bg-gray-100' : ''}`}
+        className={`w-full h-8 rounded-lg border border-gray-200 px-2.5 text-sm font-semibold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm disabled:text-gray-400 disabled:cursor-not-allowed placeholder:text-gray-400 ${hasValue ? 'bg-emerald-50/50' : 'bg-gray-50/50'} ${disabled && hasValue ? 'bg-emerald-50/30' : ''} ${disabled && !hasValue ? 'bg-gray-100' : ''}`}
       />
     </div>
   );
@@ -65,7 +65,7 @@ const Select = ({ label, value, onChange, options, required, disabled = false, t
   const hasValue = value !== undefined && value !== null && value !== "";
   return (
     <div className="flex flex-col group">
-      <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wide mb-1 flex items-center group-focus-within:text-[#144835] transition-colors relative">
+      <label className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 flex items-center group-focus-within:text-[#144835] transition-colors relative">
         <span>{label} {required && <span className="text-red-500">*</span>}</span>
         <TooltipIcon text={tooltip} />
       </label>
@@ -73,7 +73,7 @@ const Select = ({ label, value, onChange, options, required, disabled = false, t
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`w-full h-8 rounded-lg border border-gray-200 px-2.5 py-0 text-[12px] font-semibold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm disabled:text-gray-400 disabled:cursor-not-allowed appearance-none ${hasValue ? 'bg-emerald-50/50' : 'bg-gray-50/50'} ${disabled && hasValue ? 'bg-emerald-50/30' : ''} ${disabled && !hasValue ? 'bg-gray-100' : ''}`}
+        className={`w-full h-8 rounded-lg border border-gray-200 px-2.5 py-0 text-sm font-semibold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm disabled:text-gray-400 disabled:cursor-not-allowed appearance-none ${hasValue ? 'bg-emerald-50/50' : 'bg-gray-50/50'} ${disabled && hasValue ? 'bg-emerald-50/30' : ''} ${disabled && !hasValue ? 'bg-gray-100' : ''}`}
         style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.2em 1.2em` }}
       >
         <option value="" disabled>-- Select --</option>
@@ -93,7 +93,7 @@ const Checkbox = ({ label, checked, onChange, tooltip }: any) => (
       onChange={onChange}
       className="w-3.5 h-3.5 rounded border-gray-300 text-[#144835] focus:ring-[#144835] focus:ring-2 cursor-pointer transition-all"
     />
-    <span className="flex items-center text-[10px] font-bold text-gray-700 uppercase tracking-wide group-hover:text-[#144835] transition-colors">
+    <span className="flex items-center text-xs font-bold text-gray-700 uppercase tracking-wide group-hover:text-[#144835] transition-colors">
       {label}
       <TooltipIcon text={tooltip} />
     </span>
@@ -262,8 +262,8 @@ export default function NewStudentForm() {
               }`}>
                 {isCompleted ? <CheckCircle2 size={18} strokeWidth={2.5} /> : <Icon size={18} />}
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-wider mt-2 transition-colors ${isActive ? 'text-[#144835]' : 'text-gray-500'}`}>{step.label}</span>
-              <span className="text-[9px] font-bold text-gray-400 hidden sm:block mt-0.5">{step.desc}</span>
+              <span className={`text-xs font-bold uppercase tracking-wider mt-2 transition-colors ${isActive ? 'text-[#144835]' : 'text-gray-500'}`}>{step.label}</span>
+              <span className="text-xs font-bold text-gray-400 hidden sm:block mt-0.5">{step.desc}</span>
             </button>
           )
         })}
@@ -279,8 +279,8 @@ export default function NewStudentForm() {
           <Link href={`/schools/${schoolId}/admin/academic/students`} className="inline-flex items-center gap-2 px-1 text-gray-500 hover:text-gray-900 transition-colors mb-2 text-xs font-bold uppercase tracking-wider">
             <ArrowLeft size={14} /> Back to Student List
           </Link>
-          <h1 className="text-xl font-black tracking-tight text-gray-900 uppercase">New Admission</h1>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Enroll a new student into the school directory</p>
+          <h1 className="text-xl font-bold tracking-tight text-gray-900 uppercase">New Admission</h1>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Enroll a new student into the school directory</p>
         </div>
       </div>
 
@@ -305,7 +305,7 @@ export default function NewStudentForm() {
                   <>
                     <img src={formData.photo} alt="Student" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity">
-                      <span className="text-white text-[10px] font-bold">Change</span>
+                      <span className="text-white text-xs font-bold">Change</span>
                     </div>
                   </>
                 ) : (
@@ -313,7 +313,7 @@ export default function NewStudentForm() {
                     <div className="w-8 h-8 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center">
                       <Upload size={14} strokeWidth={2.5} />
                     </div>
-                    <span className="text-[9px] font-black uppercase tracking-wider text-center px-2">Upload<br/>Photo</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-center px-2">Upload<br/>Photo</span>
                   </div>
                 )}
                 <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
@@ -358,8 +358,8 @@ export default function NewStudentForm() {
             <div className="col-span-full border-b border-amber-200/50 pb-2.5 mb-1 flex items-center gap-2">
               <span className="text-lg">🔒</span>
               <div>
-                <h3 className="text-xs font-black text-amber-800 uppercase tracking-wide">Portal Access Credentials</h3>
-                <p className="text-[9px] text-amber-600 font-bold uppercase mt-0.5">Critical information required for student/parent dashboard login</p>
+                <h3 className="text-xs font-bold text-amber-800 uppercase tracking-wide">Portal Access Credentials</h3>
+                <p className="text-xs text-amber-600 font-bold uppercase mt-0.5">Critical information required for student/parent dashboard login</p>
               </div>
             </div>
             <div className="col-span-2">
@@ -372,7 +372,7 @@ export default function NewStudentForm() {
               <button 
                 type="button" 
                 onClick={() => handleChange('username', formData.registrationNo)}
-                className="w-full h-8 rounded-lg border border-amber-300 hover:bg-amber-100/50 text-[10px] font-black uppercase text-amber-800 transition-all tracking-wide shadow-sm"
+                className="w-full h-8 rounded-lg border border-amber-300 hover:bg-amber-100/50 text-xs font-bold uppercase text-amber-800 transition-all tracking-wide shadow-sm"
               >
                 Reset to Roll No
               </button>
@@ -460,7 +460,7 @@ export default function NewStudentForm() {
           </FormGroup>
 
           <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm flex items-center justify-between">
-            <span className="text-xs font-black text-gray-700 uppercase tracking-wide">Is Correspondence Address same as Permanent?</span>
+            <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">Is Correspondence Address same as Permanent?</span>
             <Checkbox label="Same as Permanent" checked={formData.sameAsPerm} onChange={(e: any) => handleChange('sameAsPerm', e.target.checked)} />
           </div>
 
@@ -509,7 +509,7 @@ export default function NewStudentForm() {
             <button
               type="button"
               onClick={() => setCurrentStep(currentStep + 1)}
-              className="inline-flex items-center justify-center px-6 py-2 bg-[#144835] text-white text-[11px] font-black uppercase tracking-widest rounded-lg shadow-sm hover:bg-[#0d3023] hover:shadow transition-all"
+              className="inline-flex items-center justify-center px-6 py-2 bg-[#144835] text-white text-xs font-bold uppercase tracking-wide rounded-lg shadow-sm hover:bg-[#0d3023] hover:shadow transition-all"
             >
               Next Step
             </button>
@@ -518,7 +518,7 @@ export default function NewStudentForm() {
               type="button"
               onClick={onSave}
               disabled={saving}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-[#144835] to-emerald-700 text-white text-[11px] font-black uppercase tracking-widest rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-6 py-2 bg-gradient-to-r from-[#144835] to-emerald-700 text-white text-xs font-bold uppercase tracking-wide rounded-lg shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-50"
             >
               <Save size={14} />
               {saving ? "Saving Admission..." : "Submit Admission"}

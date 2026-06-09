@@ -29,8 +29,8 @@ const InfoSection = ({ title, icon: Icon, children }: any) => (
 
 const InfoField = ({ label, value }: { label: string, value: any }) => (
  <div className="flex flex-col group">
- <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">{label}</span>
- <span className="text-[13px] font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100 break-words">{value || "-"}</span>
+ <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">{label}</span>
+ <span className="text-sm font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100 break-words">{value || "-"}</span>
  </div>
 );
 
@@ -444,7 +444,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10">
  <div>
- <h1 className="text-xl font-black tracking-tight text-[#1A1A1A] uppercase">Student Profile</h1>
+ <h1 className="text-xl font-bold tracking-tight text-[#1A1A1A] uppercase">Student Profile</h1>
  <p className="mt-2 text-xs font-semibold text-slate-600">Student not found: {studentId}</p>
  </div>
  <Link
@@ -480,35 +480,35 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-100"><User size={40} /></div>
  )}
  </div>
- <h2 className="text-lg font-black text-gray-900 text-center uppercase leading-tight">{student.studentName || `${student.firstName || ''} ${student.lastName || ''}`}</h2>
+ <h2 className="text-lg font-bold text-gray-900 text-center uppercase leading-tight">{student.studentName || `${student.firstName || ''} ${student.lastName || ''}`}</h2>
  <div className="flex items-center gap-2 mt-2 flex-wrap justify-center">
  <p className="text-xs font-bold text-[#144835] bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
  Class: {student.classId || student.grade} {student.section}
  </p>
- <span className={`px-3 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getStatusColor(student.status || 'Active')}`}>
+ <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${getStatusColor(student.status || 'Active')}`}>
  {student.status || 'Active'}
  </span>
  </div>
  </div>
  <div className="p-5 space-y-4">
  <div className="flex items-center justify-between py-2 border-b border-gray-50">
- <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Admission No</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Admission No</span>
  <span className="text-sm font-bold text-gray-900">{student.admissionNo || "-"}</span>
  </div>
  <div className="flex items-center justify-between py-2 border-b border-gray-50">
- <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Roll No</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Roll No</span>
  <span className="text-sm font-bold text-gray-900">{student.rollNumber || "-"}</span>
  </div>
  <div className="flex items-center justify-between py-2 border-b border-gray-50">
- <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">DOB</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">DOB</span>
  <span className="text-sm font-bold text-gray-900">{student.dob || "-"}</span>
  </div>
  <div className="flex items-center justify-between py-2 border-b border-gray-50">
- <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Gender</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Gender</span>
  <span className="text-sm font-bold text-gray-900">{student.gender || "-"}</span>
  </div>
  <div className="flex items-center justify-between py-2">
- <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Contact</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Contact</span>
  <span className="text-sm font-bold text-gray-900">{student.mobileNumber || student.permMobile || student.fatherMobile1 || "-"}</span>
  </div>
  </div>
@@ -516,12 +516,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
 
  {/* Quick Stats or Additional Info can go here */}
  <div className="bg-gradient-to-br from-[#144835] to-[#0d3023] rounded-xl shadow-md p-5 text-white">
- <h3 className="text-xs font-extrabold uppercase tracking-widest text-emerald-200 mb-4">Current Academic Year</h3>
+ <h3 className="text-xs font-extrabold uppercase tracking-wide text-emerald-200 mb-4">Current Academic Year</h3>
  <div className="space-y-4">
  <div>
- <p className="text-[10px] text-emerald-100/70 font-bold uppercase tracking-wider">Attendance</p>
+ <p className="text-xs text-emerald-100/70 font-bold uppercase tracking-wider">Attendance</p>
  <div className="flex items-end gap-2 mt-1">
- <span className="text-2xl font-black">92%</span>
+ <span className="text-2xl font-bold">92%</span>
  <span className="text-xs text-emerald-200 mb-1">present</span>
  </div>
  </div>
@@ -558,7 +558,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className={`w-[46px] h-[46px] rounded-full flex items-center justify-center mb-2.5 transition-all duration-300 ${isActive ? 'bg-white text-[#144835] shadow-sm' : 'bg-[#225743] text-emerald-50 group-hover:bg-[#2b6a53]'}`}>
  <tab.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
  </div>
- <span className={`text-[10px] font-bold text-center leading-tight whitespace-pre-wrap ${isActive ? 'text-[#144835]' : 'text-emerald-50/90'}`}>
+ <span className={`text-xs font-bold text-center leading-tight whitespace-pre-wrap ${isActive ? 'text-[#144835]' : 'text-emerald-50/90'}`}>
  {tab.id.replace(' ', '\n')}
  </span>
  
@@ -584,15 +584,15 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
  {/* Action Buttons Toolbar */}
  <div className="flex justify-end gap-2 mb-2">
- <button className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-[11px] font-extrabold text-gray-700 shadow-sm hover:bg-gray-50 uppercase tracking-wide">
+ <button className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-xs font-extrabold text-gray-700 shadow-sm hover:bg-gray-50 uppercase tracking-wide">
  <Printer size={14} /> Print
  </button>
- <button className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-[11px] font-extrabold text-gray-700 shadow-sm hover:bg-gray-50 uppercase tracking-wide">
+ <button className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-xs font-extrabold text-gray-700 shadow-sm hover:bg-gray-50 uppercase tracking-wide">
  <MessageSquare size={14} /> Message
  </button>
  <Link
  href={`/schools/${schoolId}/admin/academic/students/${encodeURIComponent(student.id)}/edit`}
- className="inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 py-2 text-[11px] font-extrabold text-white shadow-sm hover:opacity-90 uppercase tracking-wide"
+ className="inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 py-2 text-xs font-extrabold text-white shadow-sm hover:opacity-90 uppercase tracking-wide"
  >
  <Pencil size={14} /> Edit
  </Link>
@@ -603,7 +603,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <User size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Identity Information</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Identity Information</h3>
  </div>
  <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <InfoField label="Aadhar No" value={student.aadharNo} />
@@ -621,7 +621,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <BookOpen size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Academic Placement</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Academic Placement</h3>
  </div>
  <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <InfoField label="Student Type" value={student.studentType} />
@@ -640,7 +640,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Users size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Demographics</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Demographics</h3>
  </div>
  <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <InfoField label="Mother Tongue" value={student.motherTongue} />
@@ -659,7 +659,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Heart size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Health & Medical</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Health & Medical</h3>
  </div>
  <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <InfoField label="Blood Group" value={student.bloodGroup} />
@@ -683,7 +683,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Building size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Bank Details</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Bank Details</h3>
  </div>
  <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <InfoField label="Bank Name" value={student.bankName} />
@@ -699,12 +699,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Users size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Family Profile</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Family Profile</h3>
  </div>
  <div className="p-5 space-y-8">
  {/* Father */}
  <div>
- <h4 className="text-[10px] font-black text-[#144835] uppercase tracking-widest bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Father</h4>
+ <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wide bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Father</h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <InfoField label="Name" value={student.fatherName} />
  <InfoField label="Email" value={student.fatherEmail} />
@@ -727,7 +727,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </div>
  {/* Mother */}
  <div className="border-t border-gray-50 pt-6">
- <h4 className="text-[10px] font-black text-[#144835] uppercase tracking-widest bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Mother</h4>
+ <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wide bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Mother</h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <InfoField label="Name" value={student.motherName} />
  <InfoField label="Email" value={student.motherEmail} />
@@ -751,7 +751,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  {/* Guardian (if exists) */}
  {student.guardianName && (
  <div className="border-t border-gray-50 pt-6">
- <h4 className="text-[10px] font-black text-[#144835] uppercase tracking-widest bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Guardian</h4>
+ <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wide bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Guardian</h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <InfoField label="Name" value={student.guardianName} />
  <InfoField label="Email" value={student.guardianEmail} />
@@ -782,11 +782,11 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Home size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Contact & Address</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Contact & Address</h3>
  </div>
  <div className="p-5 space-y-8">
  <div>
- <h4 className="text-[10px] font-black text-[#144835] uppercase tracking-widest bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Permanent Address</h4>
+ <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wide bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Permanent Address</h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <div className="col-span-full sm:col-span-2"><InfoField label="Address" value={student.permAddress} /></div>
  <InfoField label="Mobile" value={student.permMobile} />
@@ -799,7 +799,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </div>
  {!student.sameAsPerm && (
  <div className="border-t border-gray-50 pt-6">
- <h4 className="text-[10px] font-black text-[#144835] uppercase tracking-widest bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Correspondence Address</h4>
+ <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wide bg-emerald-50/80 py-1.5 px-3 rounded-lg border border-emerald-100 shadow-sm inline-block mb-4">Correspondence Address</h4>
  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
  <div className="col-span-full sm:col-span-2"><InfoField label="Address" value={student.corrAddress} /></div>
  <InfoField label="Mobile" value={student.corrMobile} />
@@ -821,17 +821,17 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Users size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Siblings Enrolled</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Siblings Enrolled</h3>
  </div>
  <div className="p-0 overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="border-b border-gray-100 bg-gray-50/50">
- <th className="py-3 px-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Name</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Age</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Gender</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">School</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Class</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-500 uppercase tracking-wide">Name</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-500 uppercase tracking-wide">Age</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-500 uppercase tracking-wide">Gender</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-500 uppercase tracking-wide">School</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-500 uppercase tracking-wide">Class</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
@@ -845,9 +845,9 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  }
  return (
  <tr key={rowIdx} className="hover:bg-gray-50/50 transition-colors group">
- <td className="py-2 px-4 text-[10px] font-black text-gray-700 sticky left-0 bg-white group-hover:bg-gray-50/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">{fee.name}</td>
+ <td className="py-2 px-4 text-xs font-bold text-gray-700 sticky left-0 bg-white group-hover:bg-gray-50/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">{fee.name}</td>
  <td className="py-2 px-3 text-center">
- <span className="text-[9px] font-bold text-gray-400 bg-gray-100/50 px-2 py-1 rounded uppercase tracking-wider">{fee.method}</span>
+ <span className="text-xs font-bold text-gray-400 bg-gray-100/50 px-2 py-1 rounded uppercase tracking-wider">{fee.method}</span>
  </td>
  {displayValues.map((val, colIdx) => (
  <td key={colIdx} className="py-2 px-1 text-center">
@@ -858,21 +858,21 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  onFocus={(e) => e.target.value === "0" && e.target.select()}
  disabled={fee.name === "LAST YEAR DUE" && colIdx > 0}
  readOnly={fee.name === "LAST YEAR DUE"}
- className={`w-14 h-8 text-center text-[11px] font-bold ${displayValues[colIdx] === "0" || displayValues[colIdx] === "" ? 'text-gray-400 bg-gray-50/50' : 'text-gray-900 bg-emerald-50/50'} border border-transparent rounded-md focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/20 outline-none transition-all hover:bg-white hover:border-gray-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
+ className={`w-14 h-8 text-center text-xs font-bold ${displayValues[colIdx] === "0" || displayValues[colIdx] === "" ? 'text-gray-400 bg-gray-50/50' : 'text-gray-900 bg-emerald-50/50'} border border-transparent rounded-md focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/20 outline-none transition-all hover:bg-white hover:border-gray-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
  />
  </td>
  ))}
  <td className="py-2 px-4 text-right bg-emerald-50/30 border-l border-emerald-100/50">
- <span className="text-[11px] font-black text-[#144835]">{rowTotal.toLocaleString()}</span>
+ <span className="text-xs font-bold text-[#144835]">{rowTotal.toLocaleString()}</span>
  </td>
  </tr>
  )})}
  
  {/* Grand Total Row */}
  <tr className="bg-gray-50/80 border-t-2 border-gray-200">
- <td colSpan={14} className="py-4 px-4 text-right text-[11px] font-black text-gray-600 uppercase tracking-widest sticky left-0 z-10 shadow-[1px_0_0_0_#f3f4f6]">Grand Total</td>
+ <td colSpan={14} className="py-4 px-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wide sticky left-0 z-10 shadow-[1px_0_0_0_#f3f4f6]">Grand Total</td>
  <td className="py-4 px-4 text-right bg-emerald-100/50 border-l border-emerald-200/50">
- <span className="text-[13px] font-black text-[#144835]">₹{calculateGrandTotal().toLocaleString()}</span>
+ <span className="text-sm font-bold text-[#144835]">₹{calculateGrandTotal().toLocaleString()}</span>
  </td>
  </tr>
  </tbody>
@@ -889,8 +889,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 flex items-start gap-3 shadow-sm">
  <div className="text-amber-500 mt-0.5"><AlertCircle size={18} strokeWidth={2.5}/></div>
  <div>
- <h4 className="text-[11px] font-black text-amber-800 uppercase tracking-wider">Important Notice</h4>
- <p className="text-[11px] font-bold text-amber-700/80 mt-0.5">Transport/Bus Fee indicated here is for reference only. For changing Bus Fee, please go to the <strong>'Transport Details'</strong> section.</p>
+ <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider">Important Notice</h4>
+ <p className="text-xs font-bold text-amber-700/80 mt-0.5">Transport/Bus Fee indicated here is for reference only. For changing Bus Fee, please go to the <strong>'Transport Details'</strong> section.</p>
  </div>
  </div>
 
@@ -901,14 +901,14 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-4">
  <div className="flex flex-wrap items-center gap-4">
  <div className="flex items-center gap-2">
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Category</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Category</span>
  <select value={feeCategory} onChange={e => setFeeCategory(e.target.value)} className="h-8 rounded-lg border border-gray-200 bg-white px-3 py-0 text-xs font-bold text-[#144835] focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm cursor-pointer appearance-none pr-8 relative" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23144835' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1em 1em` }}>
  <option value="GENERAL">GENERAL</option>
  <option value="RTE">RTE</option>
  </select>
  </div>
  <div className="flex items-center gap-2">
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Fee Type</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Fee Type</span>
  <select value={feeTypeFilter} onChange={e => setFeeTypeFilter(e.target.value)} className="h-8 rounded-lg border border-gray-200 bg-white px-3 py-0 text-xs font-bold text-[#144835] focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm cursor-pointer appearance-none pr-8 relative" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23144835' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1em 1em` }}>
  <option value="MONTHLY">MONTHLY</option>
  <option value="QUARTERLY">QUARTERLY</option>
@@ -916,19 +916,19 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </select>
  </div>
  <div className="flex items-center gap-2">
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Status</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</span>
  <select value={feeStatus} onChange={e => setFeeStatus(e.target.value)} className="h-8 rounded-lg border border-gray-200 bg-white px-3 py-0 text-xs font-bold text-[#144835] focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm cursor-pointer appearance-none pr-8 relative" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23144835' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1em 1em` }}>
  <option value="NEW">NEW</option>
  <option value="OLD">OLD</option>
  </select>
  </div>
  <div className="flex items-center gap-2">
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Last Year Due</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Last Year Due</span>
  <input type="number" value={lastYearDue} onChange={e => setLastYearDue(e.target.value)} onFocus={(e) => e.target.value === "0" && e.target.select()} className="h-8 w-24 rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-900 focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm text-center" />
  </div>
  </div>
  <div className="flex items-center gap-2 w-full sm:w-auto">
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Disc. Remark</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Disc. Remark</span>
  <input type="text" value={discRemark} onChange={e => setDiscRemark(e.target.value)} placeholder="Optional remark..." className="h-8 w-full sm:w-48 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm placeholder:text-gray-400" />
  </div>
  </div>
@@ -938,12 +938,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <table className="w-full text-left border-collapse whitespace-nowrap">
  <thead>
  <tr className="bg-gray-50/50 border-b border-gray-100">
- <th className="py-3 px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest sticky left-0 bg-gray-50/90 backdrop-blur-sm z-20 shadow-[1px_0_0_0_#f3f4f6]">Fee Type</th>
- <th className="py-3 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Method</th>
+ <th className="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wide sticky left-0 bg-gray-50/90 backdrop-blur-sm z-20 shadow-[1px_0_0_0_#f3f4f6]">Fee Type</th>
+ <th className="py-3 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide text-center">Method</th>
  {["APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR"].map(m => (
- <th key={m} className="py-3 px-2 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">{m}</th>
+ <th key={m} className="py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wide text-center">{m}</th>
  ))}
- <th className="py-3 px-4 text-[10px] font-black text-[#144835] uppercase tracking-widest text-right bg-emerald-50/50">Total</th>
+ <th className="py-3 px-4 text-xs font-bold text-[#144835] uppercase tracking-wide text-right bg-emerald-50/50">Total</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
@@ -961,30 +961,30 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  { name: "TRANSPORT FEE", method: "QUARTERLY", values: Array(12).fill("0"), total: "0" },
  ].map((fee, idx) => (
  <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
- <td className="py-2 px-4 text-[10px] font-black text-gray-700 sticky left-0 bg-white group-hover:bg-gray-50/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">{fee.name}</td>
+ <td className="py-2 px-4 text-xs font-bold text-gray-700 sticky left-0 bg-white group-hover:bg-gray-50/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">{fee.name}</td>
  <td className="py-2 px-3 text-center">
- <span className="text-[9px] font-bold text-gray-400 bg-gray-100/50 px-2 py-1 rounded uppercase tracking-wider">{fee.method}</span>
+ <span className="text-xs font-bold text-gray-400 bg-gray-100/50 px-2 py-1 rounded uppercase tracking-wider">{fee.method}</span>
  </td>
  {fee.values.map((val, i) => (
  <td key={i} className="py-2 px-1 text-center">
  <input 
  type="text" 
  defaultValue={val} 
- className={`w-14 h-8 text-center text-[11px] font-bold ${val === "0" ? 'text-gray-400 bg-gray-50/50' : 'text-gray-900 bg-emerald-50/50'} border border-transparent rounded-md focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/20 outline-none transition-all hover:bg-white hover:border-gray-200 shadow-sm`}
+ className={`w-14 h-8 text-center text-xs font-bold ${val === "0" ? 'text-gray-400 bg-gray-50/50' : 'text-gray-900 bg-emerald-50/50'} border border-transparent rounded-md focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/20 outline-none transition-all hover:bg-white hover:border-gray-200 shadow-sm`}
  />
  </td>
  ))}
  <td className="py-2 px-4 text-right bg-emerald-50/30 border-l border-emerald-100/50">
- <span className="text-[11px] font-black text-[#144835]">{fee.total}</span>
+ <span className="text-xs font-bold text-[#144835]">{fee.total}</span>
  </td>
  </tr>
  ))}
  
  {/* Grand Total Row */}
  <tr className="bg-gray-50/80 border-t-2 border-gray-200">
- <td colSpan={14} className="py-4 px-4 text-right text-[11px] font-black text-gray-600 uppercase tracking-widest sticky left-0 z-10 shadow-[1px_0_0_0_#f3f4f6]">Grand Total</td>
+ <td colSpan={14} className="py-4 px-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wide sticky left-0 z-10 shadow-[1px_0_0_0_#f3f4f6]">Grand Total</td>
  <td className="py-4 px-4 text-right bg-emerald-100/50 border-l border-emerald-200/50">
- <span className="text-[13px] font-black text-[#144835]">240000</span>
+ <span className="text-sm font-bold text-[#144835]">240000</span>
  </td>
  </tr>
  </tbody>
@@ -993,8 +993,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
 
  {/* Footer Update Action */}
  <div className="p-4 border-t border-gray-100 bg-white flex justify-end items-center gap-3">
- <button onClick={resetFeeGrid} className="px-5 py-2.5 text-[11px] font-bold text-gray-500 hover:text-gray-900 uppercase tracking-wider transition-colors">Reset Values</button>
- <button onClick={handleUpdateFeeStructure} className="inline-flex items-center justify-center px-6 py-2.5 bg-[#144835] text-white text-[11px] font-black uppercase tracking-widest rounded-lg shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95">
+ <button onClick={resetFeeGrid} className="px-5 py-2.5 text-xs font-bold text-gray-500 hover:text-gray-900 uppercase tracking-wider transition-colors">Reset Values</button>
+ <button onClick={handleUpdateFeeStructure} className="inline-flex items-center justify-center px-6 py-2.5 bg-[#144835] text-white text-xs font-bold uppercase tracking-wide rounded-lg shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95">
  Update Fee Structure
  </button>
  </div>
@@ -1012,13 +1012,13 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Bus size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Transport Assignment</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Transport Assignment</h3>
  </div>
  <div className="flex items-center gap-3">
- <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Facility Required?</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Facility Required?</span>
  <div className="flex bg-gray-100/80 p-1 rounded-lg border border-gray-200 shadow-inner">
- <button onClick={() => setTransportFacility("YES")} className={`px-4 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all ${transportFacility === "YES" ? 'bg-white text-[#144835] shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>Yes</button>
- <button onClick={() => setTransportFacility("NO")} className={`px-4 py-1.5 rounded-md text-[11px] font-black uppercase tracking-wider transition-all ${transportFacility === "NO" ? 'bg-white text-red-600 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>No</button>
+ <button onClick={() => setTransportFacility("YES")} className={`px-4 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${transportFacility === "YES" ? 'bg-white text-[#144835] shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>Yes</button>
+ <button onClick={() => setTransportFacility("NO")} className={`px-4 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition-all ${transportFacility === "NO" ? 'bg-white text-red-600 shadow-sm border border-gray-200' : 'text-gray-500 hover:text-gray-700'}`}>No</button>
  </div>
  </div>
  </div>
@@ -1026,33 +1026,33 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className={`p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-opacity duration-300 ${transportFacility === "NO" ? 'opacity-50 pointer-events-none grayscale-[50%]' : ''}`}>
  {/* Row 1: Bus details */}
  <div className="flex flex-col group">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><Bus size={12}/> Bus No.</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><Bus size={12}/> Bus No.</label>
  <input type="text" value={busNo} onChange={e=>setBusNo(e.target.value)} placeholder="e.g. AP39UF3916" className="h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-bold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm placeholder:text-gray-300" />
  </div>
  <div className="flex flex-col group">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><MapPin size={12}/> Transport Route</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><MapPin size={12}/> Transport Route</label>
  <input type="text" value={transportRoute} onChange={e=>setTransportRoute(e.target.value)} placeholder="e.g. R10" className="h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-bold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm placeholder:text-gray-300" />
  </div>
  <div className="flex flex-col group lg:col-span-2">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><MapPin size={12}/> Stoppage</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><MapPin size={12}/> Stoppage</label>
  <input type="text" value={stoppage} onChange={e=>setStoppage(e.target.value)} placeholder="e.g. SLAB (ABOVE 7KM)" className="h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-bold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm placeholder:text-gray-300" />
  </div>
 
  {/* Row 2: Timing & Driver */}
  <div className="flex flex-col group">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><Clock size={12}/> Arr. Time</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><Clock size={12}/> Arr. Time</label>
  <input type="time" value={arrTime} onChange={e=>setArrTime(e.target.value)} className="h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-bold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm" />
  </div>
  <div className="flex flex-col group">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><Clock size={12}/> Dep. Time</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><Clock size={12}/> Dep. Time</label>
  <input type="time" value={depTime} onChange={e=>setDepTime(e.target.value)} className="h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-bold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm" />
  </div>
  <div className="flex flex-col group">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><User size={12}/> Driver Name</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><User size={12}/> Driver Name</label>
  <input type="text" value={driverName} onChange={e=>setDriverName(e.target.value)} placeholder="e.g. Ravi Bussa" className="h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-bold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm placeholder:text-gray-300" />
  </div>
  <div className="flex flex-col group">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><Phone size={12}/> Driver Mobile No.</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 group-focus-within:text-[#144835] transition-colors"><Phone size={12}/> Driver Mobile No.</label>
  <input type="tel" value={driverMobile} onChange={e=>setDriverMobile(e.target.value)} placeholder="e.g. 7416742036" className="h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-bold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm placeholder:text-gray-300" />
  </div>
  </div>
@@ -1065,18 +1065,18 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <IndianRupee size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Monthly Transport Fee</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Monthly Transport Fee</h3>
  </div>
  </div>
  
  <div className="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
  {MONTHS.map((m, idx) => (
  <div key={m} className="flex flex-col group">
- <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-1 group-focus-within:text-[#144835] transition-colors">
+ <label className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5 flex items-center gap-1 group-focus-within:text-[#144835] transition-colors">
  {m} <span className="w-full h-px bg-gray-100 block ml-2"></span>
  </label>
  <div className="relative">
- <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-black">₹</span>
+ <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">₹</span>
  <input 
  type="text" 
  value={transportFees[idx]}
@@ -1091,8 +1091,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
 
  {/* Footer Update Action */}
  <div className="p-4 border-t border-gray-100 bg-white flex justify-between items-center gap-3">
- <div className="text-[11px] font-bold text-gray-400 flex items-center gap-1.5"><AlertCircle size={14}/> Updates apply immediately to student record.</div>
- <button onClick={handleUpdateTransportInfo} className="inline-flex items-center justify-center px-6 py-3 bg-[#144835] text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95">
+ <div className="text-xs font-bold text-gray-400 flex items-center gap-1.5"><AlertCircle size={14}/> Updates apply immediately to student record.</div>
+ <button onClick={handleUpdateTransportInfo} className="inline-flex items-center justify-center px-6 py-3 bg-[#144835] text-white text-xs font-bold uppercase tracking-wide rounded-xl shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95">
  Update Transport Information
  </button>
  </div>
@@ -1104,34 +1104,34 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <History size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Change History Log</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Change History Log</h3>
  </div>
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse whitespace-nowrap">
  <thead>
  <tr className="border-b border-gray-100 bg-white">
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest w-12 text-center">SR</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Message / Activity</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest">Changed By</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-right">Date & Time</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide w-12 text-center">SR</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide">Message / Activity</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide">Changed By</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide text-right">Date & Time</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
  {(student.transportHistory || []).map((log: any, i: number) => (
  <tr key={log.id} className="hover:bg-gray-50/50 transition-colors group">
- <td className="py-3 px-5 text-[11px] font-bold text-gray-400 text-center">{i + 1}.</td>
- <td className="py-3 px-5 text-[12px] font-semibold text-gray-800">
+ <td className="py-3 px-5 text-xs font-bold text-gray-400 text-center">{i + 1}.</td>
+ <td className="py-3 px-5 text-sm font-semibold text-gray-800">
  <span className="font-bold text-gray-900 underline decoration-gray-200 underline-offset-2 mr-1">{student.name} ({student.rollNumber || student.registrationNo})</span>
  {log.message}
  </td>
- <td className="py-3 px-5 text-[11px] font-bold text-gray-600">{log.user}</td>
- <td className="py-3 px-5 text-[11px] font-bold text-gray-500 text-right">{log.date}</td>
+ <td className="py-3 px-5 text-xs font-bold text-gray-600">{log.user}</td>
+ <td className="py-3 px-5 text-xs font-bold text-gray-500 text-right">{log.date}</td>
  </tr>
  ))}
  
  {(student.transportHistory || []).length === 0 && (
  <tr>
- <td colSpan={4} className="py-8 text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+ <td colSpan={4} className="py-8 text-center text-xs font-bold text-gray-400 uppercase tracking-wide">
  No Transport History Found
  </td>
  </tr>
@@ -1154,10 +1154,10 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Award size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Document Collection Status</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Document Collection Status</h3>
  </div>
  <div className="flex items-center gap-2">
- <button className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-[10px] font-extrabold text-gray-700 shadow-sm hover:bg-gray-50 uppercase tracking-wide">
+ <button className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-xs font-extrabold text-gray-700 shadow-sm hover:bg-gray-50 uppercase tracking-wide">
  <Printer size={14} /> Print Pending Doc. Letter
  </button>
  </div>
@@ -1168,27 +1168,27 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest w-12 text-center">SR</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest min-w-[200px]">Certificates</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center min-w-[250px]">Collected Status</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest min-w-[150px]">Remarks</th>
- <th className="py-3 px-5 text-[10px] font-black text-gray-400 uppercase tracking-widest min-w-[250px]">Upload / Preview</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide w-12 text-center">SR</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide min-w-[200px]">Certificates</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide text-center min-w-[250px]">Collected Status</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide min-w-[150px]">Remarks</th>
+ <th className="py-3 px-5 text-xs font-bold text-gray-400 uppercase tracking-wide min-w-[250px]">Upload / Preview</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
  {certificates.map((cert: any, index: number) => (
  <tr key={cert.id} className={`hover:bg-gray-50/50 transition-colors group ${cert.status === "YES" ? 'bg-emerald-50/10' : ''}`}>
- <td className="py-3 px-5 text-[11px] font-bold text-gray-400 text-center">{index + 1}.</td>
+ <td className="py-3 px-5 text-xs font-bold text-gray-400 text-center">{index + 1}.</td>
  <td className="py-3 px-5">
  <div className="flex items-center gap-2">
  {cert.status === "YES" ? <FileCheck size={14} className="text-emerald-500" /> : <FileMinus size={14} className="text-gray-300" />}
- <span className={`text-[12px] font-bold ${cert.status === "YES" ? 'text-gray-900' : 'text-gray-600'}`}>{cert.name}</span>
+ <span className={`text-sm font-bold ${cert.status === "YES" ? 'text-gray-900' : 'text-gray-600'}`}>{cert.name}</span>
  </div>
  </td>
  <td className="py-3 px-5">
  <div className="flex items-center justify-center gap-3">
  {["YES", "NO", "N/A", "PARTIAL"].map(opt => (
- <label key={opt} className={`flex items-center gap-1.5 cursor-pointer text-[10px] font-black tracking-wider transition-colors ${cert.status === opt ? (opt === 'YES' ? 'text-emerald-600' : opt === 'NO' ? 'text-red-500' : opt === 'PARTIAL' ? 'text-amber-500' : 'text-[#144835]') : 'text-gray-400 hover:text-gray-600'}`}>
+ <label key={opt} className={`flex items-center gap-1.5 cursor-pointer text-xs font-bold tracking-wider transition-colors ${cert.status === opt ? (opt === 'YES' ? 'text-emerald-600' : opt === 'NO' ? 'text-red-500' : opt === 'PARTIAL' ? 'text-amber-500' : 'text-[#144835]') : 'text-gray-400 hover:text-gray-600'}`}>
  <input 
  type="radio" 
  name={`cert-${cert.id}`} 
@@ -1208,24 +1208,24 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  value={cert.remark}
  onChange={(e) => handleCertificateRemarkChange(index, e.target.value)}
  placeholder="Add remark..." 
- className="h-8 w-full rounded-lg border border-transparent bg-transparent group-hover:bg-white group-hover:border-gray-200 px-3 text-[11px] font-medium text-gray-700 focus:bg-white focus:border-[#144835] focus:ring-1 focus:ring-[#144835]/20 outline-none transition-all placeholder:text-transparent group-hover:placeholder:text-gray-300" 
+ className="h-8 w-full rounded-lg border border-transparent bg-transparent group-hover:bg-white group-hover:border-gray-200 px-3 text-xs font-medium text-gray-700 focus:bg-white focus:border-[#144835] focus:ring-1 focus:ring-[#144835]/20 outline-none transition-all placeholder:text-transparent group-hover:placeholder:text-gray-300" 
  />
  </td>
  <td className="py-2 px-5">
  <div className="flex items-center gap-3">
  {cert.fileUrl ? (
- <button className="flex items-center gap-1 text-[10px] font-black text-[#144835] hover:underline uppercase tracking-wider">
+ <button className="flex items-center gap-1 text-xs font-bold text-[#144835] hover:underline uppercase tracking-wider">
  <Eye size={12} /> Preview
  </button>
  ) : (
- <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1"><Eye size={12} /> No Doc</span>
+ <span className="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1"><Eye size={12} /> No Doc</span>
  )}
  <div className="w-px h-3 bg-gray-200"></div>
  <label className="flex items-center gap-1.5 cursor-pointer group/upload">
- <div className="h-7 px-3 rounded-md bg-gray-100 text-gray-600 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider group-hover/upload:bg-[#144835] group-hover/upload:text-white transition-colors">
+ <div className="h-7 px-3 rounded-md bg-gray-100 text-gray-600 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider group-hover/upload:bg-[#144835] group-hover/upload:text-white transition-colors">
  <UploadCloud size={12} /> Upload
  </div>
- <span className="text-[10px] font-medium text-gray-400 truncate max-w-[100px]">No file chosen</span>
+ <span className="text-xs font-medium text-gray-400 truncate max-w-[100px]">No file chosen</span>
  <input type="file" className="hidden" accept=".pdf,.jpg,.jpeg" />
  </label>
  </div>
@@ -1240,12 +1240,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="p-4 border-t border-gray-100 bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
  <div className="flex items-start gap-2 bg-red-50/50 p-2.5 rounded-lg border border-red-100/50 max-w-xl">
  <AlertCircle size={14} className="text-red-400 mt-0.5 shrink-0" />
- <p className="text-[10px] font-bold text-red-600 leading-relaxed">
- <span className="text-red-800 font-black uppercase tracking-wider mr-1">Note:</span> 
+ <p className="text-xs font-bold text-red-600 leading-relaxed">
+ <span className="text-red-800 font-bold uppercase tracking-wider mr-1">Note:</span> 
  Document size should be greater than 1 MB. Only PDF and JPG formats are supported for uploads.
  </p>
  </div>
- <button onClick={handleUpdateCertificates} className="inline-flex items-center justify-center px-8 py-3 bg-[#144835] text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95 whitespace-nowrap">
+ <button onClick={handleUpdateCertificates} className="inline-flex items-center justify-center px-8 py-3 bg-[#144835] text-white text-xs font-bold uppercase tracking-wide rounded-xl shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95 whitespace-nowrap">
  Update Information
  </button>
  </div>
@@ -1262,7 +1262,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <CameraIcon size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Profile Photographs</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Profile Photographs</h3>
  </div>
  </div>
 
@@ -1274,14 +1274,14 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  { id: 'guardian', label: "Guardian's Photo", value: photos.guardian }
  ].map((photoType) => (
  <div key={photoType.id} className="flex flex-col items-center group">
- <h4 className="text-[11px] font-black text-gray-700 uppercase tracking-widest mb-4 pb-2 border-b-2 border-emerald-100 w-full text-center group-hover:border-[#144835] transition-colors">{photoType.label}</h4>
+ <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4 pb-2 border-b-2 border-emerald-100 w-full text-center group-hover:border-[#144835] transition-colors">{photoType.label}</h4>
  
  {/* Photo Display Box */}
  <div className="relative w-40 h-48 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 flex flex-col items-center justify-center overflow-hidden mb-5 group-hover:border-[#144835]/30 group-hover:bg-emerald-50/20 transition-all shadow-sm">
  {uploadingPhoto === photoType.id ? (
  <div className="flex flex-col items-center gap-3 text-emerald-600">
  <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
- <span className="text-[10px] font-bold uppercase tracking-wider">Uploading...</span>
+ <span className="text-xs font-bold uppercase tracking-wider">Uploading...</span>
  </div>
  ) : photoType.value ? (
  <>
@@ -1293,7 +1293,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  ) : (
  <div className="text-gray-300 flex flex-col items-center gap-2">
  <User size={48} strokeWidth={1.5} />
- <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">No Image</span>
+ <span className="text-xs font-bold uppercase tracking-wider text-gray-400">No Image</span>
  </div>
  )}
  </div>
@@ -1303,11 +1303,11 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="flex items-center gap-2 w-full justify-center">
  <label className="flex-1 max-w-[120px] h-8 flex items-center justify-center gap-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 hover:text-gray-900 transition-all shadow-sm">
  <UploadCloud size={14} />
- <span className="text-[10px] font-bold uppercase tracking-wider">Upload</span>
+ <span className="text-xs font-bold uppercase tracking-wider">Upload</span>
  <input type="file" className="hidden" accept="image/*" onChange={(e) => handlePhotoUpload(e, photoType.id as any)} />
  </label>
  </div>
- <button onClick={() => handleCaptureClick(photoType.id as any)} className="w-full max-w-[120px] h-8 flex items-center justify-center gap-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all shadow-sm text-[10px] font-bold uppercase tracking-wider">
+ <button onClick={() => handleCaptureClick(photoType.id as any)} className="w-full max-w-[120px] h-8 flex items-center justify-center gap-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-all shadow-sm text-xs font-bold uppercase tracking-wider">
  <CameraIcon size={14} /> Capture
  </button>
  <input type="file" id={`camera-input-${photoType.id}`} className="hidden" accept="image/*" capture="environment" onChange={(e) => handlePhotoUpload(e, photoType.id as any)} />
@@ -1320,12 +1320,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="p-4 border-t border-gray-100 bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
  <div className="flex items-start gap-2 bg-red-50/50 p-2.5 rounded-lg border border-red-100/50 max-w-xl">
  <AlertCircle size={14} className="text-red-400 mt-0.5 shrink-0" />
- <p className="text-[10px] font-bold text-red-600 leading-relaxed">
- <span className="text-red-800 font-black uppercase tracking-wider mr-1">Note:</span> 
+ <p className="text-xs font-bold text-red-600 leading-relaxed">
+ <span className="text-red-800 font-bold uppercase tracking-wider mr-1">Note:</span> 
  Image Size Should be less than 10 MB. Only GIF, JPEG, PNG formats are supported.
  </p>
  </div>
- <button onClick={handleUpdatePhotos} className="inline-flex items-center justify-center px-8 py-3 bg-[#144835] text-white text-[11px] font-black uppercase tracking-widest rounded-xl shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95 whitespace-nowrap">
+ <button onClick={handleUpdatePhotos} className="inline-flex items-center justify-center px-8 py-3 bg-[#144835] text-white text-xs font-bold uppercase tracking-wide rounded-xl shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95 whitespace-nowrap">
  Save Photos
  </button>
  </div>
@@ -1343,8 +1343,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <CheckCircle2 size={20} strokeWidth={2.5} />
  </div>
  <div>
- <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Present</p>
- <p className="text-xl font-black text-gray-900 leading-none mt-1">{attendanceStats?.presentDays || 0}</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Present</p>
+ <p className="text-xl font-bold text-gray-900 leading-none mt-1">{attendanceStats?.presentDays || 0}</p>
  </div>
  </div>
  <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex items-center gap-4">
@@ -1352,8 +1352,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <XCircle size={20} strokeWidth={2.5} />
  </div>
  <div>
- <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Absent</p>
- <p className="text-xl font-black text-gray-900 leading-none mt-1">{attendanceStats?.absentDays || 0}</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Absent</p>
+ <p className="text-xl font-bold text-gray-900 leading-none mt-1">{attendanceStats?.absentDays || 0}</p>
  </div>
  </div>
  <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex items-center gap-4">
@@ -1361,8 +1361,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <AlertTriangle size={20} strokeWidth={2.5} />
  </div>
  <div>
- <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Late / Half Day</p>
- <p className="text-xl font-black text-gray-900 leading-none mt-1">{attendanceStats?.lateDays || 0}</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Late / Half Day</p>
+ <p className="text-xl font-bold text-gray-900 leading-none mt-1">{attendanceStats?.lateDays || 0}</p>
  </div>
  </div>
  <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex items-center gap-4 relative overflow-hidden">
@@ -1371,8 +1371,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <Calendar size={20} strokeWidth={2.5} />
  </div>
  <div className="relative z-10">
- <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total %</p>
- <p className="text-xl font-black text-[#144835] leading-none mt-1">{attendanceStats?.percentage || "0"}%</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Total %</p>
+ <p className="text-xl font-bold text-[#144835] leading-none mt-1">{attendanceStats?.percentage || "0"}%</p>
  </div>
  </div>
  </div>
@@ -1384,12 +1384,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
  <Calendar size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Annual Attendance Register</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Annual Attendance Register</h3>
  </div>
- <div className="flex items-center gap-3 text-[10px] font-black text-gray-800 tracking-widest uppercase">
+ <div className="flex items-center gap-3 text-xs font-bold text-gray-800 tracking-wide uppercase">
  <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-emerald-100 border border-emerald-200"></div> Present</span>
  <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-red-100 border border-red-200"></div> Absent</span>
- <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#144835] text-white flex items-center justify-center text-[8px]">S</div> Sunday/Holiday</span>
+ <span className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#144835] text-white flex items-center justify-center text-xs">S</div> Sunday/Holiday</span>
  </div>
  </div>
 
@@ -1403,16 +1403,16 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <table className="w-full text-center border-collapse">
  <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#f3f4f6]">
  <tr className="bg-[#144835]">
- <th className="py-3 px-2 text-[10px] font-black text-white uppercase tracking-widest sticky left-0 z-30 bg-[#0d3023] w-20 shadow-[1px_0_0_0_rgba(255,255,255,0.1)]">Date</th>
+ <th className="py-3 px-2 text-xs font-bold text-white uppercase tracking-wide sticky left-0 z-30 bg-[#0d3023] w-20 shadow-[1px_0_0_0_rgba(255,255,255,0.1)]">Date</th>
  {["APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR"].map(m => (
- <th key={m} className="py-3 px-2 text-[10px] font-black text-white uppercase tracking-widest min-w-[40px] border-l border-white/10">{m}</th>
+ <th key={m} className="py-3 px-2 text-xs font-bold text-white uppercase tracking-wide min-w-[40px] border-l border-white/10">{m}</th>
  ))}
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
  {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
  <tr key={day} className="hover:bg-gray-50/50 transition-colors group">
- <td className="py-1.5 px-2 text-[11px] font-black text-gray-600 sticky left-0 bg-gray-50 group-hover:bg-gray-100/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">
+ <td className="py-1.5 px-2 text-xs font-bold text-gray-600 sticky left-0 bg-gray-50 group-hover:bg-gray-100/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">
  {day.toString().padStart(2, '0')}
  </td>
  {Array.from({ length: 12 }, (_, monthIdx) => {
@@ -1439,16 +1439,16 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  );
  } else if (isSunday) {
  cellContent = "SUN";
- cellClass += " bg-emerald-100/80 text-emerald-700 font-black text-[9px] tracking-wider";
+ cellClass += " bg-emerald-100/80 text-emerald-700 font-bold text-xs tracking-wider";
  } else if (isAbsent) {
  cellContent = "A";
- cellClass += " bg-red-50 text-red-600 font-black text-[10px]";
+ cellClass += " bg-red-50 text-red-600 font-bold text-xs";
  } else if (isPresent) {
  cellContent = "P";
- cellClass += " text-emerald-500 font-bold text-[10px] group-hover:text-emerald-600";
+ cellClass += " text-emerald-500 font-bold text-xs group-hover:text-emerald-600";
  } else {
  cellContent = "-";
- cellClass += " text-gray-300 font-bold text-[10px]";
+ cellClass += " text-gray-300 font-bold text-xs";
  }
 
  return (
@@ -1477,22 +1477,22 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <MessageSquare size={20} strokeWidth={2.5} />
  </div>
  <div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Compose Message</h3>
- <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Send alerts to parents</p>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Compose Message</h3>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-0.5">Send alerts to parents</p>
  </div>
  </div>
 
  <div className="space-y-4">
  {/* Communication Method */}
  <div>
- <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">1. Select Method</label>
+ <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">1. Select Method</label>
  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
  {/* SMS Option */}
  <label className="relative cursor-pointer group">
  <input type="checkbox" name="messageMethod" value="sms" className="peer sr-only" defaultChecked />
  <div className="h-full p-3 rounded-xl border-2 border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center gap-2 transition-all peer-checked:border-[#144835] peer-checked:bg-emerald-50/30 peer-checked:shadow-sm group-hover:border-gray-200">
  <MessageSquare size={24} className="text-gray-400 peer-checked:text-[#144835] transition-colors" strokeWidth={2} />
- <span className="text-[11px] font-black text-gray-500 uppercase tracking-wider peer-checked:text-[#144835] transition-colors">SMS</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider peer-checked:text-[#144835] transition-colors">SMS</span>
  </div>
  <div className="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
  <div className="w-4 h-4 rounded-full bg-[#144835] flex items-center justify-center">
@@ -1506,7 +1506,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <input type="checkbox" name="messageMethod" value="whatsapp" className="peer sr-only" />
  <div className="h-full p-3 rounded-xl border-2 border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center gap-2 transition-all peer-checked:border-[#25D366] peer-checked:bg-[#25D366]/5 peer-checked:shadow-sm group-hover:border-gray-200">
  <Smartphone size={24} className="text-gray-400 peer-checked:text-[#25D366] transition-colors" strokeWidth={2} />
- <span className="text-[11px] font-black text-gray-500 uppercase tracking-wider peer-checked:text-[#25D366] transition-colors">WhatsApp</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider peer-checked:text-[#25D366] transition-colors">WhatsApp</span>
  </div>
  <div className="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
  <div className="w-4 h-4 rounded-full bg-[#25D366] flex items-center justify-center">
@@ -1520,7 +1520,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <input type="checkbox" name="messageMethod" value="app" className="peer sr-only" />
  <div className="h-full p-3 rounded-xl border-2 border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center gap-2 transition-all peer-checked:border-blue-500 peer-checked:bg-blue-50/10 peer-checked:shadow-sm group-hover:border-gray-200">
  <Bell size={24} className="text-gray-400 peer-checked:text-blue-500 transition-colors" strokeWidth={2} />
- <span className="text-[11px] font-black text-gray-500 uppercase tracking-wider peer-checked:text-blue-600 transition-colors">In-App</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wider peer-checked:text-blue-600 transition-colors">In-App</span>
  </div>
  <div className="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
  <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
@@ -1534,8 +1534,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  {/* Message Content */}
  <div>
  <div className="flex items-center justify-between mb-3">
- <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">2. Message Content</label>
- <button className="text-[10px] font-bold text-[#144835] hover:text-emerald-700 uppercase tracking-wider flex items-center gap-1 transition-colors">
+ <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide">2. Message Content</label>
+ <button className="text-xs font-bold text-[#144835] hover:text-emerald-700 uppercase tracking-wider flex items-center gap-1 transition-colors">
  <FileText size={12} /> Use Template
  </button>
  </div>
@@ -1545,17 +1545,17 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all resize-none placeholder:text-gray-400"
  ></textarea>
  <div className="flex justify-between items-center mt-2">
- <p className="text-[10px] font-bold text-gray-400">Variables available: <span className="text-gray-500 bg-gray-100 px-1 rounded">{'{student_name}'}</span>, <span className="text-gray-500 bg-gray-100 px-1 rounded">{'{father_name}'}</span>, <span className="text-gray-500 bg-gray-100 px-1 rounded">{'{class}'}</span></p>
- <p className="text-[10px] font-bold text-gray-400">0 / 160 characters (1 SMS)</p>
+ <p className="text-xs font-bold text-gray-400">Variables available: <span className="text-gray-500 bg-gray-100 px-1 rounded">{'{student_name}'}</span>, <span className="text-gray-500 bg-gray-100 px-1 rounded">{'{father_name}'}</span>, <span className="text-gray-500 bg-gray-100 px-1 rounded">{'{class}'}</span></p>
+ <p className="text-xs font-bold text-gray-400">0 / 160 characters (1 SMS)</p>
  </div>
  </div>
 
  {/* Action */}
  <div className="pt-4 border-t border-gray-100 flex justify-end gap-3">
- <button className="px-6 py-2.5 rounded-xl border border-gray-200 text-xs font-black text-gray-600 hover:bg-gray-50 uppercase tracking-wider transition-colors">
+ <button className="px-6 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 uppercase tracking-wider transition-colors">
  Clear
  </button>
- <button className="px-6 py-2.5 rounded-xl bg-[#144835] text-white text-xs font-black hover:bg-[#0d3023] uppercase tracking-wider transition-all shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:shadow-emerald-900/30 hover:-translate-y-0.5 flex items-center gap-2">
+ <button className="px-6 py-2.5 rounded-xl bg-[#144835] text-white text-xs font-bold hover:bg-[#0d3023] uppercase tracking-wider transition-all shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:shadow-emerald-900/30 hover:-translate-y-0.5 flex items-center gap-2">
  <Send size={14} /> Send Message
  </button>
  </div>
@@ -1568,7 +1568,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="h-8 w-8 rounded-full bg-white shadow-sm border border-gray-100 text-gray-400 flex items-center justify-center shrink-0">
  <History size={16} strokeWidth={2.5} />
  </div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Recent History</h3>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Recent History</h3>
  </div>
 
  <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
@@ -1576,7 +1576,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  {(student.messages || []).length === 0 ? (
  <div className="flex flex-col items-center justify-center py-8 text-center">
  <MessageSquare size={24} className="text-gray-300 mb-2" />
- <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">No Message History</p>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">No Message History</p>
  </div>
  ) : (
  (student.messages || []).map((msg: any, idx: number) => (
@@ -1595,9 +1595,9 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  {msg.method === 'whatsapp' ? <Smartphone size={12} className="text-[#25D366]" /> : 
  msg.method === 'app' ? <Bell size={12} className="text-blue-500" /> : 
  <MessageSquare size={12} className="text-[#144835]" />}
- <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{msg.method}</span>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{msg.method}</span>
  </div>
- <span className="text-[9px] font-bold text-gray-400">{msg.date}</span>
+ <span className="text-xs font-bold text-gray-400">{msg.date}</span>
  </div>
  <p className="text-xs font-medium text-gray-700 line-clamp-2">{msg.content}</p>
  <div className="mt-3 flex items-center gap-1">
@@ -1606,7 +1606,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  ) : (
  <Check size={12} className="text-gray-300" strokeWidth={3} />
  )}
- <span className={`text-[9px] font-black uppercase tracking-widest ${
+ <span className={`text-xs font-bold uppercase tracking-wide ${
  msg.method === 'whatsapp' ? 'text-[#25D366]' : 
  msg.method === 'app' ? 'text-blue-500' : 
  'text-[#144835]'
@@ -1616,7 +1616,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  ))
  )}
  </div>
- <button className="mt-4 w-full py-2 border-2 border-dashed border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-100 hover:text-gray-600 transition-colors">
+ <button className="mt-4 w-full py-2 border-2 border-dashed border-gray-200 rounded-xl text-xs font-bold text-gray-400 uppercase tracking-wide hover:bg-gray-100 hover:text-gray-600 transition-colors">
  View All History
  </button>
  </div>
@@ -1634,7 +1634,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <select 
  value={perfClassFilter}
  onChange={(e) => setPerfClassFilter(e.target.value)}
- className="appearance-none pl-4 pr-10 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-black text-gray-700 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] hover:bg-gray-100 transition-colors cursor-pointer"
+ className="appearance-none pl-4 pr-10 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] hover:bg-gray-100 transition-colors cursor-pointer"
  >
  <option value="Current Class">Class {student?.classId || student?.grade || '10'}</option>
  <option value="Previous Class 1">Class {parseInt(student?.classId || student?.grade || '10') - 1 || '9'}</option>
@@ -1648,7 +1648,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <select 
  value={perfTermFilter}
  onChange={(e) => setPerfTermFilter(e.target.value)}
- className="appearance-none pl-4 pr-10 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-black text-gray-700 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] hover:bg-gray-100 transition-colors cursor-pointer"
+ className="appearance-none pl-4 pr-10 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] hover:bg-gray-100 transition-colors cursor-pointer"
  >
  <option value="Term 1">Term 1</option>
  <option value="Term 2">Term 2</option>
@@ -1662,7 +1662,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <select 
  value={perfExamTypeFilter}
  onChange={(e) => setPerfExamTypeFilter(e.target.value)}
- className="appearance-none pl-4 pr-10 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-[11px] font-black text-gray-700 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] hover:bg-gray-100 transition-colors cursor-pointer"
+ className="appearance-none pl-4 pr-10 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] hover:bg-gray-100 transition-colors cursor-pointer"
  >
  <option value="All Exams">All Exams / Tests</option>
  <option value="Unit Test 1">Unit Test 1</option>
@@ -1673,7 +1673,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </div>
  </div>
 
- <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#144835]/10 text-[#144835] text-[11px] font-black uppercase tracking-wider hover:bg-[#144835]/20 transition-colors">
+ <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#144835]/10 text-[#144835] text-xs font-bold uppercase tracking-wider hover:bg-[#144835]/20 transition-colors">
  <Download size={14} strokeWidth={2.5} />
  Download Report
  </button>
@@ -1688,11 +1688,11 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <BarChart3 size={20} strokeWidth={2.5} />
  </div>
  <div>
- <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Overall Grade</p>
- <h4 className="text-base font-black text-gray-900 leading-none mt-1">{student.performanceStats?.overallGrade || "-"}</h4>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Overall Grade</p>
+ <h4 className="text-base font-bold text-gray-900 leading-none mt-1">{student.performanceStats?.overallGrade || "-"}</h4>
  </div>
  </div>
- <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 inline-flex px-2 py-1 rounded-md">
+ <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 inline-flex px-2 py-1 rounded-md">
  <TrendingUp size={12} strokeWidth={3} /> Top 5% in class
  </div>
  </div>
@@ -1703,8 +1703,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <Award size={20} strokeWidth={2.5} />
  </div>
  <div>
- <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total Marks</p>
- <h4 className="text-base font-black text-gray-900 leading-none mt-1">{student.performanceStats?.totalObtained || 0}<span className="text-xs text-gray-400 ml-1 font-bold">/ {student.performanceStats?.totalMax || 0}</span></h4>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Total Marks</p>
+ <h4 className="text-base font-bold text-gray-900 leading-none mt-1">{student.performanceStats?.totalObtained || 0}<span className="text-xs text-gray-400 ml-1 font-bold">/ {student.performanceStats?.totalMax || 0}</span></h4>
  </div>
  </div>
  <div className="w-full bg-gray-100 rounded-full h-1.5 mt-2">
@@ -1718,11 +1718,11 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <BookOpen size={20} strokeWidth={2.5} />
  </div>
  <div>
- <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Percentage</p>
- <h4 className="text-base font-black text-gray-900 leading-none mt-1">{student.performanceStats?.percentage || "0"}%</h4>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Percentage</p>
+ <h4 className="text-base font-bold text-gray-900 leading-none mt-1">{student.performanceStats?.percentage || "0"}%</h4>
  </div>
  </div>
- <p className="text-[10px] font-bold text-gray-500 mt-2">Excellent performance</p>
+ <p className="text-xs font-bold text-gray-500 mt-2">Excellent performance</p>
  </div>
 
  <div className="bg-gradient-to-br from-white to-gray-50 p-3.5 rounded-xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)]">
@@ -1731,11 +1731,11 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <AlertCircle size={20} strokeWidth={2.5} />
  </div>
  <div>
- <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Needs Focus</p>
- <h4 className="text-sm font-black text-gray-900 leading-tight mt-1">{student.performanceStats?.needsFocus || "-"}</h4>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Needs Focus</p>
+ <h4 className="text-sm font-bold text-gray-900 leading-tight mt-1">{student.performanceStats?.needsFocus || "-"}</h4>
  </div>
  </div>
- <p className="text-[10px] font-bold text-amber-600 bg-amber-50 inline-flex px-2 py-1 rounded-md mt-1">Lowest Score: 78%</p>
+ <p className="text-xs font-bold text-amber-600 bg-amber-50 inline-flex px-2 py-1 rounded-md mt-1">Lowest Score: 78%</p>
  </div>
  </div>
 
@@ -1747,8 +1747,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <List size={16} strokeWidth={2.5} />
  </div>
  <div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Subject Wise Performance</h3>
- <p className="text-[10px] font-bold text-gray-500 tracking-widest uppercase mt-0.5">Showing: {perfClassFilter} • {perfTermFilter}</p>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Subject Wise Performance</h3>
+ <p className="text-xs font-bold text-gray-500 tracking-wide uppercase mt-0.5">Showing: {perfClassFilter} • {perfTermFilter}</p>
  </div>
  </div>
  </div>
@@ -1757,12 +1757,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Subject</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Max Marks</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Marks Obtained</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Percentage</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Grade</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-right">Remarks</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide">Subject</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-center">Max Marks</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-center">Marks Obtained</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-center">Percentage</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-center">Grade</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-right">Remarks</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
@@ -1771,17 +1771,17 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  return (
  <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
  <td className="py-2.5 px-4">
- <span className="text-[11px] font-black text-gray-800 uppercase tracking-wider">{item.subject}</span>
+ <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">{item.subject}</span>
  </td>
  <td className="py-2.5 px-4 text-center">
- <span className="text-[11px] font-bold text-gray-500">{maxMarks}</span>
+ <span className="text-xs font-bold text-gray-500">{maxMarks}</span>
  </td>
  <td className="py-2.5 px-4 text-center">
- <span className="text-xs font-black text-gray-900">{obtainedMarks}</span>
+ <span className="text-xs font-bold text-gray-900">{obtainedMarks}</span>
  </td>
  <td className="py-2.5 px-4 text-center">
  <div className="flex items-center justify-center gap-2">
- <span className="text-[11px] font-black text-[#144835] w-8">{percentage}%</span>
+ <span className="text-xs font-bold text-[#144835] w-8">{percentage}%</span>
  <div className="w-16 bg-gray-100 rounded-full h-1.5 hidden md:block">
  <div 
  className={`h-1.5 rounded-full ${percentage >= 90 ? 'bg-[#144835]' : percentage >= 80 ? 'bg-emerald-500' : percentage >= 70 ? 'bg-amber-400' : 'bg-red-500'}`} 
@@ -1791,7 +1791,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </div>
  </td>
  <td className="py-2.5 px-4 text-center">
- <span className={`inline-flex items-center justify-center px-2 py-1 rounded text-[10px] font-black tracking-wider ${
+ <span className={`inline-flex items-center justify-center px-2 py-1 rounded text-xs font-bold tracking-wider ${
  (item.grade || '-') === 'A1' ? 'bg-[#144835]/10 text-[#144835]' :
  (item.grade || '-') === 'A2' ? 'bg-emerald-50 text-emerald-600' :
  (item.grade || '-') === 'B1' ? 'bg-blue-50 text-blue-600' :
@@ -1801,7 +1801,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </span>
  </td>
  <td className="py-2.5 px-4 text-right">
- <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{(item.remark || '-')}</span>
+ <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">{(item.remark || '-')}</span>
  </td>
  </tr>
  );
@@ -1809,7 +1809,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  
  {(student.performance?.[perfTermFilter]?.[perfExamTypeFilter] || []).length === 0 && (
  <tr>
- <td colSpan={6} className="py-8 text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+ <td colSpan={6} className="py-8 text-center text-xs font-bold text-gray-400 uppercase tracking-wide">
  No Performance Data Found for Selected Filters
  </td>
  </tr>
@@ -1818,22 +1818,22 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <tfoot className="bg-[#144835]/5 border-t border-gray-100">
  <tr>
  <td className="py-2.5 px-4">
- <span className="text-[11px] font-black text-gray-900 uppercase tracking-wider">Grand Total</span>
+ <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">Grand Total</span>
  </td>
  <td className="py-2.5 px-4 text-center">
- <span className="text-[11px] font-black text-gray-900">600</span>
+ <span className="text-xs font-bold text-gray-900">600</span>
  </td>
  <td className="py-2.5 px-4 text-center">
- <span className="text-xs font-black text-[#144835]">542</span>
+ <span className="text-xs font-bold text-[#144835]">542</span>
  </td>
  <td className="py-2.5 px-4 text-center">
- <span className="text-xs font-black text-[#144835]">90.3%</span>
+ <span className="text-xs font-bold text-[#144835]">90.3%</span>
  </td>
  <td className="py-2.5 px-4 text-center">
- <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-[#144835] text-white text-[11px] font-black tracking-wider">A+</span>
+ <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-[#144835] text-white text-xs font-bold tracking-wider">A+</span>
  </td>
  <td className="py-2.5 px-4 text-right">
- <span className="text-[10px] font-black text-[#144835] uppercase tracking-widest">Pass</span>
+ <span className="text-xs font-bold text-[#144835] uppercase tracking-wide">Pass</span>
  </td>
  </tr>
  </tfoot>
@@ -1847,10 +1847,10 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
  <div className="flex items-center justify-between">
  <div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Gate Pass History</h3>
- <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Record of early departures and pickups</p>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Gate Pass History</h3>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-0.5">Record of early departures and pickups</p>
  </div>
- <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#144835] text-white text-[11px] font-black uppercase tracking-wider hover:bg-[#0d3023] transition-all shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:-translate-y-0.5">
+ <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#144835] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#0d3023] transition-all shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:-translate-y-0.5">
  <Ticket size={14} strokeWidth={2.5} />
  Generate New Pass
  </button>
@@ -1861,58 +1861,58 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest w-12 text-center">#</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Pass Details</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Taken By</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Reason / Message</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Gate Status</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-center">Photo ID</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide w-12 text-center">#</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide">Pass Details</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide">Taken By</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide">Reason / Message</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-center">Gate Status</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-center">Photo ID</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
  {(student.gatePasses || []).map((pass: any, idx: number) => (
  <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
  <td className="py-2 px-4 text-center">
- <span className="text-[11px] font-black text-gray-400">{idx + 1}</span>
+ <span className="text-xs font-bold text-gray-400">{idx + 1}</span>
  </td>
  <td className="py-2 px-4">
  <div className="flex flex-col">
- <span className="text-[11px] font-black text-gray-900 uppercase tracking-wider">{pass.type}</span>
+ <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">{pass.type}</span>
  <div className="flex items-center gap-2 mt-1">
- <span className="text-[10px] font-bold text-gray-500 flex items-center gap-1"><Calendar size={10} /> {pass.date}</span>
- <span className="text-[10px] font-bold text-gray-500 flex items-center gap-1"><Clock4 size={10} /> {pass.time}</span>
+ <span className="text-xs font-bold text-gray-500 flex items-center gap-1"><Calendar size={10} /> {pass.date}</span>
+ <span className="text-xs font-bold text-gray-500 flex items-center gap-1"><Clock4 size={10} /> {pass.time}</span>
  </div>
  </div>
  </td>
  <td className="py-2 px-4">
  <div className="flex flex-col">
- <span className="text-[11px] font-black text-gray-900 uppercase tracking-wider">{pass.takenBy}</span>
+ <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">{pass.takenBy}</span>
  <div className="flex items-center gap-2 mt-1">
- <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 uppercase tracking-widest">{pass.relation}</span>
- <span className="text-[10px] font-bold text-gray-500 flex items-center gap-1"><Phone size={10} /> {pass.mobile}</span>
+ <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 uppercase tracking-wide">{pass.relation}</span>
+ <span className="text-xs font-bold text-gray-500 flex items-center gap-1"><Phone size={10} /> {pass.mobile}</span>
  </div>
  </div>
  </td>
  <td className="py-2 px-4 max-w-[200px]">
- <p className="text-[11px] font-medium text-gray-600 line-clamp-2">{pass.message}</p>
+ <p className="text-xs font-medium text-gray-600 line-clamp-2">{pass.message}</p>
  </td>
  <td className="py-2 px-4 text-center">
  {pass.confirmed ? (
  <div className="inline-flex flex-col items-center gap-1">
  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">
  <ShieldCheck size={12} strokeWidth={2.5} />
- <span className="text-[9px] font-black uppercase tracking-widest">Confirmed</span>
+ <span className="text-xs font-bold uppercase tracking-wide">Confirmed</span>
  </div>
- <span className="text-[8px] font-bold text-gray-400">at Gate</span>
+ <span className="text-xs font-bold text-gray-400">at Gate</span>
  </div>
  ) : (
  <div className="inline-flex flex-col items-center gap-1">
  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-600 border border-amber-100 shadow-sm">
  <ShieldAlert size={12} strokeWidth={2.5} />
- <span className="text-[9px] font-black uppercase tracking-widest">Pending</span>
+ <span className="text-xs font-bold uppercase tracking-wide">Pending</span>
  </div>
- <button className="text-[9px] font-black text-[#144835] hover:text-emerald-700 hover:underline uppercase tracking-wider transition-colors">Mark Confirmed</button>
+ <button className="text-xs font-bold text-[#144835] hover:text-emerald-700 hover:underline uppercase tracking-wider transition-colors">Mark Confirmed</button>
  </div>
  )}
  </td>
@@ -1936,7 +1936,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  
  {(student.gatePasses || []).length === 0 && (
  <tr>
- <td colSpan={7} className="py-8 text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+ <td colSpan={7} className="py-8 text-center text-xs font-bold text-gray-400 uppercase tracking-wide">
  No Gate Passes Found
  </td>
  </tr>
@@ -1952,8 +1952,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
  <div className="flex items-center justify-between">
  <div>
- <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Activity Log</h3>
- <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">Audit trail of changes made to this student's profile</p>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Activity Log</h3>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-0.5">Audit trail of changes made to this student's profile</p>
  </div>
  </div>
 
@@ -1962,17 +1962,17 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest w-12 text-center">#</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Date & Time</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Module</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest">Activity Details</th>
- <th className="py-2.5 px-4 text-[9px] font-black text-gray-400 uppercase tracking-widest text-right">Changed By</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide w-12 text-center">#</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide">Date & Time</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide">Module</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide">Activity Details</th>
+ <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-right">Changed By</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
  {(student.activityLog || []).length === 0 ? (
  <tr>
- <td colSpan={5} className="py-8 text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+ <td colSpan={5} className="py-8 text-center text-xs font-bold text-gray-400 uppercase tracking-wide">
  No Activity Logs Found
  </td>
  </tr>
@@ -1980,19 +1980,19 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  (student.activityLog || []).map((log: any, idx: number) => (
  <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
  <td className="py-3 px-4 text-center">
- <span className="text-[11px] font-black text-gray-400">{idx + 1}</span>
+ <span className="text-xs font-bold text-gray-400">{idx + 1}</span>
  </td>
  <td className="py-3 px-4">
- <span className="text-[10px] font-bold text-gray-500 flex items-center gap-1.5"><Clock4 size={12} /> {log.date || "-"}</span>
+ <span className="text-xs font-bold text-gray-500 flex items-center gap-1.5"><Clock4 size={12} /> {log.date || "-"}</span>
  </td>
  <td className="py-3 px-4">
- <span className="text-[10px] font-black px-2 py-1 rounded bg-gray-100 text-gray-600 uppercase tracking-widest">{log.module || "General"}</span>
+ <span className="text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600 uppercase tracking-wide">{log.module || "General"}</span>
  </td>
  <td className="py-3 px-4 max-w-[300px]">
- <p className="text-[11px] font-medium text-gray-800 leading-snug">{log.message}</p>
+ <p className="text-xs font-medium text-gray-800 leading-snug">{log.message}</p>
  </td>
  <td className="py-3 px-4 text-right">
- <span className="text-[11px] font-black text-[#144835] uppercase tracking-wider">{log.user || "System"}</span>
+ <span className="text-xs font-bold text-[#144835] uppercase tracking-wider">{log.user || "System"}</span>
  </td>
  </tr>
  ))

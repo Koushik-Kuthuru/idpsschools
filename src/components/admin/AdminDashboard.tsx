@@ -12,21 +12,19 @@ import {
   TrendingUp,
   ArrowUpRight,
   Activity,
-  CheckCircle2,
-  AlertCircle,
   ChevronRight,
   Plus,
   X,
   MapPin,
+  Check,
+  Bus,
+  Building2,
   UserPlus,
-  Receipt,
-  CalendarPlus,
   ClipboardList,
-  Sparkles,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, doc, limit, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, doc, limit, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import {
   computeStudentAttendancePercent,
@@ -41,8 +39,12 @@ import {
   mapStudentDoc,
   mergeLiveActivities,
   relTime,
+  toMillis,
+  computeTransportHostelMetrics,
+  parseDateKey,
   type LiveActivity,
 } from "@/lib/adminDashboardLive";
+import { useAuth } from "@/contexts/AuthContext";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -66,11 +68,6 @@ function formatInr(amount: number, compact = false): string {
   });
 }
 
-const SCHOOL_LABELS: Record<string, string> = {
-  idpskalaburagi: "IDPS Kalaburagi",
-  idpscherukupalli: "IDPS Cherukupalli",
-};
-
 const cardBase =
   "bg-white rounded-xl sm:rounded-2xl border border-gray-200 overflow-hidden transition-[border-color,background-color] duration-200";
 const cardHover = "hover:border-[#144835]/35 active:border-[#144835]/40";
@@ -85,11 +82,20 @@ function SectionHeading({
 }) {
   return (
     <div className="flex items-center justify-between gap-2 mb-2.5 sm:mb-3 px-0.5">
-      <h2 className="text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-widest">{title}</h2>
+      <h2 className="erp-label">{title}</h2>
       {action}
     </div>
   );
 }
+
+type PendingApprovalItem = {
+  id: string;
+  kind: "leave" | "expense" | "application";
+  title: string;
+  subtitle: string;
+  appStatus?: "Submitted" | "Verification";
+  ts: number;
+};
 
 type AdminDashboardProps = {
   schoolId: string;
@@ -97,8 +103,13 @@ type AdminDashboardProps = {
 
 export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const base = `/schools/${schoolId}/admin`;
+  const { user } = useAuth();
+  const [now, setNow] = useState(() => new Date());
 
-  const [schoolDoc, setSchoolDoc] = useState<Record<string, unknown> | null>(null);
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
   const [studentCount, setStudentCount] = useState(0);
   const [staffCount, setStaffCount] = useState(0);
   const [classCount, setClassCount] = useState(0);
@@ -108,6 +119,10 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const [pendingLeaves, setPendingLeaves] = useState(0);
   const [pendingExpenses, setPendingExpenses] = useState(0);
   const [pendingApplications, setPendingApplications] = useState(0);
+  const [pendingLeaveQueue, setPendingLeaveQueue] = useState<PendingApprovalItem[]>([]);
+  const [pendingExpenseQueue, setPendingExpenseQueue] = useState<PendingApprovalItem[]>([]);
+  const [pendingApplicationQueue, setPendingApplicationQueue] = useState<PendingApprovalItem[]>([]);
+  const [approvalActionId, setApprovalActionId] = useState<string | null>(null);
   const [onLeaveToday, setOnLeaveToday] = useState<
     { id: string; name: string; initials: string; reason: string }[]
   >([]);
@@ -120,6 +135,13 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const [studentDocs, setStudentDocs] = useState<Record<string, unknown>[]>([]);
   const [logOpen, setLogOpen] = useState(false);
   const [dataReady, setDataReady] = useState(false);
+  const [schoolFacilities, setSchoolFacilities] = useState<string[]>([]);
+  const [fleetBusCount, setFleetBusCount] = useState(0);
+  const [fleetRouteCount, setFleetRouteCount] = useState(0);
+  const [driverPresent, setDriverPresent] = useState(0);
+  const [driverTotal, setDriverTotal] = useState(0);
+  const [hostelBedTotal, setHostelBedTotal] = useState(0);
+  const [hostelBedOccupied, setHostelBedOccupied] = useState(0);
 
   const setFeedBucket = (key: string, items: LiveActivity[]) => {
     setActivityBuckets((prev) => ({ ...prev, [key]: items }));
@@ -139,9 +161,80 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
 
     unsubs.push(
       onSnapshot(doc(db, "schools", schoolId), (snap) => {
-        if (snap.exists()) setSchoolDoc(snap.data() as Record<string, unknown>);
+        const facilities = snap.data()?.facilities;
+        setSchoolFacilities(Array.isArray(facilities) ? (facilities as string[]) : []);
         setDataReady(true);
       })
+    );
+
+    unsubs.push(
+      onSnapshot(
+        collection(db, "schools", schoolId, "buses"),
+        (snap) => setFleetBusCount(snap.size),
+        () => setFleetBusCount(0)
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
+        collection(db, "schools", schoolId, "routes"),
+        (snap) => {
+          const active = snap.docs.filter(
+            (d) => String((d.data() as Record<string, unknown>).status ?? "Active") !== "Inactive"
+          ).length;
+          setFleetRouteCount(active || snap.size);
+        },
+        () => setFleetRouteCount(0)
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
+        collection(db, "schools", schoolId, "drivers"),
+        (snap) => {
+          const total = snap.size;
+          let present = 0;
+          snap.docs.forEach((d) => {
+            const data = d.data() as Record<string, unknown>;
+            if (
+              data.presentToday === true ||
+              data.status === "Present" ||
+              parseDateKey(data.attendanceDate) === today
+            ) {
+              present++;
+            }
+          });
+          setDriverTotal(total);
+          setDriverPresent(present);
+        },
+        () => {
+          setDriverTotal(0);
+          setDriverPresent(0);
+        }
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
+        collection(db, "schools", schoolId, "hostel_rooms"),
+        (snap) => {
+          let total = 0;
+          let occupied = 0;
+          snap.docs.forEach((d) => {
+            const data = d.data() as Record<string, unknown>;
+            const beds = Number(data.totalBeds ?? data.capacity ?? data.beds ?? 0);
+            const occ = Number(data.occupiedBeds ?? data.occupied ?? 0);
+            total += beds;
+            occupied += occ;
+          });
+          setHostelBedTotal(total);
+          setHostelBedOccupied(occupied);
+        },
+        () => {
+          setHostelBedTotal(0);
+          setHostelBedOccupied(0);
+        }
+      )
     );
 
     unsubs.push(
@@ -227,7 +320,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
         query(collection(db, "schools", schoolId, "events"), orderBy("date", "asc"), limit(20)),
         (snap) => {
           const upcoming = snap.docs
-            .map((d) => ({ id: d.id, ...d.data() } as any))
+            .map((d) => ({ id: d.id, ...d.data() } as { id: string; date?: unknown }))
             .filter((ev) => isUpcomingEvent(ev.date, today))
             .slice(0, 3);
           setEvents(upcoming);
@@ -250,7 +343,6 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
       onSnapshot(
         query(collection(db, "schools", schoolId, "leaves"), orderBy("createdAt", "desc"), limit(15)),
         (snap) => {
-          setPendingLeaves(snap.docs.filter((d) => String((d.data() as Record<string, unknown>).status) === "Pending").length);
           setFeedBucket(
             "leaves",
             snap.docs
@@ -286,7 +378,6 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
           );
         },
         () => {
-          setPendingLeaves(0);
           setOnLeaveToday([]);
           setFeedBucket("leaves", []);
         }
@@ -295,9 +386,34 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
 
     unsubs.push(
       onSnapshot(
+        query(collection(db, "schools", schoolId, "leaves"), where("status", "==", "Pending")),
+        (snap) => {
+          const items = snap.docs
+            .map((d) => {
+              const data = d.data() as Record<string, unknown>;
+              return {
+                id: d.id,
+                kind: "leave" as const,
+                title: String(data.employeeName ?? data.name ?? "Staff"),
+                subtitle: String(data.leaveType ?? data.type ?? "Leave request"),
+                ts: toMillis(data.createdAt),
+              };
+            })
+            .sort((a, b) => b.ts - a.ts);
+          setPendingLeaveQueue(items);
+          setPendingLeaves(snap.size);
+        },
+        () => {
+          setPendingLeaveQueue([]);
+          setPendingLeaves(0);
+        }
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
         query(collection(db, "schools", schoolId, "expenses"), orderBy("createdAt", "desc"), limit(15)),
         (snap) => {
-          setPendingExpenses(snap.docs.filter((d) => String((d.data() as Record<string, unknown>).status) === "Pending").length);
           setFeedBucket(
             "expenses",
             snap.docs
@@ -306,9 +422,33 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               .slice(0, 5)
           );
         },
+        () => setFeedBucket("expenses", [])
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
+        query(collection(db, "schools", schoolId, "expenses"), where("status", "==", "Pending")),
+        (snap) => {
+          const items = snap.docs
+            .map((d) => {
+              const data = d.data() as Record<string, unknown>;
+              const amount = Number(data.amount) || 0;
+              return {
+                id: d.id,
+                kind: "expense" as const,
+                title: String(data.description ?? data.category ?? "Expense"),
+                subtitle: `₹${amount.toLocaleString("en-IN")}`,
+                ts: toMillis(data.createdAt),
+              };
+            })
+            .sort((a, b) => b.ts - a.ts);
+          setPendingExpenseQueue(items);
+          setPendingExpenses(snap.size);
+        },
         () => {
+          setPendingExpenseQueue([]);
           setPendingExpenses(0);
-          setFeedBucket("expenses", []);
         }
       )
     );
@@ -317,9 +457,6 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
       onSnapshot(
         query(collection(db, "schools", schoolId, "applications"), orderBy("createdAt", "desc"), limit(15)),
         (snap) => {
-          setPendingApplications(
-            snap.docs.filter((d) => String((d.data() as Record<string, unknown>).status) === "Pending").length
-          );
           setFeedBucket(
             "applications",
             snap.docs
@@ -328,9 +465,38 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               .slice(0, 5)
           );
         },
+        () => setFeedBucket("applications", [])
+      )
+    );
+
+    unsubs.push(
+      onSnapshot(
+        query(collection(db, "schools", schoolId, "applications"), orderBy("createdAt", "desc")),
+        (snap) => {
+          const items = snap.docs
+            .filter((d) => {
+              const status = String((d.data() as Record<string, unknown>).status ?? "");
+              return status === "Submitted" || status === "Verification";
+            })
+            .map((d) => {
+              const data = d.data() as Record<string, unknown>;
+              const status = String(data.status) as "Submitted" | "Verification";
+              return {
+                id: d.id,
+                kind: "application" as const,
+                title: String(data.studentName ?? data.name ?? "Applicant"),
+                subtitle: status === "Submitted" ? "New application" : "Ready to select",
+                appStatus: status,
+                ts: toMillis(data.createdAt),
+              };
+            })
+            .sort((a, b) => b.ts - a.ts);
+          setPendingApplicationQueue(items);
+          setPendingApplications(items.length);
+        },
         () => {
+          setPendingApplicationQueue([]);
           setPendingApplications(0);
-          setFeedBucket("applications", []);
         }
       )
     );
@@ -359,23 +525,65 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const staffAttendancePct = staffCount > 0 ? Math.round((staffPresent / staffCount) * 100) : 0;
   const pendingTotal = pendingLeaves + pendingExpenses + pendingApplications;
 
-  const schoolName =
-    String(schoolDoc?.name ?? schoolDoc?.displayName ?? SCHOOL_LABELS[schoolId] ?? "School Dashboard");
+  const transportHostel = useMemo(() => {
+    const derived = computeTransportHostelMetrics(studentDocs, now.getMonth());
+    const totalBuses = fleetBusCount || derived.busNos.size;
+    const activeRoutes = fleetRouteCount || derived.routeNames.size;
+    const driversAssigned = driverTotal || derived.driversAssigned;
+    const driverAttendancePct =
+      driversAssigned > 0 ? Math.round((driverPresent / driversAssigned) * 100) : 0;
+    const totalBeds = hostelBedTotal || derived.hostelStudents;
+    const occupiedBeds = hostelBedOccupied || derived.hostelStudents;
+    const vacantBeds = Math.max(0, totalBeds - occupiedBeds);
+    const roomOccupancyPct = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
 
-  const todayLong = new Date().toLocaleDateString("en-IN", {
+    return {
+      totalBuses,
+      activeRoutes,
+      studentsUsingTransport: derived.studentsUsingTransport,
+      driversAssigned,
+      driverAttendancePct,
+      transportFeePending: derived.transportFeePending,
+      hostelStudents: derived.hostelStudents,
+      totalBeds,
+      occupiedBeds,
+      vacantBeds,
+      roomOccupancyPct,
+      hostelFeePending: derived.hostelFeePending,
+    };
+  }, [
+    studentDocs,
+    now,
+    fleetBusCount,
+    fleetRouteCount,
+    driverTotal,
+    driverPresent,
+    hostelBedTotal,
+    hostelBedOccupied,
+  ]);
+
+  const showHostel =
+    schoolFacilities.includes("hostel") ||
+    transportHostel.hostelStudents > 0 ||
+    transportHostel.totalBeds > 0;
+
+  const userName = user?.displayName || user?.email?.split("@")[0] || "Admin";
+
+  const dateLabel = now.toLocaleDateString("en-IN", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 
-  const todayShort = new Date().toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
+  const timeLabel = now.toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
   });
 
-  const currentMonth = new Date().toLocaleString("default", { month: "long" });
+  const currentMonth = now.toLocaleString("default", { month: "long" });
 
   const kpis = useMemo(
     () => [
@@ -398,17 +606,53 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     teal: { bg: "bg-teal-500/10", icon: "text-teal-600", border: "border-teal-200 hover:border-teal-400" },
   };
 
-  const quickActions = [
-    { label: "Add student", short: "Student", href: `${base}/academic/students/new`, icon: UserPlus },
-    { label: "Payment", short: "Pay", href: `${base}/finance/payments/new`, icon: Receipt },
-    { label: "Event", short: "Event", href: `${base}/academic/calendar/new`, icon: CalendarPlus },
-    { label: "Leaves", short: "Leave", href: `${base}/hr/leaves`, icon: ClipboardList },
-  ];
+  const pendingApprovalItems = useMemo(
+    () =>
+      [...pendingLeaveQueue, ...pendingExpenseQueue, ...pendingApplicationQueue]
+        .sort((a, b) => b.ts - a.ts)
+        .slice(0, 8),
+    [pendingLeaveQueue, pendingExpenseQueue, pendingApplicationQueue]
+  );
 
-  const approvals = [
-    { label: "Leave requests", count: pendingLeaves, icon: Users, href: `${base}/hr/leaves`, note: "Staff & teachers" },
-    { label: "Expense claims", count: pendingExpenses, icon: Wallet, href: `${base}/finance/expenses`, note: "Pending review" },
-    { label: "Admissions", count: pendingApplications, icon: GraduationCap, href: `${base}/admission/applications`, note: "New applications" },
+  const handleLeaveAction = async (id: string, status: "Approved" | "Rejected") => {
+    setApprovalActionId(id);
+    try {
+      await updateDoc(doc(db, "schools", schoolId, "leaves", id), { status, updatedAt: new Date() });
+    } catch (err) {
+      console.error("Failed to update leave", err);
+    } finally {
+      setApprovalActionId(null);
+    }
+  };
+
+  const handleExpenseApprove = async (id: string) => {
+    setApprovalActionId(id);
+    try {
+      await updateDoc(doc(db, "schools", schoolId, "expenses", id), { status: "Paid", updatedAt: new Date() });
+    } catch (err) {
+      console.error("Failed to approve expense", err);
+    } finally {
+      setApprovalActionId(null);
+    }
+  };
+
+  const handleApplicationAdvance = async (id: string, current: "Submitted" | "Verification") => {
+    setApprovalActionId(id);
+    try {
+      const next = current === "Submitted" ? "Verification" : "Selected";
+      await updateDoc(doc(db, "schools", schoolId, "applications", id), { status: next, updatedAt: new Date() });
+    } catch (err) {
+      console.error("Failed to update application", err);
+    } finally {
+      setApprovalActionId(null);
+    }
+  };
+
+  const quickLinks = [
+    { label: "Add student", href: `${base}/academic/students/new`, icon: UserPlus },
+    { label: "Mark attendance", href: `${base}/academic/attendance`, icon: CalendarCheck },
+    { label: "Record payment", href: `${base}/finance/payments/new`, icon: Wallet },
+    { label: "Review leaves", href: `${base}/hr/leaves`, icon: ClipboardList },
   ];
 
   const mobileHighlights = [
@@ -419,54 +663,19 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   ];
 
   return (
-    <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-500 font-jost pb-20 sm:pb-24 max-w-[1600px] mx-auto -mx-0.5 sm:mx-auto">
-      {/* Hero — compact on mobile / narrow sidebar */}
-      <section className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-[#144835] via-[#1a5a40] to-[#0d2e22] text-white border border-[#0d2e22] ring-1 ring-inset ring-white/10">
-        <div className="absolute -right-8 -top-8 h-32 sm:h-40 w-32 sm:w-40 rounded-full bg-[#a2c144]/20 blur-2xl pointer-events-none" />
-        <div className="relative p-4 sm:p-6">
-          <div className="flex flex-col gap-4">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/15 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
-                  <Sparkles size={11} className="text-[#a2c144] shrink-0" />
-                  {getGreeting()}
-                </span>
-                {pendingTotal > 0 && (
-                  <Link
-                    href={`${base}/hr/leaves`}
-                    className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 border border-amber-300/30 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-bold text-amber-100"
-                  >
-                    <AlertCircle size={10} />
-                    {pendingTotal} pending
-                  </Link>
-                )}
-              </div>
-              <h1 className="text-lg sm:text-2xl font-black tracking-tight leading-tight">{schoolName}</h1>
-              <p className="text-xs sm:text-sm text-white/75 mt-1">
-                <span className="sm:hidden">{todayShort}</span>
-                <span className="hidden sm:inline">{todayLong}</span>
-              </p>
-            </div>
-
-            {/* Quick actions — horizontal scroll on small screens */}
-            <div className="-mx-1 sm:mx-0">
-              <div className="flex gap-2 overflow-x-auto pb-1 px-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible sm:pb-0">
-                {quickActions.map((action) => (
-                  <Link
-                    key={action.href}
-                    href={action.href}
-                    className="snap-start shrink-0 inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 px-2.5 py-2 sm:px-3 text-[10px] sm:text-[11px] font-bold transition-colors min-w-[72px] sm:min-w-0 justify-center sm:justify-start"
-                  >
-                    <action.icon size={14} className="text-[#a2c144] shrink-0" />
-                    <span className="sm:hidden">{action.short}</span>
-                    <span className="hidden sm:inline">{action.label}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
+    <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 font-jost pb-20 sm:pb-24 max-w-[1600px] mx-auto -mx-0.5 sm:mx-auto">
+      {/* Welcome bar */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-sm text-gray-500">{getGreeting()},</p>
+          <h1 className="erp-page-title mt-0.5 truncate">{userName}</h1>
         </div>
-      </section>
+        <div className="inline-flex items-center gap-2 sm:gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shrink-0 whitespace-nowrap">
+          <span className="font-medium text-gray-700">{dateLabel}</span>
+          <span className="text-gray-300" aria-hidden="true">·</span>
+          <span className="text-gray-500 tabular-nums">{timeLabel}</span>
+        </div>
+      </div>
 
       {/* Mobile / narrow: at-a-glance chips */}
       <div className="flex gap-2 overflow-x-auto pb-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hidden -mx-0.5 px-0.5">
@@ -479,26 +688,14 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               chip.color
             )}
           >
-            <span className="text-[9px] uppercase tracking-wider opacity-80">{chip.label}</span>
-            <span className="text-base font-black mt-0.5">{chip.value}</span>
+            <span className="text-xs uppercase tracking-wider opacity-80">{chip.label}</span>
+            <span className="erp-metric text-base mt-0.5">{chip.value}</span>
           </Link>
         ))}
       </div>
 
       {/* KPIs — scroll on mobile & md (minimized sidebar), grid on xl */}
       <section>
-        <SectionHeading
-          title="Key metrics"
-          action={
-            <Link
-              href={`${base}/reports/analytics`}
-              className="text-[10px] sm:text-[11px] font-bold text-[#144835] hover:underline inline-flex items-center gap-0.5 shrink-0"
-            >
-              Analytics <ArrowUpRight size={11} />
-            </Link>
-          }
-        />
-
         {/* Mobile + tablet + collapsed sidebar */}
         <div className="xl:hidden -mx-0.5">
           <div className="flex gap-2.5 overflow-x-auto pb-1 px-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -524,8 +721,8 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                         <ArrowUpRight size={12} className="text-gray-300" />
                       </div>
                       <div>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wide truncate">{stat.short}</p>
-                        <p className="text-base font-black text-gray-900 tracking-tight truncate">{stat.value}</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide truncate">{stat.short}</p>
+                        <p className="erp-metric text-base truncate">{stat.value}</p>
                       </div>
                     </Link>
                   );
@@ -553,8 +750,8 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                       </div>
                       <ArrowUpRight size={14} className="text-gray-300 group-hover:text-[#144835] transition-colors" />
                     </div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{stat.label}</p>
-                    <p className="text-xl font-black text-gray-900 tracking-tight mt-0.5">{stat.value}</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{stat.label}</p>
+                    <p className="erp-metric text-xl mt-0.5">{stat.value}</p>
                   </Link>
                 );
               })}
@@ -564,46 +761,33 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
       {/* Overview */}
       <section>
         <SectionHeading title="Today's overview" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-          <Link href={`${base}/academic/attendance`} className={cn(cardBase, cardHover, "block")}>
-            <div className={cn(cardHeader, "flex items-center justify-between gap-2")}>
-              <h3 className="text-xs sm:text-sm font-bold text-gray-900">Attendance</h3>
-              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded uppercase">Live</span>
-            </div>
-            <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
-              <div className="flex items-center gap-4 sm:block">
-                <div className="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 mx-auto sm:mx-0">
-                  <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#f1f5f9" strokeWidth="3" />
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="15.5"
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="3"
-                      strokeDasharray={`${attendancePct} 100`}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm sm:text-base font-black text-gray-900">{attendancePct}%</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 items-start">
+          <Link href={`${base}/academic/attendance`} className={cn(cardBase, cardHover, "block self-start")}>
+            <div className="p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 shrink-0">
+                    <CalendarCheck size={18} strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="erp-section-title text-gray-900">Attendance</h3>
+                    <p className="text-xs text-gray-500">Today</p>
                   </div>
                 </div>
-                <p className="text-[10px] font-bold text-gray-500 uppercase sm:hidden flex-1">Student attendance today</p>
+                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                  Live
+                </span>
               </div>
-              <div className="flex-1 space-y-2.5 sm:space-y-3 w-full">
+              <div className="grid grid-cols-2 gap-2">
                 {[
                   { label: "Students", pct: attendancePct, color: "bg-emerald-500" },
                   { label: "Staff", pct: staffAttendancePct, color: "bg-blue-500" },
                 ].map((row) => (
-                  <div key={row.label}>
-                    <div className="flex justify-between text-[11px] sm:text-xs font-bold text-gray-600 mb-1">
-                      <span>{row.label}</span>
-                      <span>{row.pct}%</span>
-                    </div>
-                    <div className="w-full bg-gray-100 rounded-full h-1.5 sm:h-2 overflow-hidden border border-gray-100">
-                      <div className={cn("h-full rounded-full", row.color)} style={{ width: `${row.pct}%` }} />
+                  <div key={row.label} className="rounded-lg border border-gray-100 bg-gray-50/60 px-2.5 py-2">
+                    <p className="text-xs text-gray-500">{row.label}</p>
+                    <p className="erp-metric text-base leading-tight">{row.pct}%</p>
+                    <div className="mt-1.5 h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div className={cn("h-full rounded-full transition-all", row.color)} style={{ width: `${row.pct}%` }} />
                     </div>
                   </div>
                 ))}
@@ -611,185 +795,291 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
             </div>
           </Link>
 
-          <Link href={`${base}/finance/payments`} className={cn(cardBase, cardHover, "block")}>
-            <div className={cn(cardHeader, "flex items-center justify-between gap-2")}>
-              <h3 className="text-xs sm:text-sm font-bold text-gray-900">Fee collection</h3>
-              <span className="text-[9px] font-bold text-gray-600 bg-white border border-gray-200 px-1.5 py-0.5 rounded shrink-0">
-                {currentMonth.slice(0, 3)}
-              </span>
-            </div>
-            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-              <div className="flex items-end justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-lg sm:text-2xl font-black text-gray-900 tracking-tight truncate">{formatInr(feeCollected, true)}</p>
-                  <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Target {formatInr(feeTarget, true)}</p>
+          <Link href={`${base}/finance/payments`} className={cn(cardBase, cardHover, "block self-start")}>
+            <div className="p-4">
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-9 w-9 rounded-lg bg-[#144835]/10 text-[#144835] flex items-center justify-center border border-[#144835]/15 shrink-0">
+                    <Wallet size={18} strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="erp-section-title text-gray-900">Fee collection</h3>
+                    <p className="text-xs text-gray-500">{currentMonth}</p>
+                  </div>
                 </div>
-                <span className="text-sm font-black text-[#144835] shrink-0">{feePercent}%</span>
+                <span className="erp-metric text-lg text-[#144835] shrink-0">{feePercent}%</span>
               </div>
-              <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden border border-gray-100">
-                <div
-                  className="h-full bg-gradient-to-r from-[#144835] to-[#a2c144] rounded-full"
-                  style={{ width: `${feePercent}%` }}
-                />
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-gray-500">Collected</span>
+                  <span className="font-semibold text-gray-900 tabular-nums">{formatInr(feeCollected, true)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <span className="text-gray-500">Target</span>
+                  <span className="font-semibold text-gray-700 tabular-nums">{formatInr(feeTarget, true)}</span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#144835] rounded-full transition-all"
+                    style={{ width: `${feePercent}%` }}
+                  />
+                </div>
               </div>
             </div>
           </Link>
-
-          <div className={cn(cardBase, "flex flex-col sm:col-span-2 xl:col-span-1")}>
-            <div className={cn(cardHeader, "flex items-center justify-between gap-2 flex-wrap")}>
-              <h3 className="text-xs sm:text-sm font-bold text-gray-900">Staff</h3>
-              <span className="text-[9px] sm:text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <CheckCircle2 size={10} /> {staffPresent}/{staffCount}
-              </span>
-            </div>
-            <div className="p-3 sm:p-4 flex-1 flex flex-col sm:flex-row xl:flex-col gap-3 sm:gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  On leave ({onLeaveToday.length})
-                </p>
-                {onLeaveToday.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 py-4 sm:py-6 text-center">
-                    <p className="text-[11px] sm:text-xs font-medium text-gray-500">All present today</p>
-                  </div>
-                ) : (
-                  <ul className="space-y-2 max-h-[120px] sm:max-h-none overflow-y-auto sm:overflow-visible">
-                    {onLeaveToday.map((p, i) => (
-                      <li key={p.id} className="flex items-center gap-2.5">
-                        <div
-                          className={cn(
-                            "h-8 w-8 rounded-lg flex items-center justify-center text-[10px] font-black border shrink-0",
-                            i % 3 === 0 && "bg-amber-50 text-amber-800 border-amber-200",
-                            i % 3 === 1 && "bg-blue-50 text-blue-800 border-blue-200",
-                            i % 3 === 2 && "bg-emerald-50 text-emerald-800 border-emerald-200"
-                          )}
-                        >
-                          {p.initials}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[11px] sm:text-xs font-bold text-gray-900 truncate">{p.name}</p>
-                          <p className="text-[10px] text-gray-500 truncate">{p.reason}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <Link
-                href={`${base}/hr/leaves`}
-                className="h-9 shrink-0 inline-flex items-center justify-center rounded-xl border-2 border-[#144835] bg-[#144835] text-white text-xs font-bold hover:bg-[#0f3628] sm:w-full xl:w-full"
-              >
-                Manage leaves
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* Activity + sidebar — stacks on mobile / minimized */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4">
-        <div className={cn(cardBase, "xl:col-span-2 flex flex-col min-w-0")}>
-          <div className={cn(cardHeader, "flex flex-col sm:flex-row sm:items-center gap-2 sm:justify-between")}>
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg sm:rounded-xl bg-[#144835]/10 text-[#144835] flex items-center justify-center border border-[#144835]/15 shrink-0">
-                <Activity size={16} className="sm:hidden" />
-                <Activity size={18} className="hidden sm:block" />
+      {/* Activity + sidebar */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 items-start">
+        <div className="xl:col-span-2 flex flex-col gap-3 min-w-0 self-start">
+          <div className={cn("grid gap-3", showHostel ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")}>
+            {/* Transport Management */}
+            <div className={cn(cardBase, "flex flex-col")}>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-lg bg-[#144835]/10 text-[#144835] flex items-center justify-center shrink-0 border border-[#144835]/20">
+                    <Bus size={16} />
+                  </div>
+                  <h3 className="erp-section-title text-gray-900">Transport Management</h3>
+                </div>
+                <Link href={`${base}/transport`} className="text-xs font-semibold text-[#144835] hover:underline">Manage</Link>
               </div>
-              <div className="min-w-0">
-                <h2 className="text-xs sm:text-sm font-bold text-gray-900">Recent activity</h2>
-                <p className="text-[9px] sm:text-[10px] text-gray-500 truncate">Live — payments, leaves, enrollments & more</p>
+              <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  { label: "Total Buses", value: String(transportHostel.totalBuses), icon: Bus },
+                  { label: "Active Routes", value: String(transportHostel.activeRoutes), icon: MapPin },
+                  { label: "Students", value: String(transportHostel.studentsUsingTransport), icon: Users },
+                  {
+                    label: "Driver Attend.",
+                    value:
+                      transportHostel.driversAssigned > 0
+                        ? `${transportHostel.driverAttendancePct}%`
+                        : "—",
+                    icon: CalendarCheck
+                  },
+                  {
+                    label: "Fee Pending",
+                    value: formatInr(transportHostel.transportFeePending, true),
+                    icon: Wallet
+                  },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl border border-gray-100 bg-gray-50/50 p-3 flex flex-col justify-between group hover:border-[#144835]/30 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <item.icon size={14} className="text-gray-400 group-hover:text-[#144835] transition-colors" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-gray-500">{item.label}</p>
+                      <p className="text-lg font-bold text-gray-900 tabular-nums leading-tight mt-0.5">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
+            </div>
+
+            {/* Hostel Management */}
+            {showHostel && (
+              <div className={cardBase}>
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+                  <Building2 size={16} className="text-[#144835] shrink-0" />
+                  <h3 className="erp-section-title text-gray-900">Hostel Management</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-px bg-gray-100">
+                  {[
+                    { label: "Hostel Students", value: String(transportHostel.hostelStudents) },
+                    {
+                      label: "Room Occupancy",
+                      value: transportHostel.totalBeds > 0 ? `${transportHostel.roomOccupancyPct}%` : "—",
+                    },
+                    { label: "Vacant Beds", value: String(transportHostel.vacantBeds) },
+                    {
+                      label: "Fee Pending",
+                      value: formatInr(transportHostel.hostelFeePending, true),
+                    },
+                  ].map((item) => (
+                    <div key={item.label} className="bg-white px-3 py-2.5">
+                      <p className="text-xs text-gray-500">{item.label}</p>
+                      <p className="erp-metric text-base mt-0.5 tabular-nums">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className={cardBase}>
+          <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center gap-2.5">
+              <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                <Activity size={16} />
+              </div>
+              <h2 className="erp-section-title text-gray-900">Recent activity</h2>
             </div>
             <button
               type="button"
               onClick={() => setLogOpen(true)}
-              className="h-8 px-3 inline-flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white text-[11px] sm:text-xs font-bold text-gray-700 hover:border-[#144835]/30 w-full sm:w-auto"
+              className="text-xs font-semibold text-[#144835] hover:underline inline-flex items-center gap-0.5 shrink-0"
             >
-              View log <ChevronRight size={12} />
+              View all <ChevronRight size={12} />
             </button>
           </div>
-          <div className="p-3 sm:p-4 flex-1 min-w-0">
-            {activities.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/80 py-8 sm:py-12 text-center">
-                <Activity size={24} className="mx-auto text-gray-300 mb-2" />
-                <p className="text-xs sm:text-sm font-medium text-gray-500">No live activity yet</p>
-                <p className="text-[10px] text-gray-400 mt-1">Updates appear when teachers or admins record actions</p>
-              </div>
-            ) : (
-              <ul className="space-y-2 sm:space-y-3">
-                {activities.slice(0, 5).map((activity, idx) => (
-                  <li
-                    key={activity.id}
-                    className={cn(
-                      "flex gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl border transition-colors",
-                      idx === 0 ? "border-[#144835]/35 bg-[#144835]/[0.04]" : "border-gray-200"
-                    )}
-                  >
-                    <div className={cn("mt-1.5 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full shrink-0", idx === 0 ? "bg-[#144835]" : "bg-gray-300")} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs sm:text-sm font-bold text-gray-900 line-clamp-2 sm:line-clamp-none">{activity.text}</p>
-                      <div className="flex items-center justify-between gap-2 mt-1.5">
-                        <span className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                          <Clock size={9} /> {activity.time}
-                        </span>
-                        <Link href={activity.href} className="text-[9px] sm:text-[10px] font-bold text-[#144835] shrink-0">
-                          Details →
-                        </Link>
+          {activities.length === 0 ? (
+            <div className="px-4 py-8 text-center">
+              <Activity size={20} className="mx-auto text-gray-300 mb-1.5" />
+              <p className="text-sm text-gray-500">No activity yet</p>
+            </div>
+          ) : (
+            <div className="relative py-2">
+              <div className="absolute left-7 top-4 bottom-4 w-px bg-gray-100 hidden sm:block"></div>
+              <ul className="relative">
+                {activities.slice(0, 5).map((activity) => (
+                  <li key={activity.id} className="relative">
+                    <Link
+                      href={activity.href}
+                      className="flex items-start sm:items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
+                    >
+                      <div className="h-6 w-6 rounded-full border-4 border-white bg-gray-100 group-hover:bg-[#144835] shrink-0 z-10 transition-colors shadow-sm hidden sm:block mt-0.5 sm:mt-0" />
+                      <div className="h-2 w-2 rounded-full bg-[#144835] shrink-0 mt-1.5 sm:hidden" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 group-hover:text-[#144835] transition-colors line-clamp-2 sm:line-clamp-1">
+                          {activity.text}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5 sm:hidden">{activity.time}</p>
                       </div>
-                    </div>
+                      <span className="text-xs font-medium text-gray-500 shrink-0 hidden sm:block bg-white px-2.5 py-1 rounded-full border border-gray-100">{activity.time}</span>
+                      <ChevronRight size={14} className="text-gray-300 group-hover:text-[#144835] shrink-0 hidden sm:block ml-2" />
+                    </Link>
                   </li>
                 ))}
               </ul>
-            )}
+            </div>
+          )}
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 sm:gap-4 min-w-0">
+        <div className="flex flex-col gap-3 min-w-0 self-start">
           <div className={cardBase}>
-            <div className={cn(cardHeader, "flex items-center gap-2")}>
-              <div className="h-8 w-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-200 shrink-0">
-                <AlertCircle size={15} />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-bold text-gray-900">Approvals</h3>
-                <p className="text-[9px] sm:text-[10px] text-gray-500">{pendingTotal} need action</p>
-              </div>
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="erp-section-title text-gray-900">Quick actions</h3>
             </div>
-            <div className="p-2.5 sm:p-3 space-y-1.5 sm:space-y-2">
-              {approvals.map((item) => (
+            <div className="p-3 grid grid-cols-2 gap-3">
+              {quickLinks.map((link) => (
                 <Link
-                  key={item.label}
-                  href={item.href}
-                  className="flex items-center gap-2.5 sm:gap-3 p-2.5 sm:p-3 rounded-xl border border-gray-200 bg-white hover:border-[#144835]/35 transition-colors group"
+                  key={link.href}
+                  href={link.href}
+                  className="flex flex-col items-center justify-center text-center p-3 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-[#144835]/5 hover:border-[#144835]/30 transition-all group gap-2"
                 >
-                  <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-500 group-hover:border-[#144835]/20 shrink-0">
-                    <item.icon size={15} />
+                  <div className="h-10 w-10 rounded-lg bg-white border border-gray-200 flex items-center justify-center group-hover:border-[#144835]/30 group-hover:text-[#144835] text-gray-500 transition-colors shadow-sm">
+                    <link.icon size={18} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] sm:text-xs font-bold text-gray-900 flex items-center gap-1.5">
-                      {item.count > 0 && (
-                        <span className="inline-flex min-w-[16px] h-4 px-1 items-center justify-center rounded bg-rose-50 border border-rose-200 text-rose-700 text-[9px]">
-                          {item.count}
-                        </span>
-                      )}
-                      <span className="truncate">{item.label}</span>
-                    </p>
-                    <p className="text-[9px] sm:text-[10px] text-gray-500 truncate">{item.note}</p>
-                  </div>
-                  <ChevronRight size={14} className="text-gray-300 shrink-0" />
+                  <span className="text-xs font-semibold text-gray-700 group-hover:text-[#144835] transition-colors leading-tight">{link.label}</span>
                 </Link>
               ))}
+            </div>
+          </div>
+
+          <div className={cardBase}>
+            <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100">
+              <div className="min-w-0">
+                <h3 className="erp-section-title text-gray-900">Approvals</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {pendingLeaves} leaves · {pendingExpenses} expenses · {pendingApplications} admissions
+                </p>
+              </div>
+              {pendingTotal > 0 && (
+                <span className="text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-full shrink-0">
+                  {pendingTotal}
+                </span>
+              )}
+            </div>
+            {pendingApprovalItems.length === 0 ? (
+              <p className="px-4 py-6 text-sm text-gray-500 text-center">No pending approvals</p>
+            ) : (
+              <ul className="divide-y divide-gray-100">
+                {pendingApprovalItems.map((item) => {
+                  const busy = approvalActionId === item.id;
+                  return (
+                    <li key={`${item.kind}-${item.id}`} className="px-4 py-2.5">
+                      <div className="flex items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
+                          <p className="text-xs text-gray-500 truncate">{item.subtitle}</p>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {item.kind === "leave" && (
+                            <>
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => handleLeaveAction(item.id, "Approved")}
+                                className="h-7 w-7 inline-flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50 disabled:opacity-50"
+                                title="Approve leave"
+                              >
+                                <Check size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={busy}
+                                onClick={() => handleLeaveAction(item.id, "Rejected")}
+                                className="h-7 w-7 inline-flex items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                                title="Reject leave"
+                              >
+                                <X size={14} />
+                              </button>
+                            </>
+                          )}
+                          {item.kind === "expense" && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => handleExpenseApprove(item.id)}
+                              className="h-7 px-2 inline-flex items-center justify-center rounded-lg text-xs font-semibold text-[#144835] bg-[#144835]/10 hover:bg-[#144835] hover:text-white disabled:opacity-50"
+                            >
+                              Pay
+                            </button>
+                          )}
+                          {item.kind === "application" && item.appStatus && (
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => handleApplicationAdvance(item.id, item.appStatus!)}
+                              className="h-7 px-2 inline-flex items-center justify-center rounded-lg text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 disabled:opacity-50"
+                            >
+                              {item.appStatus === "Submitted" ? "Verify" : "Select"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <div className="flex border-t border-gray-100 divide-x divide-gray-100">
               <Link
                 href={`${base}/hr/leaves`}
-                className="w-full h-9 sm:h-10 inline-flex items-center justify-center rounded-xl border-2 border-gray-900 bg-gray-900 text-white text-[11px] sm:text-xs font-bold"
+                className="flex-1 py-2.5 text-center text-xs font-semibold text-gray-600 hover:text-[#144835] hover:bg-gray-50"
               >
-                Review all
+                Leaves
+              </Link>
+              <Link
+                href={`${base}/finance/expenses`}
+                className="flex-1 py-2.5 text-center text-xs font-semibold text-gray-600 hover:text-[#144835] hover:bg-gray-50"
+              >
+                Expenses
+              </Link>
+              <Link
+                href={`${base}/admission/applications`}
+                className="flex-1 py-2.5 text-center text-xs font-semibold text-gray-600 hover:text-[#144835] hover:bg-gray-50"
+              >
+                Admissions
               </Link>
             </div>
           </div>
 
           <div className={cardBase}>
             <div className={cn(cardHeader, "flex items-center justify-between")}>
-              <h3 className="text-xs sm:text-sm font-bold text-gray-900">Events</h3>
+              <h3 className="erp-section-title text-gray-900">Events</h3>
               <Link
                 href={`${base}/academic/calendar/new`}
                 className="h-7 w-7 rounded-full bg-[#144835] text-white flex items-center justify-center border-2 border-[#0f3628]"
@@ -801,7 +1091,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
             <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
               {events.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-gray-200 py-6 text-center">
-                  <p className="text-[11px] text-gray-500">No events scheduled</p>
+                  <p className="text-sm text-gray-500">No events scheduled</p>
                 </div>
               ) : (
                 events.map((ev) => {
@@ -817,13 +1107,13 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                   return (
                     <div key={ev.id} className="flex items-center gap-2.5 sm:gap-3">
                       <div className="h-10 w-10 rounded-lg border border-gray-200 bg-white flex flex-col items-center overflow-hidden shrink-0">
-                        <div className="w-full text-center py-0.5 text-[7px] font-black text-gray-500 bg-gray-50 border-b border-gray-200">{month}</div>
-                        <div className="text-xs font-black text-gray-900 flex-1 flex items-center">{day}</div>
+                        <div className="w-full text-center py-0.5 text-xs font-bold text-gray-500 bg-gray-50 border-b border-gray-200">{month}</div>
+                        <div className="text-xs font-bold text-gray-900 flex-1 flex items-center">{day}</div>
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="font-bold text-xs sm:text-sm text-gray-900 truncate">{ev.title}</p>
                         {ev.location && (
-                          <p className="text-[9px] text-gray-500 truncate flex items-center gap-0.5 mt-0.5">
+                          <p className="text-xs text-gray-500 truncate flex items-center gap-0.5 mt-0.5">
                             <MapPin size={9} className="shrink-0" /> {ev.location}
                           </p>
                         )}
@@ -834,7 +1124,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               )}
               <Link
                 href={`${base}/academic/calendar`}
-                className="h-9 sm:h-10 inline-flex items-center justify-center w-full rounded-xl border border-gray-200 text-[11px] sm:text-xs font-bold text-gray-700 hover:bg-gray-50"
+                className="h-9 sm:h-10 inline-flex items-center justify-center w-full rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50"
               >
                 Full calendar
               </Link>
@@ -854,8 +1144,8 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
           <div className="absolute right-0 top-0 h-full w-full max-w-full sm:max-w-[400px] lg:max-w-[440px] bg-white border-l-2 border-gray-200 flex flex-col animate-in slide-in-from-right duration-200">
             <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-[10px] font-bold text-gray-500 uppercase">Activity</p>
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 truncate">Full log</h3>
+                <p className="text-xs font-bold text-gray-500 uppercase">Activity</p>
+                <h3 className="erp-section-title text-base text-gray-900 truncate">Full log</h3>
               </div>
               <button
                 type="button"
@@ -865,22 +1155,24 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                 <X size={14} />
               </button>
             </div>
-            <div className="p-3 sm:p-4 overflow-auto flex-1 space-y-2">
+            <ul className="overflow-auto flex-1 divide-y divide-gray-100">
               {activities.length === 0 ? (
-                <p className="text-xs text-gray-400 text-center py-8">No live activity recorded yet.</p>
-              ) : null}
-              {activities.map((item) => (
-                <div key={item.id} className="rounded-xl border border-gray-200 p-3">
-                  <p className="text-xs sm:text-sm font-bold text-gray-900">{item.text}</p>
-                  <div className="flex items-center justify-between mt-2 gap-2">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase">{item.time}</p>
-                    <Link href={item.href} className="text-xs font-bold text-[#144835] shrink-0">
-                      View
+                <li className="px-4 py-8 text-center text-sm text-gray-400">No activity recorded yet.</li>
+              ) : (
+                activities.map((item) => (
+                  <li key={item.id}>
+                    <Link
+                      href={item.href}
+                      className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
+                      onClick={() => setLogOpen(false)}
+                    >
+                      <span className="flex-1 min-w-0 text-sm text-gray-800">{item.text}</span>
+                      <span className="text-xs text-gray-400 shrink-0">{item.time}</span>
                     </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  </li>
+                ))
+              )}
+            </ul>
           </div>
         </div>
       )}

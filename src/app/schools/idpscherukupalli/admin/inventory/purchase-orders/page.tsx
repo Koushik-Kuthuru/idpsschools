@@ -139,11 +139,17 @@ export default function AdminPurchaseOrdersPage() {
  {loadError}
  </div>
  )}
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Purchase Orders"
+  description="Manage procurement requests and vendor orders"
+ />
+
  {/* KPI Cards */}
  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pending Approvals</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending Approvals</p>
  <div className="mt-2">
  <p className="text-2xl font-extrabold text-gray-900">{stats.pendingApprovals}</p>
  </div>
@@ -152,9 +158,9 @@ export default function AdminPurchaseOrdersPage() {
  <FileText size={18} />
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between">
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total PO Amount</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total PO Amount</p>
  <div className="mt-2">
  <p className="text-2xl font-extrabold text-gray-900">{stats.totalPoAmount}</p>
  </div>
@@ -166,7 +172,7 @@ export default function AdminPurchaseOrdersPage() {
  </div>
 
  {/* Main Content */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
  {/* Tabs */}
  <div className="border-b border-gray-100 bg-gray-50/50 px-4">
  <div className="flex gap-6 overflow-x-auto hide-scrollbar">
@@ -183,7 +189,7 @@ export default function AdminPurchaseOrdersPage() {
  >
  {t}
  {t === "Pending" && stats.pendingApprovals > 0 && (
- <span className="ml-2 inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-amber-100 text-amber-700 text-[9px] font-black">
+ <span className="ml-2 inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">
  {stats.pendingApprovals}
  </span>
  )}
@@ -207,10 +213,10 @@ export default function AdminPurchaseOrdersPage() {
  </div>
  </div>
  <div className="flex items-center gap-2 w-full xl:w-auto">
- <ExportButton data={filteredPos} filename="Purchase_Orders" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-[11px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
+ <ExportButton data={filteredPos} filename="Purchase_Orders" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
  <Link
  href={`/schools/${schoolId}/admin/inventory/purchase-orders/new`}
- className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-[11px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
+ className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
  >
  <Plus size={14} /> New PO
  </Link>
@@ -229,15 +235,15 @@ export default function AdminPurchaseOrdersPage() {
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">PO Number</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Vendor</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Order Date</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right">Amount</th>
- <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-right text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">PO Number</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Vendor</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Order Date</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">Amount</th>
+ <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-3 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
  </tr>
  </thead>
- <tbody className="divide-y divide-gray-100 text-[11px]">
+ <tbody className="divide-y divide-gray-100 text-xs">
  {paginatedItems.map((p) => (
  <tr key={p.no} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-3">
@@ -245,7 +251,7 @@ export default function AdminPurchaseOrdersPage() {
  </td>
  <td className="px-4 py-3">
  <div className="flex items-center gap-3">
- <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-[10px] font-bold text-gray-600">
+ <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gray-100 text-xs font-bold text-gray-600">
  {p.vendorInitials}
  </div>
  <span className="font-bold text-gray-700">{p.vendorName}</span>
@@ -254,12 +260,12 @@ export default function AdminPurchaseOrdersPage() {
  <td className="px-4 py-3 font-bold text-gray-600">{p.orderDate}</td>
  <td className="px-4 py-3 text-right font-extrabold text-gray-900">{p.amount}</td>
  <td className="px-4 py-3">
- <span className={cn("px-2 py-1 rounded-md text-[10px] font-bold border", statusTone(p.status))}>
+ <span className={cn("px-2 py-1 rounded-md text-xs font-bold border", statusTone(p.status))}>
  {p.status}
  </span>
  </td>
  <td className="px-4 py-3 text-right">
- <button type="button" className="h-7 px-3 rounded-md bg-white border border-gray-200 text-[10px] font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
+ <button type="button" className="h-7 px-3 rounded-md bg-white border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
  View
  </button>
  </td>
@@ -272,7 +278,7 @@ export default function AdminPurchaseOrdersPage() {
 
  {/* Pagination Footer */}
  <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-4">
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
  Showing <span className="font-extrabold text-gray-900">{filteredPos.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-extrabold text-gray-900">{Math.min(currentPage * itemsPerPage, filteredPos.length)}</span> of{" "}
  <span className="font-extrabold text-gray-900">{filteredPos.length}</span> entries
  </p>
@@ -293,14 +299,14 @@ export default function AdminPurchaseOrdersPage() {
  key={p}
  type="button" 
  onClick={() => setCurrentPage(p)}
- className={cn("h-8 w-8 rounded-lg text-[10px] font-extrabold transition-colors", currentPage === p ? "bg-[#144835] text-white shadow-md shadow-[#144835]/15" : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50")}
+ className={cn("h-8 w-8 rounded-lg text-xs font-extrabold transition-colors", currentPage === p ? "bg-[#144835] text-white shadow-md shadow-[#144835]/15" : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50")}
  >
  {p}
  </button>
  );
  }
  if (p === currentPage - 2 || p === currentPage + 2) {
- return <span key={p} className="px-1 text-gray-400 text-[10px] font-extrabold">…</span>;
+ return <span key={p} className="px-1 text-gray-400 text-xs font-extrabold">…</span>;
  }
  return null;
  })}

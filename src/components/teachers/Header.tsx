@@ -47,7 +47,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                 <select
                   value={activeBranch.id}
                   onChange={(e) => setActiveBranchId(e.target.value)}
-                  className="bg-transparent text-[10px] font-bold text-gray-800 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-bold text-gray-800 focus:outline-none cursor-pointer"
                 >
                   {branches.map((b) => (
                     <option key={b.id} value={b.id}>
@@ -56,7 +56,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                   ))}
                 </select>
               ) : (
-                <span className="text-[10px] font-bold text-gray-800">
+                <span className="text-xs font-bold text-gray-800">
                   {activeBranch.name}{activeBranch.city ? ` (${activeBranch.city})` : ""}
                 </span>
               )}
@@ -73,8 +73,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
 
             <div className="hidden sm:flex items-center gap-2 cursor-pointer group">
                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-gray-800 group-hover:text-[#144835] transition-colors">Branch Admin</p>
-                    <p className="text-[10px] text-gray-500">Manager</p>
+                    <p className="text-xs font-bold text-gray-800 group-hover:text-[#144835] transition-colors">Branch Admin</p>
+                    <p className="text-xs text-gray-500">Manager</p>
                 </div>
                 <div className="relative">
                      <div className="h-8 w-8 rounded-full bg-[#144835] text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm group-hover:border-[#a2c144] transition-colors">

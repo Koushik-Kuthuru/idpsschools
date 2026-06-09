@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Jost } from "next/font/google";
 import "./globals.css";
 import FirebaseAnalytics from "@/components/firebase/FirebaseAnalytics";
 import { Providers } from "./Providers";
 
-const inter = Inter({ subsets: ["latin"] });
+const jost = Jost({
+  subsets: ["latin"],
+  variable: "--font-jost",
+});
 
 export const metadata: Metadata = {
  title: "International Delhi Public School - ERP Portal",
@@ -18,7 +21,7 @@ export default function RootLayout({
 }>) {
  return (
  <html lang="en">
- <body className={inter.className}>
+ <body className={`${jost.variable} font-jost antialiased`}>
  <FirebaseAnalytics />
  <Providers>
  {children}

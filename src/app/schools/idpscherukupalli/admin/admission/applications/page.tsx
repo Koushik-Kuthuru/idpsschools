@@ -148,34 +148,25 @@ export default function AdminAdmissionApplicationsPage() {
           {loadError}
         </div>
       )}
+       {/* Top Header */}
+ <AdminPageHeader
+  title="Applications"
+  description="Review, verify, and process incoming admission applications"
+ />
 
-      {/* Header */}
-      <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Applications</h1>
-          <p className="text-xs font-medium text-gray-500 mt-0.5">
-            Showing <span className="font-extrabold text-gray-900">{filtered.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> to <span className="font-extrabold text-gray-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of{" "}
-            <span className="font-extrabold text-gray-900">{filtered.length}</span> entries
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
-          <ExportButton data={filtered} filename="Applications_Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
-        </div>
-      </div>
-
-      {/* KPI Stats Grid */}
+ {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
         {/* Total Applications */}
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
             <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
               <Users size={18} />
             </div>
-            <span className="text-[10px] font-extrabold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{stats.session}</span>
+            <span className="text-xs font-extrabold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full">{stats.session}</span>
           </div>
           <div>
-            <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.total}</p>
-            <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Total Applications</p>
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.total}</p>
+            <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Total Applications</p>
           </div>
           <div className="absolute -bottom-6 -right-6 text-blue-50 opacity-50">
             <Users size={80} />
@@ -183,15 +174,15 @@ export default function AdminAdmissionApplicationsPage() {
         </div>
 
         {/* Submitted */}
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
             <div className="h-10 w-10 rounded-full bg-slate-50 text-slate-600 flex items-center justify-center shrink-0">
               <ClipboardCheck size={18} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.submitted}</p>
-            <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Submitted</p>
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.submitted}</p>
+            <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Submitted</p>
           </div>
           <div className="absolute -bottom-6 -right-6 text-slate-50 opacity-50">
             <ClipboardCheck size={80} />
@@ -199,15 +190,15 @@ export default function AdminAdmissionApplicationsPage() {
         </div>
 
         {/* Verification */}
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
             <div className="h-10 w-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
               <AlertCircle size={18} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.verification}</p>
-            <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Verification Phase</p>
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.verification}</p>
+            <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Verification Phase</p>
           </div>
           <div className="absolute -bottom-6 -right-6 text-amber-50 opacity-50">
             <AlertCircle size={80} />
@@ -215,15 +206,15 @@ export default function AdminAdmissionApplicationsPage() {
         </div>
 
         {/* Selected */}
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
             <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle2 size={18} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.selected}</p>
-            <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Selected</p>
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.selected}</p>
+            <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Selected</p>
           </div>
           <div className="absolute -bottom-6 -right-6 text-emerald-50 opacity-50">
             <CheckCircle2 size={80} />
@@ -231,15 +222,15 @@ export default function AdminAdmissionApplicationsPage() {
         </div>
 
         {/* Success Rate */}
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col relative overflow-hidden group">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col relative overflow-hidden group">
           <div className="flex items-center justify-between mb-3">
             <div className="h-10 w-10 rounded-full bg-[#144835]/10 text-[#144835] flex items-center justify-center shrink-0">
               <UserCheck size={18} />
             </div>
           </div>
           <div>
-            <p className="text-2xl font-black text-gray-900 tracking-tight">{stats.successRate}</p>
-            <p className="text-[11px] font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Conversion Rate</p>
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">{stats.successRate}</p>
+            <p className="text-xs font-bold text-gray-500 mt-0.5 uppercase tracking-wider">Conversion Rate</p>
           </div>
           <div className="absolute -bottom-6 -right-6 text-[#144835]/10 opacity-50">
             <UserCheck size={80} />
@@ -269,7 +260,7 @@ export default function AdminAdmissionApplicationsPage() {
       </div>
 
       {/* Filters & Table container */}
-      <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
         {/* Filters */}
         <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-gray-50/50">
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -322,12 +313,12 @@ export default function AdminAdmissionApplicationsPage() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-100">
-                  <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Candidate Details</th>
-                  <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Contact Info</th>
-                  <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Grade</th>
-                  <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Submission Date</th>
-                  <th className="px-4 py-3 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-right text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Candidate Details</th>
+                  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Contact Info</th>
+                  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Grade</th>
+                  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Submission Date</th>
+                  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -336,8 +327,8 @@ export default function AdminAdmissionApplicationsPage() {
                     <td className="px-4 py-2.5">
                       <p className="text-xs font-bold text-gray-900">{a.name}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] font-bold text-[#144835]">#{a.id}</span>
-                        <span className="text-[10px] font-medium text-gray-500">Parent: {a.parentName}</span>
+                        <span className="text-xs font-bold text-[#144835]">#{a.id}</span>
+                        <span className="text-xs font-medium text-gray-500">Parent: {a.parentName}</span>
                       </div>
                     </td>
                     <td className="px-4 py-2.5">
@@ -353,7 +344,7 @@ export default function AdminAdmissionApplicationsPage() {
                       </div>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border bg-gray-100 text-gray-700 border-gray-200">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border bg-gray-100 text-gray-700 border-gray-200">
                         {a.grade}
                       </span>
                     </td>
@@ -361,7 +352,7 @@ export default function AdminAdmissionApplicationsPage() {
                       {a.date}
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border", statusTone(a.status))}>
+                      <span className={cn("inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border", statusTone(a.status))}>
                         {a.status}
                       </span>
                     </td>
@@ -371,7 +362,7 @@ export default function AdminAdmissionApplicationsPage() {
                           <button
                             type="button"
                             onClick={() => handleUpdateStatus(a.id, "Verification")}
-                            className="h-7 px-2.5 text-[10px] font-extrabold text-amber-700 hover:bg-amber-50 border border-amber-150 rounded-md transition-colors"
+                            className="h-7 px-2.5 text-xs font-extrabold text-amber-700 hover:bg-amber-50 border border-amber-150 rounded-md transition-colors"
                           >
                             Verify
                           </button>
@@ -380,7 +371,7 @@ export default function AdminAdmissionApplicationsPage() {
                           <button
                             type="button"
                             onClick={() => handleUpdateStatus(a.id, "Selected")}
-                            className="h-7 px-2.5 text-[10px] font-extrabold text-emerald-700 hover:bg-emerald-50 border border-emerald-150 rounded-md transition-colors"
+                            className="h-7 px-2.5 text-xs font-extrabold text-emerald-700 hover:bg-emerald-50 border border-emerald-150 rounded-md transition-colors"
                           >
                             Select
                           </button>

@@ -25,3 +25,44 @@ body {
     )
     rgb(var(--background-start-rgb));
 }
+
+/* ERP admin typography — 14px body, 12px captions, readable hierarchy */
+@layer components {
+  .erp-body {
+    @apply text-sm leading-normal text-gray-800;
+  }
+  .erp-caption {
+    @apply text-xs leading-snug text-gray-500;
+  }
+  .erp-label {
+    @apply text-xs font-medium uppercase tracking-wide text-gray-500;
+  }
+  .erp-section-title {
+    @apply text-sm font-semibold text-gray-700;
+  }
+  .erp-page-title {
+    @apply text-xl font-bold text-gray-900 tracking-tight;
+  }
+  .erp-metric {
+    @apply text-lg font-bold text-gray-900 tabular-nums;
+  }
+  /* Portal shell — cascades readable typography to all ERP pages */
+  .erp-portal {
+    @apply font-jost text-sm leading-normal text-gray-800 antialiased;
+  }
+  .erp-portal h1 {
+    @apply text-xl font-bold text-gray-900 tracking-tight;
+  }
+  .erp-portal h2 {
+    @apply text-sm font-semibold text-gray-700;
+  }
+  .erp-portal h3 {
+    @apply text-sm font-semibold text-gray-800;
+  }
+  .erp-portal th {
+    @apply text-xs font-semibold uppercase tracking-wide text-gray-500;
+  }
+  .erp-portal td {
+    @apply text-sm text-gray-800;
+  }
+}

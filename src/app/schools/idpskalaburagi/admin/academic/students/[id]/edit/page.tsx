@@ -14,7 +14,7 @@ const TooltipIcon = ({ text }: { text?: string }) => {
     return (
         <div className="relative flex items-center group/tooltip ml-1.5 cursor-help">
             <HelpCircle size={12} className="text-gray-400 group-hover/tooltip:text-[#144835] transition-colors" />
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-600 text-white text-[10px] font-medium px-2 py-1.5 rounded-md shadow-lg opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity z-50 whitespace-normal text-center leading-tight">
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] bg-gray-600 text-white text-xs font-medium px-2 py-1.5 rounded-md shadow-lg opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity z-50 whitespace-normal text-center leading-tight">
                 {text}
                 <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] border-4 border-transparent border-t-gray-600"></div>
             </div>
@@ -45,7 +45,7 @@ const Input = ({ label, type = "text", value, onChange, placeholder, required, d
     const hasValue = value !== undefined && value !== null && value !== "";
     return (
         <div className="flex flex-col group">
-            <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wide mb-1 flex items-center group-focus-within:text-[#144835] transition-colors relative">
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 flex items-center group-focus-within:text-[#144835] transition-colors relative">
                 <span>{label} {required && <span className="text-red-500">*</span>}</span>
                 <TooltipIcon text={tooltip} />
             </label>
@@ -55,7 +55,7 @@ const Input = ({ label, type = "text", value, onChange, placeholder, required, d
                 onChange={onChange}
                 disabled={disabled}
                 placeholder={placeholder}
-                className={`w-full h-8 rounded-lg border border-gray-200 px-2.5 text-[12px] font-semibold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm disabled:text-gray-400 disabled:cursor-not-allowed placeholder:text-gray-400 ${hasValue ? 'bg-emerald-50/50' : 'bg-gray-50/50'} ${disabled && hasValue ? 'bg-emerald-50/30' : ''} ${disabled && !hasValue ? 'bg-gray-100' : ''}`}
+                className={`w-full h-8 rounded-lg border border-gray-200 px-2.5 text-sm font-semibold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm disabled:text-gray-400 disabled:cursor-not-allowed placeholder:text-gray-400 ${hasValue ? 'bg-emerald-50/50' : 'bg-gray-50/50'} ${disabled && hasValue ? 'bg-emerald-50/30' : ''} ${disabled && !hasValue ? 'bg-gray-100' : ''}`}
             />
         </div>
     );
@@ -65,7 +65,7 @@ const Select = ({ label, value, onChange, options, required, disabled = false, t
     const hasValue = value !== undefined && value !== null && value !== "";
     return (
         <div className="flex flex-col group">
-            <label className="text-[10px] font-bold text-gray-700 uppercase tracking-wide mb-1 flex items-center group-focus-within:text-[#144835] transition-colors relative">
+            <label className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-1 flex items-center group-focus-within:text-[#144835] transition-colors relative">
                 <span>{label} {required && <span className="text-red-500">*</span>}</span>
                 <TooltipIcon text={tooltip} />
             </label>
@@ -73,7 +73,7 @@ const Select = ({ label, value, onChange, options, required, disabled = false, t
                 value={value}
                 onChange={onChange}
                 disabled={disabled}
-                className={`w-full h-8 rounded-lg border border-gray-200 px-2.5 py-0 text-[12px] font-semibold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm disabled:text-gray-400 disabled:cursor-not-allowed appearance-none ${hasValue ? 'bg-emerald-50/50' : 'bg-gray-50/50'} ${disabled && hasValue ? 'bg-emerald-50/30' : ''} ${disabled && !hasValue ? 'bg-gray-100' : ''}`}
+                className={`w-full h-8 rounded-lg border border-gray-200 px-2.5 py-0 text-sm font-semibold text-gray-900 focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 outline-none transition-all shadow-sm disabled:text-gray-400 disabled:cursor-not-allowed appearance-none ${hasValue ? 'bg-emerald-50/50' : 'bg-gray-50/50'} ${disabled && hasValue ? 'bg-emerald-50/30' : ''} ${disabled && !hasValue ? 'bg-gray-100' : ''}`}
                 style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1.2em 1.2em` }}
             >
                 <option value="" disabled>-- Select --</option>
@@ -93,7 +93,7 @@ const Checkbox = ({ label, checked, onChange, tooltip }: any) => (
             onChange={onChange}
             className="w-3.5 h-3.5 rounded border-gray-300 text-[#144835] focus:ring-[#144835] focus:ring-2 cursor-pointer transition-all"
         />
-        <span className="flex items-center text-[10px] font-bold text-gray-700 uppercase tracking-wide group-hover:text-[#144835] transition-colors">
+        <span className="flex items-center text-xs font-bold text-gray-700 uppercase tracking-wide group-hover:text-[#144835] transition-colors">
             {label}
             <TooltipIcon text={tooltip} />
         </span>
@@ -296,10 +296,10 @@ export default function AdminEditStudentPage({
                                 {isCompleted ? <CheckCircle2 size={18} strokeWidth={3} className="animate-in zoom-in duration-300" /> : <Icon size={isActive ? 18 : 16} strokeWidth={isActive ? 2.5 : 2} />}
                             </div>
                             <div className={`mt-2 flex flex-col items-center text-center transition-all duration-300 ${isActive ? 'translate-y-0.5 opacity-100' : 'opacity-70'}`}>
-                                <span className={`text-[10px] sm:text-[11px] font-black uppercase tracking-wider ${isActive ? 'text-[#144835]' : isCompleted ? 'text-emerald-600' : 'text-gray-400'}`}>
+                                <span className={`text-xs font-bold uppercase tracking-wider ${isActive ? 'text-[#144835]' : isCompleted ? 'text-emerald-600' : 'text-gray-400'}`}>
                                     {step.label}
                                 </span>
-                                <span className={`hidden sm:block text-[9px] font-bold mt-0.5 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>
+                                <span className={`hidden sm:block text-xs font-bold mt-0.5 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>
                                     {step.desc}
                                 </span>
                             </div>
@@ -325,9 +325,9 @@ export default function AdminEditStudentPage({
                             <div className="bg-emerald-100/50 p-1 rounded text-emerald-600 hidden sm:block">
                                 <GraduationCap size={14} strokeWidth={2.5} />
                             </div>
-                            <h1 className="text-lg sm:text-xl font-black bg-gradient-to-r from-[#144835] to-emerald-600 bg-clip-text text-transparent tracking-tight">Edit Student</h1>
+                            <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-[#144835] to-emerald-600 bg-clip-text text-transparent tracking-tight">Edit Student</h1>
                         </div>
-                        <p className="text-[10px] font-bold text-gray-500 flex items-center gap-1.5">
+                        <p className="text-xs font-bold text-gray-500 flex items-center gap-1.5">
                             <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">Step {currentStep} of {totalSteps}</span>
                             <span className="text-gray-300">•</span>
                             <span className="uppercase tracking-wider">{['Student Profile', 'Health & Bank', 'Family & Address', 'Other Details'][currentStep - 1]}</span>
@@ -335,15 +335,15 @@ export default function AdminEditStudentPage({
                     </div>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <button onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))} disabled={currentStep === 1} className="flex-1 sm:flex-none px-4 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 text-[11px] font-extrabold uppercase tracking-wide hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
+                    <button onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))} disabled={currentStep === 1} className="flex-1 sm:flex-none px-4 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 text-xs font-extrabold uppercase tracking-wide hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm">
                         Back
                     </button>
                     {currentStep < totalSteps ? (
-                        <button onClick={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))} className="flex-1 sm:flex-none px-5 py-1.5 rounded-lg bg-gradient-to-r from-[#144835] to-[#1a5c44] text-white text-[11px] font-extrabold uppercase tracking-wide hover:opacity-90 transition-all shadow-sm shadow-[#144835]/20 flex items-center justify-center gap-1.5">
+                        <button onClick={() => setCurrentStep(prev => Math.min(totalSteps, prev + 1))} className="flex-1 sm:flex-none px-5 py-1.5 rounded-lg bg-gradient-to-r from-[#144835] to-[#1a5c44] text-white text-xs font-extrabold uppercase tracking-wide hover:opacity-90 transition-all shadow-sm shadow-[#144835]/20 flex items-center justify-center gap-1.5">
                             Next
                         </button>
                     ) : (
-                        <button onClick={onSave} disabled={saving} className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-70 text-white px-5 py-1.5 rounded-lg text-[11px] font-extrabold uppercase tracking-wide transition-all shadow-sm shadow-emerald-500/20">
+                        <button onClick={onSave} disabled={saving} className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 disabled:opacity-70 text-white px-5 py-1.5 rounded-lg text-xs font-extrabold uppercase tracking-wide transition-all shadow-sm shadow-emerald-500/20">
                             <Save size={14} />
                             <span>{saving ? "Saving..." : "Save"}</span>
                         </button>
@@ -352,7 +352,7 @@ export default function AdminEditStudentPage({
             </div>
 
             {error && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl p-3 text-[11px] font-bold flex items-center gap-2 shadow-sm">
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-xl p-3 text-xs font-bold flex items-center gap-2 shadow-sm">
                     <div className="h-6 w-6 rounded-full bg-rose-100 flex items-center justify-center shrink-0">!</div>
                     {error}
                 </div>
@@ -372,33 +372,33 @@ export default function AdminEditStudentPage({
                     {/* Pre-Form Controls */}
                     <div className="bg-gradient-to-br from-slate-50 to-gray-50/50 p-3 sm:p-4 rounded-xl border border-gray-200 shadow-sm mb-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-                            <button className="bg-white border border-[#40b8e6] text-[#40b8e6] hover:bg-[#40b8e6] hover:text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5">
+                            <button className="bg-white border border-[#40b8e6] text-[#40b8e6] hover:bg-[#40b8e6] hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5">
                                 <Sparkles size={12} />
                                 Get Approved List
                             </button>
                             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm flex-1 sm:flex-none">
-                                <span className="flex items-center text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                                <span className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-wide">
                                     Enq. No:
                                     <TooltipIcon text="Enter the enquiry number of the student if applicable" />
                                 </span>
-                                <input type="text" placeholder="ENTER NO." value={formData.enqNo} onChange={e => handleChange('enqNo', e.target.value)} className="w-20 sm:w-24 border-none bg-transparent p-0 text-[11px] font-bold outline-none focus:ring-0 placeholder:text-gray-300" />
+                                <input type="text" placeholder="ENTER NO." value={formData.enqNo} onChange={e => handleChange('enqNo', e.target.value)} className="w-20 sm:w-24 border-none bg-transparent p-0 text-xs font-bold outline-none focus:ring-0 placeholder:text-gray-300" />
                             </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                             <div className="flex items-center gap-3 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm flex-1 sm:flex-none">
-                                <span className="flex items-center text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                                <span className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-wide">
                                     Sibling:
                                     <TooltipIcon text="Select Yes if the student has a sibling studying in this school" />
                                 </span>
-                                <label className="flex items-center gap-1 cursor-pointer text-[11px] font-bold"><input type="radio" name="sibling" value="Yes" checked={formData.hasSibling === "Yes"} onChange={e => handleChange('hasSibling', e.target.value)} className="text-[#144835] w-3 h-3 focus:ring-[#144835] transition-all" /> <span className="text-black">Yes</span></label>
-                                <label className="flex items-center gap-1 cursor-pointer text-[11px] font-bold"><input type="radio" name="sibling" value="No" checked={formData.hasSibling === "No"} onChange={e => handleChange('hasSibling', e.target.value)} className="text-[#144835] w-3 h-3 focus:ring-[#144835] transition-all" /> <span className="text-black">No</span></label>
+                                <label className="flex items-center gap-1 cursor-pointer text-xs font-bold"><input type="radio" name="sibling" value="Yes" checked={formData.hasSibling === "Yes"} onChange={e => handleChange('hasSibling', e.target.value)} className="text-[#144835] w-3 h-3 focus:ring-[#144835] transition-all" /> <span className="text-black">Yes</span></label>
+                                <label className="flex items-center gap-1 cursor-pointer text-xs font-bold"><input type="radio" name="sibling" value="No" checked={formData.hasSibling === "No"} onChange={e => handleChange('hasSibling', e.target.value)} className="text-[#144835] w-3 h-3 focus:ring-[#144835] transition-all" /> <span className="text-black">No</span></label>
                             </div>
                             <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm flex-1 sm:flex-none">
-                                <span className="flex items-center text-[9px] font-black text-gray-500 uppercase tracking-widest">
+                                <span className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-wide">
                                     Session:
                                     <TooltipIcon text="Select the academic session for which the student is enrolling" />
                                 </span>
-                                <select value={formData.session} onChange={e => handleChange('session', e.target.value)} className="border-none bg-transparent p-0 text-[11px] font-bold outline-none focus:ring-0 cursor-pointer pr-5 text-gray-900">
+                                <select value={formData.session} onChange={e => handleChange('session', e.target.value)} className="border-none bg-transparent p-0 text-xs font-bold outline-none focus:ring-0 cursor-pointer pr-5 text-gray-900">
                                     <option>2024-2025</option>
                                     <option>2025-2026</option>
                                     <option>2026-2027</option>
@@ -414,7 +414,7 @@ export default function AdminEditStudentPage({
                                     <>
                                         <img src={formData.photo} alt="Student" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity">
-                                            <span className="text-white text-[10px] font-bold">Change</span>
+                                            <span className="text-white text-xs font-bold">Change</span>
                                         </div>
                                     </>
                                 ) : (
@@ -422,7 +422,7 @@ export default function AdminEditStudentPage({
                                         <div className="w-8 h-8 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center">
                                             <Upload size={14} strokeWidth={2.5} />
                                         </div>
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-center px-2">Upload<br />Photo</span>
+                                        <span className="text-xs font-bold uppercase tracking-wider text-center px-2">Upload<br />Photo</span>
                                     </div>
                                 )}
                                 <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
@@ -467,8 +467,8 @@ export default function AdminEditStudentPage({
                         <div className="col-span-full border-b border-amber-200/50 pb-2.5 mb-1 flex items-center gap-2">
                             <span className="text-lg">🔒</span>
                             <div>
-                                <h3 className="text-xs font-black text-amber-800 uppercase tracking-wide">Portal Access Credentials</h3>
-                                <p className="text-[9px] text-amber-600 font-bold uppercase mt-0.5">Critical information required for student/parent dashboard login</p>
+                                <h3 className="text-xs font-bold text-amber-800 uppercase tracking-wide">Portal Access Credentials</h3>
+                                <p className="text-xs text-amber-600 font-bold uppercase mt-0.5">Critical information required for student/parent dashboard login</p>
                             </div>
                         </div>
                         <div className="col-span-2">
@@ -481,7 +481,7 @@ export default function AdminEditStudentPage({
                             <button
                                 type="button"
                                 onClick={() => handleChange('username', formData.registrationNo || formData.admissionNo || formData.rollNumber)}
-                                className="w-full h-8 rounded-lg border border-amber-300 hover:bg-amber-100/50 text-[10px] font-black uppercase text-amber-800 transition-all tracking-wide shadow-sm"
+                                className="w-full h-8 rounded-lg border border-amber-300 hover:bg-amber-100/50 text-xs font-bold uppercase text-amber-800 transition-all tracking-wide shadow-sm"
                             >
                                 Reset to Roll No
                             </button>
@@ -527,7 +527,7 @@ export default function AdminEditStudentPage({
                         <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-6 divide-y lg:divide-y-0 lg:divide-x divide-gray-100 bg-white">
                             {/* FATHER */}
                             <div className="space-y-4 lg:pr-4">
-                                <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest bg-gray-50 py-1.5 px-3 rounded-lg text-center border border-gray-100">Father Profile</h3>
+                                <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wide bg-gray-50 py-1.5 px-3 rounded-lg text-center border border-gray-100">Father Profile</h3>
                                 <Input label="Father Name" value={formData.fatherName} onChange={(e: any) => handleChange('fatherName', e.target.value)} tooltip="Enter the father's full name" />
                                 <Input label="Father Email" value={formData.fatherEmail} onChange={(e: any) => handleChange('fatherEmail', e.target.value)} tooltip="Enter the father's email address" />
                                 <Input label="Nationality" value={formData.fatherNationality} onChange={(e: any) => handleChange('fatherNationality', e.target.value)} tooltip="Enter the father's nationality" />
@@ -549,7 +549,7 @@ export default function AdminEditStudentPage({
 
                             {/* MOTHER */}
                             <div className="space-y-4 lg:px-4 pt-4 lg:pt-0">
-                                <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest bg-gray-50 py-1.5 px-3 rounded-lg text-center border border-gray-100">Mother Profile</h3>
+                                <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wide bg-gray-50 py-1.5 px-3 rounded-lg text-center border border-gray-100">Mother Profile</h3>
                                 <Input label="Mother Name" value={formData.motherName} onChange={(e: any) => handleChange('motherName', e.target.value)} tooltip="Enter the mother's full name" />
                                 <Input label="Mother Email" value={formData.motherEmail} onChange={(e: any) => handleChange('motherEmail', e.target.value)} tooltip="Enter the mother's email address" />
                                 <Input label="Nationality" value={formData.motherNationality} onChange={(e: any) => handleChange('motherNationality', e.target.value)} tooltip="Enter the mother's nationality" />
@@ -571,7 +571,7 @@ export default function AdminEditStudentPage({
 
                             {/* GUARDIAN */}
                             <div className="space-y-4 lg:pl-4 pt-4 lg:pt-0">
-                                <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest bg-gray-50 py-1.5 px-3 rounded-lg text-center border border-gray-100">Guardian Profile</h3>
+                                <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wide bg-gray-50 py-1.5 px-3 rounded-lg text-center border border-gray-100">Guardian Profile</h3>
                                 <Input label="Guardian Name" value={formData.guardianName} onChange={(e: any) => handleChange('guardianName', e.target.value)} tooltip="Enter the legal guardian's full name (if applicable)" />
                                 <Input label="Guardian Email" value={formData.guardianEmail} onChange={(e: any) => handleChange('guardianEmail', e.target.value)} tooltip="Enter the guardian's email address" />
                                 <Input label="Nationality" value={formData.guardianNationality} onChange={(e: any) => handleChange('guardianNationality', e.target.value)} tooltip="Enter the guardian's nationality" />
@@ -643,44 +643,44 @@ export default function AdminEditStudentPage({
                             <table className="w-full text-left min-w-[800px]">
                                 <thead>
                                     <tr>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 rounded-l-lg w-[20%]">Qualification</th>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 w-[20%]">Specialization</th>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 w-[25%]">Name Of Institute</th>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 w-[15%]">State</th>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 rounded-r-lg w-[20%]">City</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 rounded-l-lg w-[20%]">Qualification</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 w-[20%]">Specialization</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 w-[25%]">Name Of Institute</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 w-[15%]">State</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 rounded-r-lg w-[20%]">City</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td colSpan={5} className="py-2 text-[10px] font-bold text-[#144835] uppercase tracking-wider">Qualification Of Father :</td></tr>
+                                    <tr><td colSpan={5} className="py-2 text-xs font-bold text-[#144835] uppercase tracking-wider">Qualification Of Father :</td></tr>
                                     {['Highest School Qualification', 'Graduate', 'Post-Graduate', 'Doctorate', 'Other'].map(q => (
                                         <tr key={`f-${q}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                                            <td className="py-1.5 px-3 text-[11px] font-semibold text-gray-700">{q}</td>
-                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
-                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
+                                            <td className="py-1.5 px-3 text-xs font-semibold text-gray-700">{q}</td>
+                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
+                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
                                         </tr>
                                     ))}
 
-                                    <tr><td colSpan={5} className="py-2 text-[10px] font-bold text-[#144835] uppercase tracking-wider border-t border-gray-100 mt-1">Qualification Of Mother :</td></tr>
+                                    <tr><td colSpan={5} className="py-2 text-xs font-bold text-[#144835] uppercase tracking-wider border-t border-gray-100 mt-1">Qualification Of Mother :</td></tr>
                                     {['Highest School Qualification', 'Graduate', 'Post-Graduate', 'Doctorate', 'Other'].map(q => (
                                         <tr key={`m-${q}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                                            <td className="py-1.5 px-3 text-[11px] font-semibold text-gray-700">{q}</td>
-                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
-                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
+                                            <td className="py-1.5 px-3 text-xs font-semibold text-gray-700">{q}</td>
+                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
+                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
                                         </tr>
                                     ))}
 
-                                    <tr><td colSpan={5} className="py-2 text-[10px] font-bold text-[#144835] uppercase tracking-wider border-t border-gray-100 mt-1">Qualification Of Guardian :</td></tr>
+                                    <tr><td colSpan={5} className="py-2 text-xs font-bold text-[#144835] uppercase tracking-wider border-t border-gray-100 mt-1">Qualification Of Guardian :</td></tr>
                                     {['Highest School Qualification', 'Graduate', 'Post-Graduate', 'Doctorate', 'Other'].map(q => (
                                         <tr key={`g-${q}`} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                                            <td className="py-1.5 px-3 text-[11px] font-semibold text-gray-700">{q}</td>
-                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
-                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-[11px] outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
+                                            <td className="py-1.5 px-3 text-xs font-semibold text-gray-700">{q}</td>
+                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                            <td className="py-1.5 px-3"><input className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
+                                            <td className="py-1.5 px-3"><select className="w-full h-7 rounded-md border border-gray-200 px-2 text-xs outline-none focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--Select--</option></select></td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -702,21 +702,21 @@ export default function AdminEditStudentPage({
                             <table className="w-full text-left min-w-[800px]">
                                 <thead>
                                     <tr>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 rounded-l-lg w-[25%] text-center">Name</th>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 w-[15%] text-center">Age</th>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 w-[20%] text-center">Gender</th>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 w-[25%] text-center">Current School</th>
-                                        <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest bg-gray-50 rounded-r-lg w-[15%] text-center">Current Class</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 rounded-l-lg w-[25%] text-center">Name</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 w-[15%] text-center">Age</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 w-[20%] text-center">Gender</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 w-[25%] text-center">Current School</th>
+                                        <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 rounded-r-lg w-[15%] text-center">Current Class</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {formData.siblings.map((sib: any, i: number) => (
                                         <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="py-2 px-2"><input placeholder="NAME" value={sib.name} onChange={(e) => handleSiblingChange(i, 'name', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                            <td className="py-2 px-2"><input placeholder="AGE" value={sib.age} onChange={(e) => handleSiblingChange(i, 'age', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all text-center" /></td>
-                                            <td className="py-2 px-2"><input placeholder="GENDER" value={sib.gender} onChange={(e) => handleSiblingChange(i, 'gender', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all text-center" /></td>
-                                            <td className="py-2 px-2"><input placeholder="SCHOOL" value={sib.school} onChange={(e) => handleSiblingChange(i, 'school', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                            <td className="py-2 px-2"><input placeholder="CLASS" value={sib.class} onChange={(e) => handleSiblingChange(i, 'class', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all text-center" /></td>
+                                            <td className="py-2 px-2"><input placeholder="NAME" value={sib.name} onChange={(e) => handleSiblingChange(i, 'name', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                            <td className="py-2 px-2"><input placeholder="AGE" value={sib.age} onChange={(e) => handleSiblingChange(i, 'age', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all text-center" /></td>
+                                            <td className="py-2 px-2"><input placeholder="GENDER" value={sib.gender} onChange={(e) => handleSiblingChange(i, 'gender', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all text-center" /></td>
+                                            <td className="py-2 px-2"><input placeholder="SCHOOL" value={sib.school} onChange={(e) => handleSiblingChange(i, 'school', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                            <td className="py-2 px-2"><input placeholder="CLASS" value={sib.class} onChange={(e) => handleSiblingChange(i, 'class', e.target.value)} className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs uppercase placeholder:text-gray-300 font-bold outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all text-center" /></td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -733,17 +733,17 @@ export default function AdminEditStudentPage({
                         </div>
                         <div className="p-4 overflow-x-auto space-y-6 bg-white">
                             <div>
-                                <h3 className="text-[10px] font-black text-gray-600 uppercase tracking-widest bg-gray-50 py-1.5 px-3 rounded-lg mb-3 border border-gray-100 flex items-center gap-2 w-fit">
+                                <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wide bg-gray-50 py-1.5 px-3 rounded-lg mb-3 border border-gray-100 flex items-center gap-2 w-fit">
                                     Submissive Documents:
                                     <TooltipIcon text="Mark the status of documents submitted by the student during admission" />
                                 </h3>
                                 <table className="w-full text-left min-w-[800px]">
                                     <thead>
                                         <tr className="border-b border-gray-200">
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase w-12">SR</th>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase">CERTIFICATES</th>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase text-center">COLLECTED</th>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase">REMARKS</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase w-12">SR</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase">CERTIFICATES</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase text-center">COLLECTED</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase">REMARKS</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -751,17 +751,17 @@ export default function AdminEditStudentPage({
                                             "Admission Form", "School Leaving Certificate(TC)", "Bonafide Certificate", "Birth Certificate", "Caste Certificate", "All Documents", "Ration Card", "Student Adhar Certificate", "Father Adhar Certificate", "Mother Adhar Certificate"
                                         ].map((doc, i) => (
                                             <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                                                <td className="py-2 px-3 text-[11px] font-bold text-gray-500">{i + 1}</td>
-                                                <td className="py-2 px-3 text-[11px] font-bold text-gray-700">{doc}</td>
+                                                <td className="py-2 px-3 text-xs font-bold text-gray-500">{i + 1}</td>
+                                                <td className="py-2 px-3 text-xs font-bold text-gray-700">{doc}</td>
                                                 <td className="py-2 px-3">
                                                     <div className="flex items-center justify-center gap-4">
-                                                        <label className="flex items-center gap-1 cursor-pointer text-[9px] font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">YES</span></label>
-                                                        <label className="flex items-center gap-1 cursor-pointer text-[9px] font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" defaultChecked /> <span className="group-hover:text-[#144835]">NO</span></label>
-                                                        <label className="flex items-center gap-1 cursor-pointer text-[9px] font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">N/A</span></label>
-                                                        <label className="flex items-center gap-1 cursor-pointer text-[9px] font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">PARTIAL</span></label>
+                                                        <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">YES</span></label>
+                                                        <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" defaultChecked /> <span className="group-hover:text-[#144835]">NO</span></label>
+                                                        <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">N/A</span></label>
+                                                        <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">PARTIAL</span></label>
                                                     </div>
                                                 </td>
-                                                <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                                <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -769,30 +769,30 @@ export default function AdminEditStudentPage({
                             </div>
 
                             <div>
-                                <h3 className="text-[11px] font-black text-gray-800 text-center mb-3 flex items-center justify-center gap-2">
+                                <h3 className="text-xs font-bold text-gray-800 text-center mb-3 flex items-center justify-center gap-2">
                                     Previous Schooling (most recent school first)
                                     <TooltipIcon text="Enter details of up to 3 previous schools attended by the student" />
                                 </h3>
                                 <table className="w-full text-left min-w-[800px]">
                                     <thead>
                                         <tr>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase w-10 bg-gray-50 rounded-l-lg">Sr</th>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase bg-gray-50">School Name & Address</th>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase text-center bg-gray-50">Class</th>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase text-center bg-gray-50">Session</th>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase text-center bg-gray-50">Curriculum</th>
-                                            <th className="py-2 px-3 text-[10px] font-black text-gray-500 uppercase bg-gray-50 rounded-r-lg">Subjects</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase w-10 bg-gray-50 rounded-l-lg">Sr</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase bg-gray-50">School Name & Address</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase text-center bg-gray-50">Class</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase text-center bg-gray-50">Session</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase text-center bg-gray-50">Curriculum</th>
+                                            <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase bg-gray-50 rounded-r-lg">Subjects</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
                                         {[1, 2, 3].map((num) => (
                                             <tr key={num} className="hover:bg-gray-50/50 transition-colors">
-                                                <td className="py-2 px-3 text-[11px] font-bold text-gray-500">{num}.</td>
-                                                <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                                <td className="py-2 px-3"><select className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--</option></select></td>
-                                                <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
-                                                <td className="py-2 px-3"><select className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--</option></select></td>
-                                                <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-[11px] outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                                <td className="py-2 px-3 text-xs font-bold text-gray-500">{num}.</td>
+                                                <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                                <td className="py-2 px-3"><select className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--</option></select></td>
+                                                <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+                                                <td className="py-2 px-3"><select className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"><option>--</option></select></td>
+                                                <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
                                             </tr>
                                         ))}
                                     </tbody>

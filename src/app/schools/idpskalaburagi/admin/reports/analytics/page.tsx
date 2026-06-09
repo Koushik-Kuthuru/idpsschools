@@ -72,22 +72,13 @@ export default function AdminAnalyticsPage() {
 
  return (
  <div className="space-y-8 animate-in fade-in duration-500 font-jost pb-10">
- <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4">
- <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Dashboard / Reports &amp; Analytics</p>
- <h1 className="mt-2 text-xl font-black tracking-tight text-[#144835] uppercase">Analytics Dashboard</h1>
- </div>
-
- <div className="relative w-full xl:max-w-[360px]">
- <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
- <input
- className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] outline-none text-xs font-semibold text-gray-800 placeholder:text-gray-400 transition-all shadow-sm"
- placeholder="Global Search..."
+ {/* Top Header */}
+ <AdminPageHeader
+  title="Analytics Dashboard"
+  description="Enrollment, attendance, fees, and performance insights"
  />
- </div>
- </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="p-4 border-b border-gray-100 bg-gray-50/30 flex flex-col xl:flex-row gap-4 items-center justify-between">
  <div className="flex w-full xl:w-auto flex-wrap items-center gap-3">
  <ExportButton data={[]} filename="Export" className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-xs font-extrabold text-gray-700 shadow-sm hover:bg-gray-50" iconSize={18} />
@@ -97,22 +88,22 @@ export default function AdminAnalyticsPage() {
  <div className="p-4 space-y-6">
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
  {metrics.map((m) => (
- <div key={m.title} className={cn("bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 relative", m.accent)}>
- <span className={cn("absolute right-4 top-4 inline-flex rounded-full border px-2.5 py-1 text-[11px] font-extrabold", m.deltaTone)}>
+ <div key={m.title} className={cn("bg-white rounded-xl border border-gray-200 p-4 relative", m.accent)}>
+ <span className={cn("absolute right-4 top-4 inline-flex rounded-full border px-2.5 py-1 text-xs font-extrabold", m.deltaTone)}>
  {m.delta}
  </span>
  <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center", m.iconTone)}>
  <m.icon size={18} />
  </div>
  <p className="mt-4 text-xs font-semibold text-gray-500">{m.title}</p>
- <p className="mt-2 text-xl font-black text-[#1A1A1A]">{m.value}</p>
+ <p className="mt-2 text-xl font-bold text-[#1A1A1A]">{m.value}</p>
  <p className="mt-2 text-xs font-semibold text-gray-500">{m.helper}</p>
  </div>
  ))}
  </div>
 
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between gap-3">
  <div className="flex items-center gap-2">
  <div className="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -120,7 +111,7 @@ export default function AdminAnalyticsPage() {
  </div>
  <p className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-wider">Student Performance</p>
  </div>
- <span className="inline-flex rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-[11px] font-extrabold text-slate-600">
+ <span className="inline-flex rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-600">
  Grade Distribution
  </span>
  </div>
@@ -131,14 +122,14 @@ export default function AdminAnalyticsPage() {
  <div className="w-full bg-emerald-50 border border-emerald-100 rounded-lg overflow-hidden h-40 flex items-end">
  <div className="w-full bg-[#144835]" style={{ height: `${Math.min(100, Math.round((g.value / 60) * 100))}%` }} />
  </div>
- <p className="text-[11px] font-extrabold text-gray-500">{g.label}</p>
+ <p className="text-xs font-extrabold text-gray-500">{g.label}</p>
  </div>
  ))}
  </div>
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between gap-3">
  <div className="flex items-center gap-2">
  <div className="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -146,7 +137,7 @@ export default function AdminAnalyticsPage() {
  </div>
  <p className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-wider">Fee Collection Trend</p>
  </div>
- <span className="inline-flex rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-[11px] font-extrabold text-slate-600">
+ <span className="inline-flex rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-extrabold text-slate-600">
  Monthly Insights
  </span>
  </div>
@@ -166,7 +157,7 @@ export default function AdminAnalyticsPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between gap-3">
  <div className="flex items-center gap-2">
  <div className="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -181,7 +172,7 @@ export default function AdminAnalyticsPage() {
 
  <div className="overflow-x-auto">
  <table className="w-full">
- <thead className="bg-gray-50/60 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+ <thead className="bg-gray-50/60 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
  <tr>
  <th className="px-4 py-2.5">Class / Grade</th>
  <th className="px-4 py-2.5">Avg Score</th>

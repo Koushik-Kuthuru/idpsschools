@@ -70,9 +70,9 @@ export default function MessagesView() {
   return (
     <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
       {/* Header */}
-      <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight uppercase">Communication Hub</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Communication Hub</h2>
           <p className="text-xs font-medium text-gray-500 mt-0.5">Direct classroom chats and school notice boards</p>
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function MessagesView() {
             <div className="h-7 w-7 rounded-lg border border-gray-200 text-[#144835] flex items-center justify-center bg-white shadow-sm">
               <Megaphone size={14} strokeWidth={2.5} />
             </div>
-            <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">Notice Board & Announcements</h4>
+            <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">Notice Board & Announcements</h4>
           </div>
 
           <div className="p-6 overflow-y-auto flex-1 space-y-4">
@@ -93,7 +93,7 @@ export default function MessagesView() {
                 <div className="flex justify-between items-start mb-2">
                   <h5 className="text-xs font-extrabold text-[#144835] group-hover:text-[#a2c144] transition-colors leading-normal">{ann.title}</h5>
                 </div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase mb-3 flex items-center gap-1.5">
+                <p className="text-xs text-gray-500 font-bold uppercase mb-3 flex items-center gap-1.5">
                   <User size={12} /> {ann.sender} | <Calendar size={12} /> {ann.date}
                 </p>
                 <p className="text-xs text-gray-600 font-medium leading-relaxed">{ann.content}</p>
@@ -107,7 +107,7 @@ export default function MessagesView() {
           {/* Thread List sidebar (4/12 cols) */}
           <div className="md:col-span-5 border-r border-gray-100 flex flex-col h-full">
             <div className="px-4 py-4 border-b border-gray-100 bg-gray-50/50">
-              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Inbox Messages</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Inbox Messages</span>
             </div>
             <div className="overflow-y-auto flex-1 divide-y divide-gray-50">
               {inboxThreads.map((thread) => (
@@ -122,9 +122,9 @@ export default function MessagesView() {
                     <span className="absolute top-4 right-4 h-2 w-2 bg-emerald-500 rounded-full" />
                   )}
                   <span className="text-xs font-extrabold text-gray-900 truncate pr-4">{thread.sender}</span>
-                  <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{thread.role}</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mt-0.5">{thread.role}</span>
                   <p className="text-xs text-gray-500 truncate mt-2 font-medium">{thread.lastMsg}</p>
-                  <span className="text-[9px] text-gray-400 font-bold mt-1 text-right w-full block">{thread.time}</span>
+                  <span className="text-xs text-gray-400 font-bold mt-1 text-right w-full block">{thread.time}</span>
                 </button>
               ))}
             </div>
@@ -135,8 +135,8 @@ export default function MessagesView() {
             {/* Active Header */}
             <div className="px-6 py-3.5 border-b border-gray-100 bg-[#F8FAFB] flex justify-between items-center">
               <div>
-                <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">{activeThread.sender}</h4>
-                <p className="text-[9px] text-gray-400 font-bold uppercase mt-0.5">{activeThread.role}</p>
+                <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">{activeThread.sender}</h4>
+                <p className="text-xs text-gray-400 font-bold uppercase mt-0.5">{activeThread.role}</p>
               </div>
             </div>
 
@@ -154,7 +154,7 @@ export default function MessagesView() {
                   }`}>
                     <p className="font-medium leading-relaxed">{msg.text}</p>
                   </div>
-                  <span className="text-[9px] text-gray-400 font-bold mt-1 px-1 flex items-center gap-1">
+                  <span className="text-xs text-gray-400 font-bold mt-1 px-1 flex items-center gap-1">
                     {msg.time} {msg.self && <CheckCheck size={11} className="text-emerald-600" />}
                   </span>
                 </div>

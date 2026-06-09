@@ -122,7 +122,7 @@ export default function CapturePhotoModal({ isOpen, onClose, onCapture, schoolId
               <Camera size={20} strokeWidth={2.5} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-gray-900 uppercase tracking-wider">Capture Photo</h2>
+              <h2 className="text-lg font-bold text-gray-900 uppercase tracking-wider">Capture Photo</h2>
               <p className="text-xs text-gray-500 font-medium">For {photoType.charAt(0).toUpperCase() + photoType.slice(1)}</p>
             </div>
           </div>

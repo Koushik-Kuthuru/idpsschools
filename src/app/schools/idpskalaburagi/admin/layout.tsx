@@ -63,7 +63,7 @@ export default function AdminLayout({
  )}>
  <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
- <main className="flex-1 p-4 sm:p-4 lg:p-8">
+ <main className="erp-portal flex-1 p-4 sm:p-4 lg:p-8">
  {children}
  </main>
  </div>

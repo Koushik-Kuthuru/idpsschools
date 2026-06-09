@@ -114,7 +114,7 @@ export default function MobileCapturePage({
  <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6">
  <CheckCircle className="text-emerald-500" size={40} />
  </div>
- <h2 className="text-2xl font-black text-gray-900 mb-2">Success!</h2>
+ <h2 className="text-2xl font-bold text-gray-900 mb-2">Success!</h2>
  <p className="text-gray-500 text-sm">
  The photo has been captured and uploaded successfully. You can now close this tab and return to your desktop.
  </p>
@@ -134,7 +134,7 @@ export default function MobileCapturePage({
  <Camera className="text-white" size={40} />
  </div>
  
- <h1 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tight">Capture Photo</h1>
+ <h1 className="text-2xl font-bold text-gray-900 mb-2 uppercase tracking-tight">Capture Photo</h1>
  <p className="text-gray-500 text-sm mb-8 font-medium">
  Take a photo for <span className="text-emerald-600 font-bold">{sessionData?.photoType?.toUpperCase()}</span>
  </p>
@@ -146,7 +146,7 @@ export default function MobileCapturePage({
  </div>
  ) : (
  <div className="w-full relative group">
- <button className="w-full py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl shadow-gray-900/20 flex items-center justify-center gap-2 group-hover:-translate-y-1">
+ <button className="w-full py-4 bg-gray-900 hover:bg-black text-white rounded-2xl font-bold uppercase tracking-wide text-sm transition-all shadow-xl shadow-gray-900/20 flex items-center justify-center gap-2 group-hover:-translate-y-1">
  <Camera size={18} /> Open Camera
  </button>
  <input 

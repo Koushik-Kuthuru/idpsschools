@@ -314,11 +314,16 @@ export default function AdminClassesPage() {
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
  
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Classes & Sections"
+  description="Manage grade levels, sections, and class assignments"
+ />
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="flex-1 min-w-[180px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Filter by Grade</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Filter by Grade</label>
  <div className="relative">
  <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
  <select 
@@ -335,7 +340,7 @@ export default function AdminClassesPage() {
  </div>
  
  <div className="flex-1 min-w-[200px] xl:w-[240px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Search</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Search</label>
  <div className="relative">
  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
  <input
@@ -379,63 +384,63 @@ export default function AdminClassesPage() {
 
  {/* KPI Cards */}
  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
  <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <BookOpen size={20} />
  </div>
  <div>
- <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total Grades</p>
- <p className="text-xl font-black text-gray-900 tracking-tight">{stats.activeGrades}</p>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Total Grades</p>
+ <p className="text-xl font-bold text-gray-900 tracking-tight">{stats.activeGrades}</p>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
  <div className="h-10 w-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
  <LayoutGrid size={20} />
  </div>
  <div>
- <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total Sections</p>
- <p className="text-xl font-black text-gray-900 tracking-tight">{stats.totalSections}</p>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Total Sections</p>
+ <p className="text-xl font-bold text-gray-900 tracking-tight">{stats.totalSections}</p>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
  <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
  <Users size={20} />
  </div>
  <div>
- <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Total Students</p>
- <p className="text-xl font-black text-gray-900 tracking-tight">{stats.totalStudents}</p>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Total Students</p>
+ <p className="text-xl font-bold text-gray-900 tracking-tight">{stats.totalStudents}</p>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4 transition-transform hover:-translate-y-1 duration-300">
  <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center shrink-0", stats.overcrowded > 0 ? "bg-red-50 text-red-600" : "bg-orange-50 text-orange-600")}>
  <TrendingUp size={20} />
  </div>
  <div>
- <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Avg Strength</p>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5">Avg Strength</p>
  <div className="flex items-baseline gap-2">
- <p className="text-xl font-black text-gray-900 tracking-tight">{stats.avgStrength}</p>
- {stats.overcrowded > 0 && <span className="text-[9px] font-bold text-red-500 flex items-center bg-red-50 px-1 py-0.5 rounded"><AlertCircle size={10} className="mr-0.5"/> {stats.overcrowded} over</span>}
+ <p className="text-xl font-bold text-gray-900 tracking-tight">{stats.avgStrength}</p>
+ {stats.overcrowded > 0 && <span className="text-xs font-bold text-red-500 flex items-center bg-red-50 px-1 py-0.5 rounded"><AlertCircle size={10} className="mr-0.5"/> {stats.overcrowded} over</span>}
  </div>
  </div>
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="px-4 py-2.5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
- <h2 className="text-xs font-black text-gray-800">Classes Overview</h2>
+ <h2 className="text-xs font-bold text-gray-800">Classes Overview</h2>
  </div>
 
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider w-24">Grade</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">Section</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">Room</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">Strength</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">Teachers</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-2.5 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Grade</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Section</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Room</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Strength</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Teachers</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -479,7 +484,7 @@ export default function AdminClassesPage() {
  {showGrade ? (
  <td rowSpan={rowSpan} className="px-5 py-2.5 align-top border-r border-gray-100/50">
  <div className="flex items-center gap-2">
- <div className="h-7 w-7 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-xs font-black text-gray-700">
+ <div className="h-7 w-7 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-xs font-bold text-gray-700">
  {g.grade}
  </div>
  <span className="text-xs font-bold text-gray-900">{gradeLabel(g.grade)}</span>
@@ -492,14 +497,14 @@ export default function AdminClassesPage() {
  </span>
  </td>
  <td className="px-5 py-2.5">
- <div className="flex items-center gap-1.5 text-[11px] font-bold text-gray-600">
+ <div className="flex items-center gap-1.5 text-xs font-bold text-gray-600">
  <MapPin size={12} className="text-gray-400" />
  {s.room || "TBD"}
  </div>
  </td>
  <td className="px-5 py-2.5">
  <div className="flex items-center gap-2">
- <div className={cn("flex items-center justify-center min-w-[2rem] rounded px-1.5 py-0.5 text-[10px] font-black border border-white/20", strengthBg(s.strength), strengthText(s.strength))}>
+ <div className={cn("flex items-center justify-center min-w-[2rem] rounded px-1.5 py-0.5 text-xs font-bold border border-white/20", strengthBg(s.strength), strengthText(s.strength))}>
  {s.strength}
  </div>
  <div className="hidden sm:block h-1 w-20 rounded-full bg-gray-100 overflow-hidden">
@@ -518,19 +523,19 @@ export default function AdminClassesPage() {
  {s.teacherInitials.slice(0, 3).map((t) => (
  <div
  key={t}
- className="-ml-1.5 first:ml-0 h-6 w-6 rounded-full border-2 border-white bg-blue-50 text-blue-700 flex items-center justify-center text-[9px] font-black z-10"
+ className="-ml-1.5 first:ml-0 h-6 w-6 rounded-full border-2 border-white bg-blue-50 text-blue-700 flex items-center justify-center text-xs font-bold z-10"
  >
  {t}
  </div>
  ))}
  {s.teacherCount > 3 && (
- <div className="-ml-1.5 h-6 w-6 rounded-full border-2 border-white bg-gray-50 text-gray-600 flex items-center justify-center text-[9px] font-black z-10">
+ <div className="-ml-1.5 h-6 w-6 rounded-full border-2 border-white bg-gray-50 text-gray-600 flex items-center justify-center text-xs font-bold z-10">
  +{s.teacherCount - 3}
  </div>
  )}
  </div>
  ) : (
- <div className={cn("inline-flex items-center gap-1 text-[11px] font-bold", lowTeachers ? "text-orange-600" : "text-gray-700")}>
+ <div className={cn("inline-flex items-center gap-1 text-xs font-bold", lowTeachers ? "text-orange-600" : "text-gray-700")}>
  {s.teacherCount} Teachers
  {lowTeachers && (
  <span title="Low teacher count">
@@ -541,7 +546,7 @@ export default function AdminClassesPage() {
  )}
  </td>
  <td className="px-5 py-2.5">
- <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-100/50">
+ <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-100/50">
  <CheckCircle2 size={10} />
  {s.status}
  </span>
@@ -570,10 +575,10 @@ export default function AdminClassesPage() {
  <Search size={20} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No classes found</p>
- <p className="text-[10px] text-gray-500 mt-0.5">Try adjusting your filters or search query.</p>
+ <p className="text-xs text-gray-500 mt-0.5">Try adjusting your filters or search query.</p>
  <button 
  onClick={() => { setSearchQuery(""); setFilterGrade("All"); }}
- className="mt-3 text-[10px] font-bold text-[#144835] hover:underline"
+ className="mt-3 text-xs font-bold text-[#144835] hover:underline"
  >
  Clear filters
  </button>
@@ -591,18 +596,18 @@ export default function AdminClassesPage() {
  <div className="absolute left-1/2 top-1/2 w-[92vw] max-w-lg -translate-x-1/2 -translate-y-1/2 bg-white rounded-[16px] border border-gray-100 shadow-2xl overflow-hidden">
  <div className="p-4 border-b border-gray-100 flex items-center justify-between">
  <div>
- <h3 className="text-xs font-black text-gray-900">Add Class / Section</h3>
- <p className="text-[10px] font-bold text-gray-500 mt-0.5">Nursery, LKG, UKG, and Grade 1–12 supported</p>
+ <h3 className="text-xs font-bold text-gray-900">Add Class / Section</h3>
+ <p className="text-xs font-bold text-gray-500 mt-0.5">Nursery, LKG, UKG, and Grade 1–12 supported</p>
  </div>
  <button onClick={() => setAddOpen(false)} className="h-8 w-8 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 flex items-center justify-center">
  ×
  </button>
  </div>
  <div className="p-4 space-y-3">
- {formError && <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-lg p-2 text-[11px] font-bold">{formError}</div>}
+ {formError && <div className="bg-rose-50 border border-rose-200 text-rose-700 rounded-lg p-2 text-xs font-bold">{formError}</div>}
  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
  <div>
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Grade</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Grade</label>
  <select value={formGrade} onChange={(e) => setFormGrade(e.target.value)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-800">
  {(gradeCatalog.length ? gradeCatalog : ["Nursery","LKG","UKG","1","2","3","4","5","6","7","8","9","10","11","12"]).map((g) => (
  <option key={g} value={g}>{gradeLabel(g)}</option>
@@ -610,26 +615,26 @@ export default function AdminClassesPage() {
  </select>
  </div>
  <div>
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
  <input value={formSection} onChange={(e) => setFormSection(e.target.value)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-800" placeholder="A" />
  </div>
  <div>
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Room</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Room</label>
  <input value={formRoom} onChange={(e) => setFormRoom(e.target.value)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-800" placeholder="101" />
  </div>
  <div>
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Status</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Status</label>
  <select value={formStatus} onChange={(e) => setFormStatus(e.target.value as any)} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-800">
  <option value="Active">Active</option>
  <option value="Inactive">Inactive</option>
  </select>
  </div>
  <div>
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Strength</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Strength</label>
  <input type="number" value={formStrength} onChange={(e) => setFormStrength(Number(e.target.value))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-800" />
  </div>
  <div>
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Teachers</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Teachers</label>
  <input type="number" value={formTeacherCount} onChange={(e) => setFormTeacherCount(Number(e.target.value))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-semibold text-gray-800" />
  </div>
  </div>
@@ -643,32 +648,32 @@ export default function AdminClassesPage() {
  )}
 
  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
- <button className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 text-left hover:border-[#144835]/30 hover:shadow-md transition-all group">
+ <button className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-[#144835]/30 hover:shadow-md transition-all group">
  <div className="h-10 w-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
  <BarChart3 size={18} />
  </div>
  <p className="mt-3 text-xs font-bold text-gray-900">Class Strength Report</p>
- <p className="mt-1 text-[10px] font-medium text-gray-500 line-clamp-2">
+ <p className="mt-1 text-xs font-medium text-gray-500 line-clamp-2">
  Detailed occupancy and gender ratio analysis across all sections and grades.
  </p>
  </button>
  
- <button className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 text-left hover:border-[#144835]/30 hover:shadow-md transition-all group">
+ <button className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-[#144835]/30 hover:shadow-md transition-all group">
  <div className="h-10 w-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
  <Users size={18} />
  </div>
  <p className="mt-3 text-xs font-bold text-gray-900">Teacher Allocation</p>
- <p className="mt-1 text-[10px] font-medium text-gray-500 line-clamp-2">
+ <p className="mt-1 text-xs font-medium text-gray-500 line-clamp-2">
  Review subject teacher and class teacher assignments per section to ensure optimal load.
  </p>
  </button>
  
- <button className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 text-left hover:border-[#144835]/30 hover:shadow-md transition-all group">
+ <button className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-[#144835]/30 hover:shadow-md transition-all group">
  <div className="h-10 w-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform">
  <MapPin size={18} />
  </div>
  <p className="mt-3 text-xs font-bold text-gray-900">Room Mapping</p>
- <p className="mt-1 text-[10px] font-medium text-gray-500 line-clamp-2">
+ <p className="mt-1 text-xs font-medium text-gray-500 line-clamp-2">
  Assign and monitor physical classroom locations for each grade across the campus.
  </p>
  </button>

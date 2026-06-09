@@ -102,7 +102,7 @@ export default function AdminSubjectDetailPage({
  if (!subject) {
  return (
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
  <p className="text-xs font-bold text-rose-700">{error || "Subject not found"}</p>
  <Link href="/idpskalaburagi/academic/subjects" className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 h-10 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50">
  <ArrowLeft size={14} /> Back
@@ -114,13 +114,13 @@ export default function AdminSubjectDetailPage({
 
  return (
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+ <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
  <div className="flex items-center gap-3">
  <Link href={`/schools/${schoolId}/admin/academic/subjects`} className="p-2 rounded-lg hover:bg-gray-50 text-gray-600">
  <ArrowLeft size={18} />
  </Link>
  <div className="min-w-0">
- <p className="text-[11px] font-black uppercase tracking-widest text-gray-400">
+ <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
  {subject.grade}-{String(subject.section).toUpperCase()} • {subject.code || "—"}
  </p>
  <h1 className="text-xl sm:text-xl font-bold text-gray-900 tracking-tight truncate">{subject.name}</h1>
@@ -136,7 +136,7 @@ export default function AdminSubjectDetailPage({
  </div>
 
  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 flex items-center gap-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
  <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <ListChecks size={22} />
  </div>
@@ -145,21 +145,21 @@ export default function AdminSubjectDetailPage({
  <p className="text-xl font-extrabold text-gray-900">{portionCounts.total}</p>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
  <p className="text-xs font-bold text-gray-500">Planned</p>
  <p className="text-xl font-extrabold text-gray-900">{portionCounts.planned}</p>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
  <p className="text-xs font-bold text-gray-500">In Progress</p>
  <p className="text-xl font-extrabold text-gray-900">{portionCounts.inProgress}</p>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
  <p className="text-xs font-bold text-gray-500">Completed</p>
  <p className="text-xl font-extrabold text-gray-900">{portionCounts.completed}</p>
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
  <h2 className="text-lg font-bold text-gray-800">Portion Plan</h2>
  <p className="text-xs font-bold text-gray-500">{subject.portions.length} items</p>
@@ -169,11 +169,11 @@ export default function AdminSubjectDetailPage({
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Title</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Chapters</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">From</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">To</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Title</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Chapters</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">From</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">To</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">

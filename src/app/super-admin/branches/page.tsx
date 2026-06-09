@@ -207,7 +207,7 @@ export default function BranchesPage() {
  </div>
 
  {/* Main Content Card */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col min-h-[600px]">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col min-h-[600px]">
  
  {/* Filters Bar */}
  <div className="p-4 border-b border-gray-100 flex flex-col lg:flex-row gap-4 items-center justify-between bg-gray-50/30">
@@ -261,7 +261,7 @@ export default function BranchesPage() {
  {/* Branches Table */}
  <div className="overflow-visible flex-grow">
  <table className="w-full">
- <thead className="bg-gray-50/50 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+ <thead className="bg-gray-50/50 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
  <tr>
  <th className="px-4 py-2.5">Branch Info</th>
  <th className="px-4 py-2.5">Location</th>
@@ -310,7 +310,7 @@ export default function BranchesPage() {
  <div className="flex items-center justify-center gap-4">
  <div className="text-center">
  <p className="text-xs font-bold text-gray-700">{branch.admins}</p>
- <p className="text-[10px] text-gray-400 uppercase">Admins</p>
+ <p className="text-xs text-gray-400 uppercase">Admins</p>
  </div>
  <div className="w-px h-6 bg-gray-200"></div>
  <div className="text-center">
@@ -321,7 +321,7 @@ export default function BranchesPage() {
  {branch.growth?.startsWith('+') ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
  {branch.growth}
  </span>
- <p className="text-[10px] text-gray-400 uppercase">Growth</p>
+ <p className="text-xs text-gray-400 uppercase">Growth</p>
  </div>
  </div>
  </td>

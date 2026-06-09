@@ -147,9 +147,9 @@ export default function AdminDashboard() {
   return (
     <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 flex-1 animate-in fade-in duration-500 space-y-4">
       {/* Header */}
-      <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight uppercase">Branch Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Branch Dashboard</h1>
           <p className="text-xs font-medium text-gray-500 mt-0.5">Central School (Cherukupalli)</p>
         </div>
         <div className="flex gap-3">
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
               </span>
             </div>
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{stat.title}</p>
-            <p className="text-xl font-black text-gray-900 mt-1">{stat.value}</p>
+            <p className="text-xl font-bold text-gray-900 mt-1">{stat.value}</p>
           </div>
         ))}
       </div>
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
                   <div>
                     <p className="text-xs font-bold text-gray-900">{activity.title}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{activity.desc}</p>
-                    <p className="mt-1 text-[10px] font-medium text-slate-400 uppercase tracking-wider">{activity.time}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-400 uppercase tracking-wider">{activity.time}</p>
                   </div>
                 </li>
               ))}

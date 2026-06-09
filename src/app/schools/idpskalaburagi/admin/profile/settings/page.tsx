@@ -85,19 +85,19 @@ export default function AdminProfileSettingsPage() {
               {user?.photoURL ? (
                 <img src={user.photoURL} alt="Avatar" className="h-full w-full object-cover" />
               ) : (
-                <span className="text-2xl font-black text-white">{userInitials}</span>
+                <span className="text-2xl font-bold text-white">{userInitials}</span>
               )}
             </div>
           </div>
 
           {/* Info */}
           <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-xl font-black text-white tracking-tight">{profileForm.displayName || "Admin User"}</h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">{profileForm.displayName || "Admin User"}</h1>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
-              <span className="inline-flex items-center px-2.5 py-1 bg-white/10 rounded-lg text-[10px] font-bold text-white border border-white/10">
+              <span className="inline-flex items-center px-2.5 py-1 bg-white/10 rounded-lg text-xs font-bold text-white border border-white/10">
                 {profileForm.designation}
               </span>
-              <span className="inline-flex items-center px-2.5 py-1 bg-[#a2c144]/80 rounded-lg text-[10px] font-black text-[#144835]">
+              <span className="inline-flex items-center px-2.5 py-1 bg-[#a2c144]/80 rounded-lg text-xs font-bold text-[#144835]">
                 {role === "super_admin" ? "Super Admin" : "Admin Role"}
               </span>
             </div>
@@ -116,7 +116,7 @@ export default function AdminProfileSettingsPage() {
       </div>
 
  {/* Tabs */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden flex flex-col">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
  <div className="p-2 border-b border-gray-100 bg-gray-50/50 flex flex-wrap gap-2">
  {tabs.map((t) => {
  const active = t === tab;
@@ -126,7 +126,7 @@ export default function AdminProfileSettingsPage() {
  type="button"
  onClick={() => setTab(t)}
  className={cn(
- "px-3 py-1.5 text-[10px] font-bold rounded-lg transition-all",
+ "px-3 py-1.5 text-xs font-bold rounded-lg transition-all",
  active ? "text-[#144835] bg-white border border-gray-200 shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-100/50"
  )}
  >
@@ -147,71 +147,71 @@ export default function AdminProfileSettingsPage() {
  </div>
  <p className="text-sm font-bold text-gray-900">Basic Information</p>
  </div>
-  <button onClick={handleSaveProfile} type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#144835] px-3 h-8 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
+  <button onClick={handleSaveProfile} type="button" className="inline-flex items-center gap-2 rounded-lg bg-[#144835] px-3 h-8 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
   <Save size={14} /> Save Profile
   </button>
   </div>
 
   {error && (
-    <div className="mx-4 mt-4 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-[10px] font-bold flex items-center gap-2 animate-in fade-in duration-200">
+    <div className="mx-4 mt-4 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-700 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
       <ShieldAlert size={14} /> {error}
     </div>
   )}
 
   {saved && (
-    <div className="mx-4 mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 text-[10px] font-bold flex items-center gap-2 animate-in fade-in duration-200">
+    <div className="mx-4 mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
       <CheckCircle2 size={14} /> Profile updated successfully
     </div>
   )}
 
   <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Full Name</label>
+      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Full Name</label>
       <input
         value={profileForm.displayName}
         onChange={e => setProfileForm(p => ({ ...p, displayName: e.target.value }))}
-        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
+        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
       />
     </div>
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Email Address</label>
+      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Email Address</label>
       <input
         value={profileForm.email}
         disabled
-        className="w-full h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[10px] font-medium text-gray-500 focus:outline-none shadow-sm transition-all cursor-not-allowed"
+        className="w-full h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-xs font-medium text-gray-500 focus:outline-none shadow-sm transition-all cursor-not-allowed"
       />
     </div>
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Phone Number</label>
+      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Phone Number</label>
       <input
         value={profileForm.phone}
         onChange={e => setProfileForm(p => ({ ...p, phone: e.target.value }))}
         placeholder="+91 98765 43210"
-        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
+        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
       />
     </div>
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Employee ID</label>
+      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Employee ID</label>
       <input
         value={profileForm.employeeId}
         disabled
-        className="w-full h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-[10px] font-medium text-gray-500 focus:outline-none shadow-sm transition-all cursor-not-allowed"
+        className="w-full h-8 rounded-lg border border-gray-200 bg-gray-50 px-3 text-xs font-medium text-gray-500 focus:outline-none shadow-sm transition-all cursor-not-allowed"
       />
     </div>
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Designation / Role</label>
+      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Designation / Role</label>
       <input
         value={profileForm.designation}
         onChange={e => setProfileForm(p => ({ ...p, designation: e.target.value }))}
-        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
+        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
       />
     </div>
     <div className="space-y-1">
-      <label className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Department & Branch</label>
+      <label className="text-xs font-bold uppercase tracking-wider text-gray-500">Department & Branch</label>
       <input
         value={profileForm.department}
         onChange={e => setProfileForm(p => ({ ...p, department: e.target.value }))}
-        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
+        className="w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all"
       />
     </div>
   </div>
@@ -227,18 +227,18 @@ export default function AdminProfileSettingsPage() {
 
  <div className="p-4 space-y-4">
  <div>
- <label className="text-[10px] font-bold text-gray-700">Current Password</label>
+ <label className="text-xs font-bold text-gray-700">Current Password</label>
  <input
  type="password"
- className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
+ className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
  placeholder="••••••••"
  />
  </div>
  <div>
- <label className="text-[10px] font-bold text-gray-700">New Password</label>
+ <label className="text-xs font-bold text-gray-700">New Password</label>
  <input
  type="password"
- className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
+ className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
  placeholder="••••••••"
  />
  <div className="mt-2 h-1 rounded-full bg-gray-100 overflow-hidden">
@@ -246,22 +246,22 @@ export default function AdminProfileSettingsPage() {
  </div>
  </div>
  <div>
- <label className="text-[10px] font-bold text-gray-700">Confirm Password</label>
+ <label className="text-xs font-bold text-gray-700">Confirm Password</label>
  <input
  type="password"
- className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
+ className="mt-1.5 w-full h-8 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm"
  placeholder="••••••••"
  />
  </div>
 
- <label className="inline-flex items-center gap-2 text-[10px] font-bold text-gray-700 mt-2 cursor-pointer">
+ <label className="inline-flex items-center gap-2 text-xs font-bold text-gray-700 mt-2 cursor-pointer">
  <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-[#144835] focus:ring-[#144835]" defaultChecked />
  Sign out of other sessions
  </label>
 
  <button
  type="button"
- className="w-full mt-4 h-8 inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 text-[10px] font-bold text-white shadow-md hover:bg-gray-800 transition-colors"
+ className="w-full mt-4 h-8 inline-flex items-center justify-center rounded-lg bg-gray-900 px-4 text-xs font-bold text-white shadow-md hover:bg-gray-800 transition-colors"
  >
  Update Password
  </button>
@@ -291,8 +291,8 @@ export default function AdminProfileSettingsPage() {
  ].map((p, idx) => (
  <div key={p.label} className="p-3 flex items-center justify-between gap-4 bg-white hover:bg-gray-50/50 transition-colors">
  <div>
- <p className="text-[10px] font-bold text-gray-900">{p.label}</p>
- <p className="mt-0.5 text-[10px] font-medium text-gray-500">{p.desc}</p>
+ <p className="text-xs font-bold text-gray-900">{p.label}</p>
+ <p className="mt-0.5 text-xs font-medium text-gray-500">{p.desc}</p>
  </div>
  <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-[#144835] focus:ring-[#144835]" defaultChecked={p.label !== "Push & In-App"} />
  </div>
@@ -300,11 +300,11 @@ export default function AdminProfileSettingsPage() {
  </div>
 
  <div>
- <label className="text-[10px] font-bold text-gray-700">Email Daily Digest Frequency</label>
+ <label className="text-xs font-bold text-gray-700">Email Daily Digest Frequency</label>
  <select
  value={digest}
  onChange={(e) => setDigest(e.target.value)}
- className="mt-1.5 w-full h-8 appearance-none rounded-lg border border-gray-200 bg-white px-3 text-[10px] font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm cursor-pointer"
+ className="mt-1.5 w-full h-8 appearance-none rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm cursor-pointer"
  >
  <option>Summarized (Once daily at 8 AM)</option>
  <option>Detailed (Once daily at 8 AM)</option>
@@ -338,26 +338,26 @@ export default function AdminProfileSettingsPage() {
  </div>
  <div className="min-w-0">
  <div className="flex items-center gap-2">
- <p className="text-[10px] font-bold text-gray-900 truncate">{s.device}</p>
+ <p className="text-xs font-bold text-gray-900 truncate">{s.device}</p>
  {s.status === "ACTIVE" ? (
- <span className="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 text-[8px] font-bold text-emerald-700">
+ <span className="inline-flex items-center rounded-md bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 text-xs font-bold text-emerald-700">
  ACTIVE NOW
  </span>
  ) : null}
  </div>
- <p className="mt-0.5 text-[10px] font-medium text-gray-500 truncate">{s.meta}</p>
+ <p className="mt-0.5 text-xs font-medium text-gray-500 truncate">{s.meta}</p>
  </div>
  </div>
 
  {s.status !== "ACTIVE" ? (
- <button type="button" className="text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline px-2 py-1">
+ <button type="button" className="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline px-2 py-1">
  Logout
  </button>
  ) : null}
  </div>
  ))}
 
- <button type="button" className="mt-2 w-full h-8 rounded-lg border border-gray-200 bg-white px-4 text-[10px] font-bold text-gray-700 hover:bg-gray-50 inline-flex items-center justify-center gap-2 shadow-sm transition-colors">
+ <button type="button" className="mt-2 w-full h-8 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 hover:bg-gray-50 inline-flex items-center justify-center gap-2 shadow-sm transition-colors">
  <LogOut size={14} /> Logout All Other Sessions
  </button>
  </div>
@@ -371,22 +371,22 @@ export default function AdminProfileSettingsPage() {
  <div className="bg-white rounded-[12px] border border-gray-100 shadow-sm p-6 text-center max-w-2xl mx-auto">
  <ShieldAlert size={32} className="mx-auto text-gray-300 mb-3" />
  <h3 className="text-sm font-bold text-gray-900">Privacy Controls</h3>
- <p className="text-[10px] text-gray-500 mt-2">Privacy and data sharing settings are managed globally by the system administrator. If you need to request a data export, please contact support.</p>
+ <p className="text-xs text-gray-500 mt-2">Privacy and data sharing settings are managed globally by the system administrator. If you need to request a data export, please contact support.</p>
  </div>
  </div>
  ) : null}
 
  {/* Footer Actions */}
  <div className="p-4 border-t border-gray-100 bg-gray-50/30 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
- <button type="button" className="inline-flex items-center gap-2 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline w-fit px-2 py-1">
+ <button type="button" className="inline-flex items-center gap-2 text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline w-fit px-2 py-1">
  <ShieldAlert size={14} /> Deactivate Account
  </button>
 
  <div className="flex flex-wrap items-center gap-3 justify-end">
- <button type="button" className="h-8 rounded-lg border border-gray-200 bg-white px-5 text-[10px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
+ <button type="button" className="h-8 rounded-lg border border-gray-200 bg-white px-5 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
  Discard Changes
  </button>
- <button onClick={handleSaveProfile} type="button" className="h-8 rounded-lg bg-[#144835] px-5 text-[10px] font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
+ <button onClick={handleSaveProfile} type="button" className="h-8 rounded-lg bg-[#144835] px-5 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
  Save All Changes
  </button>
  </div>

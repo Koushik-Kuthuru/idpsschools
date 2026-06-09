@@ -52,7 +52,7 @@ export default function ProfileView() {
         {/* Hero Details */}
         <div className="flex-1 text-center md:text-left w-full">
           <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
-            <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight uppercase">
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight uppercase">
               {student.studentName || "Student Name"}
             </h3>
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100 self-center md:self-auto uppercase tracking-wider">
@@ -61,27 +61,27 @@ export default function ProfileView() {
             </span>
           </div>
           
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-6">
             Admission / Enrollment No: <span className="font-extrabold text-[#144835]">{student.admissionNo || student.registrationNo || "-"}</span>
           </p>
 
           {/* Top Quick Stats Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full">
             <div className="bg-[#F8FAFB] p-4 rounded-lg border border-gray-200/50 flex flex-col justify-center">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Attendance</span>
-              <span className="text-lg font-black text-[#144835] mt-1">92.5%</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Attendance</span>
+              <span className="text-lg font-bold text-[#144835] mt-1">92.5%</span>
             </div>
             <div className="bg-[#F8FAFB] p-4 rounded-lg border border-gray-200/50 flex flex-col justify-center">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Class</span>
-              <span className="text-lg font-black text-gray-900 mt-1">{student.classId || student.grade || "-"}</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Class</span>
+              <span className="text-lg font-bold text-gray-900 mt-1">{student.classId || student.grade || "-"}</span>
             </div>
             <div className="bg-[#F8FAFB] p-4 rounded-lg border border-gray-200/50 flex flex-col justify-center">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Section</span>
-              <span className="text-lg font-black text-gray-900 mt-1">{student.section || "-"}</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Section</span>
+              <span className="text-lg font-bold text-gray-900 mt-1">{student.section || "-"}</span>
             </div>
             <div className="bg-[#F8FAFB] p-4 rounded-lg border border-gray-200/50 flex flex-col justify-center">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Roll Number</span>
-              <span className="text-lg font-black text-gray-900 mt-1">{student.rollNumber || "-"}</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Roll Number</span>
+              <span className="text-lg font-bold text-gray-900 mt-1">{student.rollNumber || "-"}</span>
             </div>
           </div>
         </div>
@@ -96,38 +96,38 @@ export default function ProfileView() {
             <div className="h-7 w-7 rounded-lg border border-gray-200 text-[#144835] flex items-center justify-center bg-white shadow-sm">
               <User size={15} strokeWidth={2.5} />
             </div>
-            <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">
               Personal Information
             </h4>
           </div>
           
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 flex-1">
             <div className="flex flex-col group">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Gender</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Gender</span>
               <span className="text-xs font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100">{student.gender || "-"}</span>
             </div>
             <div className="flex flex-col group">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Date of Birth</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Date of Birth</span>
               <span className="text-xs font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100">{student.dob || "-"}</span>
             </div>
             <div className="flex flex-col group">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Blood Group</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Blood Group</span>
               <span className="text-xs font-bold text-red-600 bg-red-50/20 px-3 py-2 rounded-lg border border-red-100/50">{student.bloodGroup || "-"}</span>
             </div>
             <div className="flex flex-col group">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Aadhar Number</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Aadhar Number</span>
               <span className="text-xs font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100">{student.aadharNo || "-"}</span>
             </div>
             <div className="flex flex-col group">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">SRN Number</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">SRN Number</span>
               <span className="text-xs font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100">{student.srnNo || "-"}</span>
             </div>
             <div className="flex flex-col group">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Nationality</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Nationality</span>
               <span className="text-xs font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100">{student.nationality || "INDIAN"}</span>
             </div>
             <div className="md:col-span-2 flex flex-col group">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Permanent Address</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1 group-hover:text-[#144835] transition-colors">Permanent Address</span>
               <span className="text-xs font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100 leading-relaxed">
                 {[student.permAddress, student.permCity, student.permState].filter(Boolean).join(", ") || "-"}
               </span>
@@ -141,14 +141,14 @@ export default function ProfileView() {
             <div className="h-7 w-7 rounded-lg border border-gray-200 text-[#144835] flex items-center justify-center bg-white shadow-sm">
               <GraduationCap size={15} strokeWidth={2.5} />
             </div>
-            <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">
               Academic Info
             </h4>
           </div>
 
           <div className="p-6 flex flex-col gap-5 flex-1">
             <div className="flex flex-col group">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Current Institution</span>
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Current Institution</span>
               <span className="text-xs font-extrabold text-[#144835] bg-emerald-50/50 px-3 py-2 rounded-lg border border-emerald-100/50">
                 International Delhi Public School
               </span>
@@ -156,7 +156,7 @@ export default function ProfileView() {
 
             <div className="space-y-2 pt-2">
               <div className="flex justify-between items-end">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Attendance Target</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Attendance Target</span>
                 <span className="text-xs font-extrabold text-[#144835]">92.5% / 100%</span>
               </div>
               <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
@@ -165,12 +165,12 @@ export default function ProfileView() {
             </div>
 
             <div className="pt-4 border-t border-gray-100 mt-auto">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Class Details:</p>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Class Details:</p>
               <div className="flex items-start gap-3 p-3 bg-amber-50/20 border border-amber-200/50 rounded-lg">
                 <BadgeInfo className="text-amber-800 shrink-0" size={16} />
                 <div>
                   <p className="text-xs font-extrabold text-amber-900">Academic Year 2024-25</p>
-                  <p className="text-[10px] text-amber-700 font-bold uppercase mt-0.5">Medium: {student.mediumOfInstruction || "ENGLISH"}</p>
+                  <p className="text-xs text-amber-700 font-bold uppercase mt-0.5">Medium: {student.mediumOfInstruction || "ENGLISH"}</p>
                 </div>
               </div>
             </div>
@@ -183,7 +183,7 @@ export default function ProfileView() {
             <div className="h-7 w-7 rounded-lg border border-gray-200 text-[#144835] flex items-center justify-center bg-white shadow-sm">
               <Users size={15} strokeWidth={2.5} />
             </div>
-            <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">
               Parent / Guardian Information
             </h4>
           </div>
@@ -196,9 +196,9 @@ export default function ProfileView() {
               </div>
               <div className="flex flex-col min-w-0">
                 <h5 className="text-sm font-extrabold text-[#144835] truncate">{student.fatherName || "Father Name"}</h5>
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Father</span>
-                <p className="text-[11px] text-gray-500 font-bold mt-2">Mobile: <span className="text-gray-900">{student.fatherMobile1 || "-"}</span></p>
-                <p className="text-[11px] text-gray-500 font-bold">Email: <span className="text-gray-900 truncate">{student.fatherEmail || "-"}</span></p>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mt-0.5">Father</span>
+                <p className="text-xs text-gray-500 font-bold mt-2">Mobile: <span className="text-gray-900">{student.fatherMobile1 || "-"}</span></p>
+                <p className="text-xs text-gray-500 font-bold">Email: <span className="text-gray-900 truncate">{student.fatherEmail || "-"}</span></p>
               </div>
             </div>
 
@@ -209,9 +209,9 @@ export default function ProfileView() {
               </div>
               <div className="flex flex-col min-w-0">
                 <h5 className="text-sm font-extrabold text-[#144835] truncate">{student.motherName || "Mother Name"}</h5>
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-0.5">Mother</span>
-                <p className="text-[11px] text-gray-500 font-bold mt-2">Mobile: <span className="text-gray-900">{student.motherMobile1 || "-"}</span></p>
-                <p className="text-[11px] text-gray-500 font-bold">Email: <span className="text-gray-900 truncate">{student.motherEmail || "-"}</span></p>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wide mt-0.5">Mother</span>
+                <p className="text-xs text-gray-500 font-bold mt-2">Mobile: <span className="text-gray-900">{student.motherMobile1 || "-"}</span></p>
+                <p className="text-xs text-gray-500 font-bold">Email: <span className="text-gray-900 truncate">{student.motherEmail || "-"}</span></p>
               </div>
             </div>
           </div>
@@ -223,8 +223,8 @@ export default function ProfileView() {
                 <ShieldCheck size={16} />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-bold text-red-800 uppercase tracking-wider">Emergency Contact</p>
-                <p className="text-xs font-black text-red-950 mt-0.5 truncate">
+                <p className="text-xs font-bold text-red-800 uppercase tracking-wider">Emergency Contact</p>
+                <p className="text-xs font-bold text-red-950 mt-0.5 truncate">
                   {student.fatherName || student.motherName}: <span className="underline">{student.fatherMobile1 || student.motherMobile1 || "-"}</span>
                 </p>
               </div>

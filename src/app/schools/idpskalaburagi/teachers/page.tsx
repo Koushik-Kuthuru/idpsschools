@@ -151,15 +151,15 @@ export default function AdminDashboardPage() {
  <div className={cn("h-10 w-10 rounded-lg flex items-center justify-center transition-transform group-hover:scale-110 duration-300", style.bg, style.color)}>
  <stat.icon size={20} strokeWidth={2} />
  </div>
- <div className={cn("flex items-center text-[10px] font-bold px-2 py-0.5 rounded border", stat.trend === 'up' ? "bg-emerald-50 text-emerald-700 border-emerald-100/50" : "bg-rose-50 text-rose-700 border-rose-100/50")}>
+ <div className={cn("flex items-center text-xs font-bold px-2 py-0.5 rounded border", stat.trend === 'up' ? "bg-emerald-50 text-emerald-700 border-emerald-100/50" : "bg-rose-50 text-rose-700 border-rose-100/50")}>
  {stat.trend === 'up' ? <TrendingUp size={12} className="mr-1" /> : <TrendingDown size={12} className="mr-1" />}
  {stat.delta}
  </div>
  </div>
  
  <div className="relative z-10 mt-1">
- <p className="text-gray-400 font-bold text-[10px] uppercase tracking-widest mb-0.5">{stat.label}</p>
- <h3 className="text-xl font-black text-gray-900 tracking-tight">{stat.value}</h3>
+ <p className="text-gray-400 font-bold text-xs uppercase tracking-wide mb-0.5">{stat.label}</p>
+ <h3 className="text-xl font-bold text-gray-900 tracking-tight">{stat.value}</h3>
  </div>
  </div>
  );
@@ -170,7 +170,7 @@ export default function AdminDashboardPage() {
  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
  <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_20px_rgba(0,0,0,0.02)] overflow-hidden hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow duration-300">
  <div className="p-4 border-b border-gray-50 flex items-center justify-between">
- <h3 className="text-xs font-bold text-gray-800 uppercase tracking-widest">Attendance Overview</h3>
+ <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Attendance Overview</h3>
  </div>
  <div className="p-4 flex items-center gap-4">
  <div className="relative w-28 h-28 shrink-0 drop-shadow-sm">
@@ -178,8 +178,8 @@ export default function AdminDashboardPage() {
  <div className="absolute inset-[8px] rounded-full bg-white shadow-inner" />
  <div className="absolute inset-0 flex items-center justify-center">
  <div className="text-center">
- <p className="text-xl font-black text-gray-900 tracking-tighter">{seedAttendance.percent}%</p>
- <p className="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">Today</p>
+ <p className="text-xl font-bold text-gray-900 tracking-tighter">{seedAttendance.percent}%</p>
+ <p className="text-xs font-bold text-emerald-600 uppercase tracking-wide mt-0.5">Today</p>
  </div>
  </div>
  </div>
@@ -189,21 +189,21 @@ export default function AdminDashboardPage() {
  <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] group-hover:scale-125 transition-transform" />
  <span className="font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Present</span>
  </div>
- <span className="font-black text-gray-900">{seedAttendance.present.toLocaleString("en-IN")}</span>
+ <span className="font-bold text-gray-900">{seedAttendance.present.toLocaleString("en-IN")}</span>
  </div>
  <div className="flex items-center justify-between text-xs group cursor-pointer">
  <div className="flex items-center gap-2">
  <span className="h-2 w-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)] group-hover:scale-125 transition-transform" />
  <span className="font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Late</span>
  </div>
- <span className="font-black text-gray-900">{seedAttendance.late.toLocaleString("en-IN")}</span>
+ <span className="font-bold text-gray-900">{seedAttendance.late.toLocaleString("en-IN")}</span>
  </div>
  <div className="flex items-center justify-between text-xs group cursor-pointer">
  <div className="flex items-center gap-2">
  <span className="h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)] group-hover:scale-125 transition-transform" />
  <span className="font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Absent</span>
  </div>
- <span className="font-black text-gray-900">{seedAttendance.absent.toLocaleString("en-IN")}</span>
+ <span className="font-bold text-gray-900">{seedAttendance.absent.toLocaleString("en-IN")}</span>
  </div>
  </div>
  </div>
@@ -211,25 +211,25 @@ export default function AdminDashboardPage() {
 
  <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_20px_rgba(0,0,0,0.02)] overflow-hidden hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow duration-300">
  <div className="p-4 border-b border-gray-50 flex items-center justify-between">
- <h3 className="text-xs font-bold text-gray-800 uppercase tracking-widest">Fee Collection</h3>
- <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded-md">This Month</span>
+ <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Fee Collection</h3>
+ <span className="text-xs font-bold text-gray-500 uppercase tracking-wide bg-gray-50 px-2 py-0.5 rounded-md">This Month</span>
  </div>
  <div className="p-4 space-y-5">
  <div>
  <div className="flex items-end gap-2 mb-1">
- <p className="text-xl font-black text-gray-900 tracking-tight">
+ <p className="text-xl font-bold text-gray-900 tracking-tight">
  {seedFinance.feeCollectedMonth.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}
  </p>
  <p className="text-xs font-bold text-gray-400 mb-1 line-through decoration-gray-300">
  Target {seedFinance.feeTargetMonth.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}
  </p>
  </div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Total Collected (May)</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-1">Total Collected (May)</p>
  </div>
  <div className="pt-1">
  <div className="flex items-center justify-between mb-2">
- <span className="text-[11px] font-black text-gray-700 uppercase tracking-wider">Progress</span>
- <span className="text-xs font-black text-[#144835]">
+ <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Progress</span>
+ <span className="text-xs font-bold text-[#144835]">
  {Math.round((seedFinance.feeCollectedMonth / seedFinance.feeTargetMonth) * 100)}%
  </span>
  </div>
@@ -242,7 +242,7 @@ export default function AdminDashboardPage() {
  </div>
  </div>
  </div>
- <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-100 bg-emerald-50/50 text-emerald-700 text-[10px] font-bold w-full justify-center">
+ <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-100 bg-emerald-50/50 text-emerald-700 text-xs font-bold w-full justify-center">
  <TrendingUp size={14} strokeWidth={2.5} /> Ahead of last month by 4.2%
  </div>
  </div>
@@ -250,14 +250,14 @@ export default function AdminDashboardPage() {
 
  <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_20px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow duration-300">
  <div className="p-4 border-b border-gray-50 flex items-center justify-between">
- <h3 className="text-xs font-bold text-gray-800 uppercase tracking-widest">Staff Availability</h3>
- <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded flex items-center gap-1">
+ <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Staff Availability</h3>
+ <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded flex items-center gap-1">
  <CheckCircle2 size={12} /> {seedStaffAvailability.present}/{seedStaffAvailability.total} Present
  </span>
  </div>
  <div className="p-4 flex-1 flex flex-col justify-between">
  <div>
- <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-3">
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">
  On Leave Today ({seedStaffAvailability.onLeaveToday.length})
  </p>
  <div className="space-y-3">
@@ -271,12 +271,12 @@ export default function AdminDashboardPage() {
  return (
  <div key={p.name} className="flex items-center justify-between group">
  <div className="flex items-center gap-3">
- <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${palette} flex items-center justify-center text-xs font-black shadow-sm group-hover:scale-105 transition-transform`}>
+ <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${palette} flex items-center justify-center text-xs font-bold shadow-sm group-hover:scale-105 transition-transform`}>
  {p.initials}
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900 group-hover:text-[#144835] transition-colors">{p.name}</p>
- <p className="text-[10px] font-bold text-gray-500">{p.reason}</p>
+ <p className="text-xs font-bold text-gray-500">{p.reason}</p>
  </div>
  </div>
  <div className="h-6 w-6 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[#144835]/10 group-hover:text-[#144835] transition-colors cursor-pointer">
@@ -306,8 +306,8 @@ export default function AdminDashboardPage() {
  <Activity size={18} strokeWidth={2} />
  </div>
  <div>
- <h2 className="text-xs font-black text-gray-900 tracking-tight">Recent Activity</h2>
- <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Latest events across your branch</p>
+ <h2 className="text-xs font-bold text-gray-900 tracking-tight">Recent Activity</h2>
+ <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mt-0.5">Latest events across your branch</p>
  </div>
  </div>
  <button onClick={() => setLogOpen(true)} className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-all hover:border-gray-300 group">
@@ -324,13 +324,13 @@ export default function AdminDashboardPage() {
  idx === 0 ? "bg-[#144835] ring-[#144835]/10 scale-125 shadow-[0_0_10px_rgba(20,72,53,0.3)]" : "bg-gray-300 group-hover:bg-[#a2c144] group-hover:scale-110"
  )}></div>
  <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.02)] group-hover:border-[#144835]/30 group-hover:shadow-[0_8px_20px_rgba(20,72,53,0.08)] transition-all duration-300 transform group-hover:-translate-y-0.5">
- <p className="text-[13px] font-bold text-gray-900 group-hover:text-[#144835] transition-colors">{activity.text}</p>
+ <p className="text-sm font-bold text-gray-900 group-hover:text-[#144835] transition-colors">{activity.text}</p>
  <div className="flex items-center gap-4 mt-2">
- <p className="text-[10px] font-bold text-gray-400 flex items-center gap-1 uppercase tracking-wider bg-gray-50 px-2 py-0.5 rounded">
+ <p className="text-xs font-bold text-gray-400 flex items-center gap-1 uppercase tracking-wider bg-gray-50 px-2 py-0.5 rounded">
  <Clock size={10} />
  {activity.time}
  </p>
- <Link href={activity.href} className="text-[10px] font-bold text-[#144835] uppercase tracking-wider hover:underline flex items-center gap-1">
+ <Link href={activity.href} className="text-xs font-bold text-[#144835] uppercase tracking-wider hover:underline flex items-center gap-1">
  View Details <ArrowUpRight size={10} />
  </Link>
  </div>
@@ -354,8 +354,8 @@ export default function AdminDashboardPage() {
  <AlertCircle size={14} strokeWidth={2} />
  </div>
  <div>
- <h3 className="text-xs font-black text-gray-900 tracking-tight">Pending Approvals</h3>
- <p className="text-[9px] font-bold text-rose-600 mt-0.5 uppercase tracking-widest bg-rose-50 inline-block px-1.5 py-0.5 rounded">Requires Action</p>
+ <h3 className="text-xs font-bold text-gray-900 tracking-tight">Pending Approvals</h3>
+ <p className="text-xs font-bold text-rose-600 mt-0.5 uppercase tracking-wide bg-rose-50 inline-block px-1.5 py-0.5 rounded">Requires Action</p>
  </div>
  </div>
  </div>
@@ -368,10 +368,10 @@ export default function AdminDashboardPage() {
  <item.icon size={14} strokeWidth={1.5} />
  </div>
  <div className="flex-1 min-w-0">
- <p className="text-xs font-black text-gray-900 leading-snug group-hover:text-[#144835] transition-colors">
+ <p className="text-xs font-bold text-gray-900 leading-snug group-hover:text-[#144835] transition-colors">
  {item.count} {item.label}
  </p>
- <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5">{item.note}</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-0.5">{item.note}</p>
  </div>
  <div className="h-6 w-6 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-[#144835] group-hover:text-white transition-colors shrink-0">
  <ChevronRight size={14} className="text-gray-400 group-hover:text-white transition-colors" />
@@ -388,7 +388,7 @@ export default function AdminDashboardPage() {
 
  <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_20px_rgba(0,0,0,0.02)] overflow-hidden relative hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-shadow duration-300">
  <div className="p-4 border-b border-gray-50 flex items-center justify-between">
- <h3 className="text-xs font-bold text-gray-800 uppercase tracking-widest">Upcoming Events</h3>
+ <h3 className="text-xs font-bold text-gray-800 uppercase tracking-wide">Upcoming Events</h3>
  </div>
  <div className="p-4 space-y-4 bg-gray-50/30">
  {upcomingEvents.map((ev, idx) => {
@@ -399,12 +399,12 @@ export default function AdminDashboardPage() {
  return (
  <div key={ev.id} className="flex items-start gap-3 group cursor-pointer">
  <div className="h-10 w-10 rounded-lg bg-white border border-gray-200 shadow-sm flex flex-col items-center justify-center overflow-hidden group-hover:border-[#144835]/30 group-hover:shadow-md transition-all">
- <div className="bg-gray-100 w-full text-center py-0.5 text-[8px] font-black text-gray-500 group-hover:bg-[#144835]/10 group-hover:text-[#144835] transition-colors">{month}</div>
- <div className="text-xs font-black text-gray-900 py-1">{day}</div>
+ <div className="bg-gray-100 w-full text-center py-0.5 text-xs font-bold text-gray-500 group-hover:bg-[#144835]/10 group-hover:text-[#144835] transition-colors">{month}</div>
+ <div className="text-xs font-bold text-gray-900 py-1">{day}</div>
  </div>
  <div className="flex-1 pt-0.5">
  <p className="font-bold text-xs text-gray-900 group-hover:text-[#144835] transition-colors">{ev.title}</p>
- <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 flex items-center gap-1"><Clock size={8} /> {place}</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mt-0.5 flex items-center gap-1"><Clock size={8} /> {place}</p>
  </div>
  </div>
  );
@@ -426,7 +426,7 @@ export default function AdminDashboardPage() {
  <div className="absolute right-0 top-0 h-full w-full sm:w-[520px] bg-white shadow-2xl animate-in slide-in-from-right duration-200 flex flex-col">
  <div className="p-4 sm:p-4 border-b border-gray-100 flex items-center justify-between">
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Activity</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Activity</p>
  <h3 className="text-lg font-bold text-gray-900">Full Log</h3>
  </div>
  <button onClick={() => setLogOpen(false)} className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:text-gray-700 hover:bg-gray-50">
@@ -440,7 +440,7 @@ export default function AdminDashboardPage() {
  <div className="flex items-start justify-between gap-3">
  <div>
  <p className="text-xs font-bold text-gray-900">{item.text}</p>
- <p className="text-[11px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{item.time}</p>
+ <p className="text-xs font-bold text-gray-400 mt-1 uppercase tracking-wider">{item.time}</p>
  </div>
  <Link href={item.href} className="text-xs font-bold text-[#144835] hover:text-[#144835]/80 inline-flex items-center gap-1">
  View <ChevronRight size={14} />

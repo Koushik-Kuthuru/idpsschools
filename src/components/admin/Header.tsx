@@ -165,8 +165,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                   className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
                 >
                   <div className="px-3 py-2 border-b border-gray-50">
-                    <p className="text-[11px] font-bold text-gray-800 truncate">{user?.displayName || "Branch Admin"}</p>
-                    <p className="text-[10px] text-gray-500 truncate">{user?.email || "admin@school.edu"}</p>
+                    <p className="text-xs font-bold text-gray-800 truncate">{user?.displayName || "Branch Admin"}</p>
+                    <p className="text-xs text-gray-500 truncate">{user?.email || "admin@school.edu"}</p>
                   </div>
                   <button
                     type="button"
@@ -175,7 +175,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                       setUserMenuOpen(false);
                       void handleLogout();
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-[11px] font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <LogOut size={14} />
                     Log out
@@ -203,7 +203,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
             <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
               <div>
                 <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
-                <p className="text-[10px] text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-500 mt-0.5">
                   {SAMPLE_NOTIFICATIONS.filter((n) => n.unread).length} unread
                 </p>
               </div>
@@ -229,8 +229,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                     )}
                     <div className={n.unread ? "" : "pl-3.5"}>
                       <p className="text-xs font-bold text-gray-900">{n.title}</p>
-                      <p className="text-[11px] text-gray-600 mt-0.5 leading-snug">{n.body}</p>
-                      <p className="text-[10px] text-gray-400 mt-1">{n.time}</p>
+                      <p className="text-xs text-gray-600 mt-0.5 leading-snug">{n.body}</p>
+                      <p className="text-xs text-gray-400 mt-1">{n.time}</p>
                     </div>
                   </div>
                 </li>

@@ -83,8 +83,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
 
             <div className="hidden sm:flex items-center gap-2 cursor-pointer group" onClick={handleLogout} title="Sign Out">
               <div className="text-right">
-                <p className="text-[10px] font-bold text-gray-800 group-hover:text-[#144835] transition-colors">Sign Out</p>
-                <p className="text-[10px] text-gray-500">{displayName || "Super Admin"}</p>
+                <p className="text-xs font-bold text-gray-800 group-hover:text-[#144835] transition-colors">Sign Out</p>
+                <p className="text-xs text-gray-500">{displayName || "Super Admin"}</p>
               </div>
               <div className="relative">
                 <div className="h-8 w-8 rounded-full bg-[#144835] text-white flex items-center justify-center text-xs font-bold border-2 border-white shadow-sm group-hover:bg-red-500 transition-colors">

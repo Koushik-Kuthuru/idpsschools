@@ -175,7 +175,7 @@ export default function AddBranchPage() {
  <>
  <Upload className="text-gray-400 group-hover:text-[#144835] mb-2" size={32} />
  <span className="text-xs text-gray-500 font-medium group-hover:text-[#144835]">Click to upload</span>
- <span className="text-[10px] text-gray-400 mt-1">PNG, JPG up to 2MB</span>
+ <span className="text-xs text-gray-400 mt-1">PNG, JPG up to 2MB</span>
  </>
  )}
  </div>

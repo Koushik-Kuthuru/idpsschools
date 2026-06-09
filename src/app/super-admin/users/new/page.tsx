@@ -93,7 +93,7 @@ export default function CreateUserPage() {
  {/* Left Column: Forms */}
  <div className="lg:col-span-2 space-y-8">
  {/* Personal Information Card */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="p-4 border-b border-gray-50 bg-gray-50/30">
  <h2 className="text-lg font-bold text-[#1A1A1A] flex items-center gap-2">
  <div className="p-1.5 rounded-lg bg-[#004D40] text-white">
@@ -200,7 +200,7 @@ export default function CreateUserPage() {
  </div>
 
  {/* Role & Access Card */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="p-4 border-b border-gray-50 bg-gray-50/30">
  <h2 className="text-lg font-bold text-[#1A1A1A] flex items-center gap-2">
  <div className="p-1.5 rounded-lg bg-[#004D40] text-white">
@@ -305,7 +305,7 @@ export default function CreateUserPage() {
  {/* Right Column: Summary & Tips */}
  <div className="space-y-8">
  {/* Summary Card */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="p-4 border-b border-gray-50 bg-gray-50/30">
  <h2 className="text-lg font-bold text-[#1A1A1A] flex items-center gap-2">
  <div className="p-1.5 rounded-lg bg-[#004D40] text-white">

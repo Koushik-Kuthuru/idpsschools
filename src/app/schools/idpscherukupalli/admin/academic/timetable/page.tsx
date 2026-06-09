@@ -1,5 +1,7 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -300,21 +302,19 @@ export default function AdminTimetablePage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- {/* Top Action Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div>
- <h1 className="text-xl sm:text-xl font-black text-gray-900 tracking-tight">Timetable</h1>
- <p className="text-xs font-medium text-gray-500 mt-0.5">Manage and view class schedules across all grades</p>
- </div>
- <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
+ <AdminPageHeader
+  title="Timetable"
+  description="Manage and view class schedules across all grades"
+  actions={
+   <>
  <ExportButton data={Object.entries(grid).map(([day, slots]) => ({ day, ...slots }))} filename="Timetable" className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-white border border-gray-200 px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
  <Link href={`/schools/${schoolId}/admin/academic/timetable/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all">
  <Plus size={14} /> Create Schedule
  </Link>
- </div>
- </div>
-
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden">
+   </>
+  }
+ />
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  {/* Controls */}
  <div className="p-4 border-b border-gray-100 bg-gray-50/50">
  {scheduleError && (
@@ -325,7 +325,7 @@ export default function AdminTimetablePage() {
  <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="flex-1 min-w-[140px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Grade</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Grade</label>
  <div className="relative">
  <select
  value={grade}
@@ -347,7 +347,7 @@ export default function AdminTimetablePage() {
  </div>
 
  <div className="flex-1 min-w-[140px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Section</label>
  <div className="relative">
  <select
  value={section}
@@ -369,7 +369,7 @@ export default function AdminTimetablePage() {
  </div>
 
  <div className="flex-1 min-w-[180px]">
- <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Term</label>
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Term</label>
  <div className="relative">
  <select
  value={term}
@@ -480,7 +480,7 @@ export default function AdminTimetablePage() {
 
  <div className="p-4">
  <div className="mb-4">
- <h2 className="text-lg font-black text-gray-900">
+ <h2 className="text-lg font-bold text-gray-900">
  {viewMode === "month" && formatMonthTitle(monthCursor)}
  {viewMode === "week" && `${formatDateLabel(weekDates[0])} - ${formatDateLabel(weekDates[4])}`}
  {viewMode === "day" && formatDateLabel(selectedDate)}
@@ -488,7 +488,7 @@ export default function AdminTimetablePage() {
  </div>
  {viewMode === "month" ? (
  <div className="rounded-[16px] border border-gray-100 overflow-hidden">
- <div className="grid grid-cols-7 bg-gray-50/60 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+ <div className="grid grid-cols-7 bg-gray-50/60 text-xs font-bold text-gray-500 uppercase tracking-wider">
  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
  <div key={d} className="px-3 py-2 border-b border-gray-100">{d}</div>
  ))}
@@ -516,18 +516,18 @@ export default function AdminTimetablePage() {
  <div className="flex items-center justify-between">
  <p className={cn("text-xs font-extrabold", inMonth ? "text-gray-900" : "text-gray-400")}>{d.getDate()}</p>
  {weekday ? (
- <span className={cn("text-[10px] font-extrabold px-1.5 py-0.5 rounded-full border", categoryBadge(weekday))}>
+ <span className={cn("text-xs font-extrabold px-1.5 py-0.5 rounded-full border", categoryBadge(weekday))}>
  {weekday.slice(0, 3)}
  </span>
  ) : null}
  </div>
  {daySlot ? (
  <div className={cn("mt-2 rounded-lg border border-l-4 px-2 py-1.5", accentClasses(daySlot.accent), accentBorder(daySlot.accent))}>
- <p className="text-[10px] font-extrabold truncate">{daySlot.subject}</p>
- <p className="mt-0.5 text-[9px] font-bold text-gray-500 truncate">{daySlot.room}</p>
+ <p className="text-xs font-extrabold truncate">{daySlot.subject}</p>
+ <p className="mt-0.5 text-xs font-bold text-gray-500 truncate">{daySlot.room}</p>
  </div>
  ) : (
- <p className="mt-2 text-[10px] font-semibold text-gray-400">No classes</p>
+ <p className="mt-2 text-xs font-semibold text-gray-400">No classes</p>
  )}
  </button>
  );
@@ -540,13 +540,13 @@ export default function AdminTimetablePage() {
  <div className="overflow-x-auto rounded-[16px] border border-gray-100">
  <table className="min-w-[980px] w-full">
  <thead className="bg-gray-50/80">
- <tr className="text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+ <tr className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
  <th className="px-4 py-3 w-[120px] border-b border-gray-100">Time</th>
  {days.map((d, idx) => (
  <th key={d} className="px-4 py-3 border-b border-gray-100">
  <div className="flex items-baseline justify-between gap-2">
  <span className="text-gray-700">{d}</span>
- <span className="text-[10px] font-bold text-gray-400">{pad2(weekDates[idx].getDate())}/{pad2(weekDates[idx].getMonth() + 1)}</span>
+ <span className="text-xs font-bold text-gray-400">{pad2(weekDates[idx].getDate())}/{pad2(weekDates[idx].getMonth() + 1)}</span>
  </div>
  </th>
  ))}
@@ -555,7 +555,7 @@ export default function AdminTimetablePage() {
  <tbody className="divide-y divide-gray-100 bg-white">
  {slotKeys.slice(0, 2).map((slot) => (
  <tr key={slot} className="group hover:bg-gray-50/30 transition-colors">
- <td className="px-4 py-3 text-[10px] font-bold text-gray-500 whitespace-nowrap">{slot}</td>
+ <td className="px-4 py-3 text-xs font-bold text-gray-500 whitespace-nowrap">{slot}</td>
  {days.map((d) => {
  const cell = grid[d][slot];
  return (
@@ -568,7 +568,7 @@ export default function AdminTimetablePage() {
  )}
  >
  <p className="text-xs font-bold">{cell.subject}</p>
- <p className="mt-0.5 text-[10px] font-bold opacity-80">{cell.room}</p>
+ <p className="mt-0.5 text-xs font-bold opacity-80">{cell.room}</p>
  </div>
  </td>
  );
@@ -579,7 +579,7 @@ export default function AdminTimetablePage() {
  <tr className="bg-gray-50/50">
  <td className="px-4 py-2" />
  <td colSpan={5} className="px-4 py-2">
- <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+ <div className="flex items-center justify-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wide">
  <span className="w-10 h-px bg-gray-200"></span>
  ☕ BREAK (10:00 - 10:30)
  <span className="w-10 h-px bg-gray-200"></span>
@@ -588,7 +588,7 @@ export default function AdminTimetablePage() {
  </tr>
 
  <tr className="group hover:bg-gray-50/30 transition-colors">
- <td className="px-4 py-3 text-[10px] font-bold text-gray-500 whitespace-nowrap">10:30-11:30</td>
+ <td className="px-4 py-3 text-xs font-bold text-gray-500 whitespace-nowrap">10:30-11:30</td>
  {days.map((d) => {
  const cell = grid[d]["10:30-11:30"];
  return (
@@ -601,7 +601,7 @@ export default function AdminTimetablePage() {
  )}
  >
  <p className="text-xs font-bold">{cell.subject}</p>
- <p className="mt-0.5 text-[10px] font-bold opacity-80">{cell.room}</p>
+ <p className="mt-0.5 text-xs font-bold opacity-80">{cell.room}</p>
  </div>
  </td>
  );
@@ -618,7 +618,7 @@ export default function AdminTimetablePage() {
  <p className="text-xs font-extrabold text-gray-900">
  {selectedWeekday ? `${selectedWeekday} · ${formatDateLabel(selectedDate)}` : `No Timetable · ${formatDateLabel(selectedDate)}`}
  </p>
- <p className="text-[10px] font-bold text-gray-400">{`Grade ${grade}-${section} · ${term}`}</p>
+ <p className="text-xs font-bold text-gray-400">{`Grade ${grade}-${section} · ${term}`}</p>
  </div>
  <div className="p-4 space-y-3">
  {selectedWeekday ? (
@@ -627,12 +627,12 @@ export default function AdminTimetablePage() {
  return (
  <div key={slot} onClick={() => quickEdit(selectedWeekday, slot)} className="rounded-[16px] border border-gray-100 bg-white p-4 flex items-center justify-between gap-4 cursor-pointer hover:shadow-sm transition-all">
  <div>
- <p className="text-[10px] font-extrabold uppercase tracking-wider text-gray-500">{slot}</p>
- <p className="mt-1 text-xs font-black text-gray-900">{cell.subject}</p>
+ <p className="text-xs font-extrabold uppercase tracking-wider text-gray-500">{slot}</p>
+ <p className="mt-1 text-xs font-bold text-gray-900">{cell.subject}</p>
  <p className="mt-0.5 text-xs font-semibold text-gray-500">{cell.room}</p>
  </div>
  <div className={cn("h-10 w-10 rounded-lg border border-l-4 flex items-center justify-center", accentClasses(cell.accent), accentBorder(cell.accent))}>
- <span className="text-[10px] font-extrabold">Slot</span>
+ <span className="text-xs font-extrabold">Slot</span>
  </div>
  </div>
  );
@@ -640,7 +640,7 @@ export default function AdminTimetablePage() {
  ) : (
  <div className="rounded-[16px] border border-gray-100 bg-gray-50/30 p-4 text-center">
  <p className="text-xs font-extrabold text-gray-700">No classes scheduled for this day.</p>
- <p className="mt-1 text-[10px] font-semibold text-gray-500">Select a weekday or switch to Week view.</p>
+ <p className="mt-1 text-xs font-semibold text-gray-500">Select a weekday or switch to Week view.</p>
  </div>
  )}
  </div>
@@ -648,35 +648,35 @@ export default function AdminTimetablePage() {
  ) : null}
 
  <div className="mt-6">
- <h2 className="text-xs font-black text-gray-900">Batch Actions &amp; Management</h2>
+ <h2 className="text-xs font-bold text-gray-900">Batch Actions &amp; Management</h2>
  <div className="mt-3 grid grid-cols-1 md:grid-cols-4 gap-3">
- <button type="button" className="text-left bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 hover:border-[#144835]/30 hover:shadow-md transition-all group">
+ <button type="button" className="text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-[#144835]/30 hover:shadow-md transition-all group">
  <div className="h-8 w-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:scale-110 transition-transform">
  <Printer size={14} />
  </div>
  <p className="mt-2 text-xs font-bold text-gray-900">Print View</p>
- <p className="mt-0.5 text-[10px] font-medium text-gray-500 line-clamp-2">Generate PDF for display</p>
+ <p className="mt-0.5 text-xs font-medium text-gray-500 line-clamp-2">Generate PDF for display</p>
  </button>
- <button type="button" className="text-left bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 hover:border-[#144835]/30 hover:shadow-md transition-all group">
+ <button type="button" className="text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-[#144835]/30 hover:shadow-md transition-all group">
  <div className="h-8 w-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:scale-110 transition-transform">
  <Mail size={14} />
  </div>
  <p className="mt-2 text-xs font-bold text-gray-900">Email Teachers</p>
- <p className="mt-0.5 text-[10px] font-medium text-gray-500 line-clamp-2">Send schedule to staff</p>
+ <p className="mt-0.5 text-xs font-medium text-gray-500 line-clamp-2">Send schedule to staff</p>
  </button>
- <button type="button" className="text-left bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 hover:border-[#144835]/30 hover:shadow-md transition-all group">
+ <button type="button" className="text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-[#144835]/30 hover:shadow-md transition-all group">
  <div className="h-8 w-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:scale-110 transition-transform">
  <Users size={14} />
  </div>
  <p className="mt-2 text-xs font-bold text-gray-900">Email Parents</p>
- <p className="mt-0.5 text-[10px] font-medium text-gray-500 line-clamp-2">Notify class parents</p>
+ <p className="mt-0.5 text-xs font-medium text-gray-500 line-clamp-2">Notify class parents</p>
  </button>
- <button type="button" className="text-left bg-white rounded-[16px] border border-gray-100 shadow-sm p-4 hover:border-[#144835]/30 hover:shadow-md transition-all group">
+ <button type="button" className="text-left bg-white rounded-xl border border-gray-200 p-4 hover:border-[#144835]/30 hover:shadow-md transition-all group">
  <div className="h-8 w-8 rounded-lg bg-slate-50 text-slate-600 flex items-center justify-center group-hover:scale-110 transition-transform">
  <Settings size={14} />
  </div>
  <p className="mt-2 text-xs font-bold text-gray-900">Modify Slots</p>
- <p className="mt-0.5 text-[10px] font-medium text-gray-500 line-clamp-2">Change period durations</p>
+ <p className="mt-0.5 text-xs font-medium text-gray-500 line-clamp-2">Change period durations</p>
  </button>
  </div>
  </div>

@@ -66,16 +66,16 @@ export default function DashboardView() {
   return (
     <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
       {/* Top Welcome Section */}
-      <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight uppercase flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase flex items-center gap-2">
             Welcome, {student.studentName || "Student"}! <span className="animate-bounce">👋</span>
           </h2>
           <p className="text-xs font-medium text-gray-500 mt-0.5">
             Class: {student.classId || student.grade || "10-A"} | Section: {student.section || "-"} | School: {schoolId === "idpscherukupalli" ? "Cherukupalli" : "Kalaburagi"}
           </p>
         </div>
-        <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black border border-emerald-100 uppercase tracking-wider">
+        <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100 uppercase tracking-wider">
           Term 2 Active
         </span>
       </div>
@@ -85,24 +85,24 @@ export default function DashboardView() {
         {/* Marks Card */}
         <div className="bg-white border-l-4 border-[#144835] border-y border-r border-gray-100 p-6 rounded-r-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Marks</span>
-            <span className="text-3xl font-black text-[#144835] mt-1 block">3.8<span className="text-xs text-gray-400 font-bold">/4</span></span>
-            <span className="text-[10px] text-gray-500 font-bold uppercase mt-2 block">Grade A • Rank 4/120</span>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Marks</span>
+            <span className="text-3xl font-bold text-[#144835] mt-1 block">3.8<span className="text-xs text-gray-400 font-bold">/4</span></span>
+            <span className="text-xs text-gray-500 font-bold uppercase mt-2 block">Grade A • Rank 4/120</span>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="p-2 bg-emerald-50 text-[#144835] rounded-lg border border-emerald-100">
               <Star size={16} />
             </div>
-            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">Top 15%</span>
+            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Top 15%</span>
           </div>
         </div>
 
         {/* Attendance Card */}
         <div className="bg-white border-l-4 border-[#a2c144] border-y border-r border-gray-100 p-6 rounded-r-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Attendance</span>
-            <span className="text-3xl font-black text-gray-900 mt-1 block">92.5%</span>
-            <span className="text-[10px] text-gray-500 font-bold uppercase mt-2 block">Average • Last: Present</span>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Attendance</span>
+            <span className="text-3xl font-bold text-gray-900 mt-1 block">92.5%</span>
+            <span className="text-xs text-gray-500 font-bold uppercase mt-2 block">Average • Last: Present</span>
           </div>
           <div className="p-2 bg-[#a2c144]/15 text-[#144835] rounded-lg border border-[#a2c144]/30">
             <Calendar size={16} />
@@ -112,15 +112,15 @@ export default function DashboardView() {
         {/* Fees Due Card */}
         <div className="bg-white border-l-4 border-red-500 border-y border-r border-gray-100 p-6 rounded-r-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Fees Due</span>
-            <span className="text-3xl font-black text-red-600 mt-1 block">₹{pendingAmount.toLocaleString()}</span>
-            <span className="text-[10px] text-gray-500 font-bold uppercase mt-2 block">Next Payment: June 30, 2026</span>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Fees Due</span>
+            <span className="text-3xl font-bold text-red-600 mt-1 block">₹{pendingAmount.toLocaleString()}</span>
+            <span className="text-xs text-gray-500 font-bold uppercase mt-2 block">Next Payment: June 30, 2026</span>
           </div>
           <div className="flex flex-col items-end gap-2">
             <div className="p-2 bg-red-50 text-red-600 rounded-lg border border-red-100">
               <Wallet size={16} />
             </div>
-            <span className="bg-red-50 text-red-700 border border-red-100 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">Overdue</span>
+            <span className="bg-red-50 text-red-700 border border-red-100 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider">Overdue</span>
           </div>
         </div>
       </div>
@@ -134,12 +134,12 @@ export default function DashboardView() {
           <div className="bg-white border border-gray-100 p-6 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">Your Performance This Term</h4>
-                <p className="text-[10px] text-gray-400 font-bold uppercase mt-1">Continuous Assessment Tracking</p>
+                <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">Your Performance This Term</h4>
+                <p className="text-xs text-gray-400 font-bold uppercase mt-1">Continuous Assessment Tracking</p>
               </div>
               <div className="text-right">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Overall GPA</span>
-                <p className="text-xl font-black text-[#144835]">3.8/4.0</p>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">Overall GPA</span>
+                <p className="text-xl font-bold text-[#144835]">3.8/4.0</p>
               </div>
             </div>
 
@@ -163,7 +163,7 @@ export default function DashboardView() {
             <div className="mt-6 pt-4 border-t border-gray-100 text-right">
               <Link 
                 href={`/schools/${schoolId}/students/marks`}
-                className="inline-flex items-center gap-1.5 text-xs font-black text-[#144835] uppercase tracking-wider hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#144835] uppercase tracking-wider hover:underline"
               >
                 View Details <ArrowRight size={13} strokeWidth={2.5} />
               </Link>
@@ -172,7 +172,7 @@ export default function DashboardView() {
 
           {/* Quick Actions Grid */}
           <div className="bg-white border border-gray-100 p-6 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-            <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider mb-4 border-l-4 border-[#144835] pl-2">Quick Actions</h4>
+            <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider mb-4 border-l-4 border-[#144835] pl-2">Quick Actions</h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {quickActions.map((action, idx) => (
                 <Link
@@ -202,13 +202,13 @@ export default function DashboardView() {
                 <Clock size={16} />
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Timetable</span>
-                <span className="text-xs font-black text-gray-900 block mt-0.5">Today: 2 classes</span>
-                <span className="text-[10px] text-gray-500 font-bold block mt-0.5">Next Class: Mathematics</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wide block">Timetable</span>
+                <span className="text-xs font-bold text-gray-900 block mt-0.5">Today: 2 classes</span>
+                <span className="text-xs text-gray-500 font-bold block mt-0.5">Next Class: Mathematics</span>
               </div>
               <Link 
                 href={`/schools/${schoolId}/students/timetable`}
-                className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
+                className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
               >
                 View
               </Link>
@@ -220,13 +220,13 @@ export default function DashboardView() {
                 <BookOpen size={16} />
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Assignments</span>
-                <span className="text-xs font-black text-gray-900 block mt-0.5">Pending: 3 Tasks</span>
-                <span className="text-[10px] text-red-600 font-bold block mt-0.5 uppercase tracking-wider">Overdue: 1</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wide block">Assignments</span>
+                <span className="text-xs font-bold text-gray-900 block mt-0.5">Pending: 3 Tasks</span>
+                <span className="text-xs text-red-600 font-bold block mt-0.5 uppercase tracking-wider">Overdue: 1</span>
               </div>
               <Link 
                 href={`/schools/${schoolId}/students/timetable`}
-                className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
+                className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
               >
                 View
               </Link>
@@ -238,13 +238,13 @@ export default function DashboardView() {
                 <Megaphone size={16} />
               </div>
               <div className="flex-1 min-w-0">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block">Announcements</span>
-                <span className="text-xs font-black text-gray-900 block mt-0.5">New notifications</span>
-                <span className="text-[10px] text-gray-500 font-bold block mt-0.5">5 Unread notices</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wide block">Announcements</span>
+                <span className="text-xs font-bold text-gray-900 block mt-0.5">New notifications</span>
+                <span className="text-xs text-gray-500 font-bold block mt-0.5">5 Unread notices</span>
               </div>
               <Link 
                 href={`/schools/${schoolId}/students/messages`}
-                className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
+                className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
               >
                 View All
               </Link>
@@ -253,26 +253,26 @@ export default function DashboardView() {
 
           {/* Latest updates list */}
           <div className="bg-white border border-gray-100 p-6 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-            <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider mb-4 border-l-4 border-[#144835] pl-2">Latest Updates</h4>
+            <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider mb-4 border-l-4 border-[#144835] pl-2">Latest Updates</h4>
             <div className="space-y-4">
               <div className="border-b border-gray-50 pb-3 last:border-b-0 last:pb-0">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Dec 15, 2025</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Dec 15, 2025</span>
                 <h5 className="text-xs font-extrabold text-gray-900 mt-1">Final Exams Schedule</h5>
-                <p className="text-[11px] text-gray-500 mt-1 font-medium leading-relaxed">
+                <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed">
                   The schedule for Term 2 Final Exams has been officially posted to the documents board.
                 </p>
               </div>
               <div className="border-b border-gray-50 pb-3 last:border-b-0 last:pb-0">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Dec 12, 2025</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Dec 12, 2025</span>
                 <h5 className="text-xs font-extrabold text-gray-900 mt-1">Sports Day Registration</h5>
-                <p className="text-[11px] text-gray-500 mt-1 font-medium leading-relaxed">
+                <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed">
                   Sign up for athletics and track events using the sports coordinator desk this week.
                 </p>
               </div>
               <div className="border-b border-gray-50 pb-3 last:border-b-0 last:pb-0">
-                <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider">Dec 10, 2025</span>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Dec 10, 2025</span>
                 <h5 className="text-xs font-extrabold text-gray-900 mt-1">Holiday Announcement</h5>
-                <p className="text-[11px] text-gray-500 mt-1 font-medium leading-relaxed">
+                <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed">
                   The school will remain closed on Friday for Republic Day celebrations.
                 </p>
               </div>

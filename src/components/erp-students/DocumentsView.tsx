@@ -41,9 +41,9 @@ export default function DocumentsView() {
   return (
     <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
       {/* Header */}
-      <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight uppercase">Documents & Certificates</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Documents & Certificates</h2>
           <p className="text-xs font-medium text-gray-500 mt-0.5">Official transcripts, fee receipts, and examination credentials</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function DocumentsView() {
         <div className="absolute top-[-20%] right-[-10%] w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 max-w-2xl">
-          <h3 className="text-white text-xl md:text-2xl font-black uppercase tracking-wide">Central Document Repository</h3>
+          <h3 className="text-white text-xl md:text-2xl font-bold uppercase tracking-wide">Central Document Repository</h3>
           <p className="text-emerald-100 text-xs font-semibold mt-2 leading-relaxed">
             Access, view, and download all your official school transcripts, fee receipts, and term credentials in one secure interface.
           </p>
@@ -61,12 +61,12 @@ export default function DocumentsView() {
 
         <div className="relative z-10 flex gap-4 shrink-0">
           <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-lg border border-white/10 text-center min-w-[90px]">
-            <span className="block text-white text-lg font-black leading-none">12</span>
-            <span className="text-emerald-300 text-[8px] font-black uppercase tracking-wider mt-1 block">Total Docs</span>
+            <span className="block text-white text-lg font-bold leading-none">12</span>
+            <span className="text-emerald-300 text-xs font-bold uppercase tracking-wider mt-1 block">Total Docs</span>
           </div>
           <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-lg border border-white/10 text-center min-w-[90px]">
-            <span className="block text-white text-lg font-black leading-none">2</span>
-            <span className="text-emerald-300 text-[8px] font-black uppercase tracking-wider mt-1 block">New Items</span>
+            <span className="block text-white text-lg font-bold leading-none">2</span>
+            <span className="text-emerald-300 text-xs font-bold uppercase tracking-wider mt-1 block">New Items</span>
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@ export default function DocumentsView() {
           <div className="h-6 w-6 rounded border border-gray-200 text-[#144835] flex items-center justify-center bg-white shadow-sm">
             <FileText size={13} strokeWidth={2.5} />
           </div>
-          <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">Academic Records</h4>
+          <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">Academic Records</h4>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -85,9 +85,9 @@ export default function DocumentsView() {
           <div className="md:col-span-2 bg-white border border-gray-100 p-6 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.04)] hover:shadow-md transition-shadow flex flex-col justify-between">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider mb-2 inline-block">Official Released</span>
-                <h5 className="text-base font-black text-[#144835] uppercase tracking-wide">Cumulative Performance Transcript</h5>
-                <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">Updated Oct 24, 2025 • Term 1 + Term 2 Overview</p>
+                <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider mb-2 inline-block">Official Released</span>
+                <h5 className="text-base font-bold text-[#144835] uppercase tracking-wide">Cumulative Performance Transcript</h5>
+                <p className="text-xs text-gray-500 font-bold uppercase mt-1">Updated Oct 24, 2025 • Term 1 + Term 2 Overview</p>
               </div>
               <div className="bg-gray-100 p-3 rounded-lg text-[#144835] shrink-0">
                 <FileCheck size={24} />
@@ -119,7 +119,7 @@ export default function DocumentsView() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h6 className="text-xs font-extrabold text-gray-900 truncate">{doc.name}</h6>
-                  <p className="text-[9px] text-gray-400 font-black uppercase tracking-wider mt-0.5">Released {doc.date}</p>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-0.5">Released {doc.date}</p>
                 </div>
                 <button 
                   onClick={() => handleAction(`Download ${doc.name}`)}
@@ -139,7 +139,7 @@ export default function DocumentsView() {
           <div className="h-6 w-6 rounded border border-gray-200 text-[#144835] flex items-center justify-center bg-white shadow-sm">
             <Receipt size={13} strokeWidth={2.5} />
           </div>
-          <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">Fee Documents</h4>
+          <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">Fee Documents</h4>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -148,7 +148,7 @@ export default function DocumentsView() {
             <div className="w-12 h-12 bg-amber-100/50 rounded-full flex items-center justify-center mb-3 text-amber-800">
               <ShieldCheck size={24} />
             </div>
-            <h5 className="text-[10px] font-black text-amber-900 uppercase tracking-widest mb-1">Tax Compliance</h5>
+            <h5 className="text-xs font-bold text-amber-900 uppercase tracking-wide mb-1">Tax Compliance</h5>
             <p className="text-xs text-amber-700 font-medium leading-relaxed mb-4">Need an annual fee paid certificate for tax purposes?</p>
             <button 
               onClick={() => handleAction("Generate Tax Certificate")}
@@ -162,7 +162,7 @@ export default function DocumentsView() {
           <div className="lg:col-span-3 bg-white border border-gray-100 rounded-[16px] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100 text-[10px] font-black text-gray-400 uppercase tracking-wider">
+                <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
                   <th className="px-6 py-3">Document Name</th>
                   <th className="px-6 py-3">Receipt ID</th>
                   <th className="px-6 py-3">Date</th>
@@ -178,12 +178,12 @@ export default function DocumentsView() {
                         <span className="font-extrabold text-gray-900">{row.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-[#144835] font-black">{row.id}</td>
+                    <td className="px-6 py-4 text-[#144835] font-bold">{row.id}</td>
                     <td className="px-6 py-4 text-gray-400">{row.date}</td>
                     <td className="px-6 py-4 text-right">
                       <button 
                         onClick={() => handleAction(`Download Fee Receipt ${row.id}`)}
-                        className="text-[#144835] hover:underline font-black uppercase tracking-wider text-[10px]"
+                        className="text-[#144835] hover:underline font-bold uppercase tracking-wider text-xs"
                       >
                         Download
                       </button>
@@ -202,7 +202,7 @@ export default function DocumentsView() {
           <div className="h-6 w-6 rounded border border-gray-200 text-[#144835] flex items-center justify-center bg-white shadow-sm">
             <CalendarDays size={13} strokeWidth={2.5} />
           </div>
-          <h4 className="text-xs font-black text-[#144835] uppercase tracking-wider">Exam Documents</h4>
+          <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider">Exam Documents</h4>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-4">
@@ -210,8 +210,8 @@ export default function DocumentsView() {
           <div className="flex-1 bg-gradient-to-br from-[#144835] to-[#0f3628] text-white p-6 rounded-[16px] relative overflow-hidden flex flex-col justify-between shadow-xl min-h-[200px]">
             <div className="absolute -right-8 -top-8 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none" />
             <div className="relative z-10">
-              <span className="bg-red-500 text-white px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider mb-2.5 inline-block">Urgent • Required</span>
-              <h5 className="text-lg md:text-xl font-black uppercase tracking-wide mb-1">End Term Exam Admit Card</h5>
+              <span className="bg-red-500 text-white px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider mb-2.5 inline-block">Urgent • Required</span>
+              <h5 className="text-lg md:text-xl font-bold uppercase tracking-wide mb-1">End Term Exam Admit Card</h5>
               <p className="text-emerald-100 text-xs font-semibold leading-relaxed mb-6 max-w-lg">
                 Please print this document and carry a physical copy to the examination center. Verify all details before download.
               </p>
@@ -246,8 +246,8 @@ export default function DocumentsView() {
                 </div>
                 <div className="flex-grow min-w-0">
                   <h6 className="text-xs font-extrabold text-gray-900">{res.title}</h6>
-                  <p className="text-[9px] text-gray-400 font-black uppercase tracking-wider mt-0.5">{res.type}</p>
-                  <div className="text-[#144835] group-hover:text-[#a2c144] font-black text-[10px] uppercase tracking-wider mt-1 flex items-center gap-0.5">
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-0.5">{res.type}</p>
+                  <div className="text-[#144835] group-hover:text-[#a2c144] font-bold text-xs uppercase tracking-wider mt-1 flex items-center gap-0.5">
                     {res.action} <ChevronRight size={10} />
                   </div>
                 </div>

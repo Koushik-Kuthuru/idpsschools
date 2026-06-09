@@ -118,14 +118,14 @@ export default function AdminFinancialReportsPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Financial Reports"
+  description="Generate and review financial statements and compliance"
+ />
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div>
- <h1 className="text-xl sm:text-xl font-black text-gray-900 tracking-tight">Financial Reports</h1>
- <p className="text-xs font-medium text-gray-500 mt-0.5">Generate and review financial statements and compliance</p>
- </div>
-
- <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+<div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
  <div className="relative flex-1 sm:flex-none sm:min-w-[150px]">
  <select
  value={range}
@@ -150,8 +150,8 @@ export default function AdminFinancialReportsPage() {
  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
  {/* Sidebar */}
  <aside className="lg:col-span-1 space-y-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-3">
- <p className="px-2 pt-1 pb-2 text-[10px] font-black uppercase tracking-wider text-gray-500">Report Modules</p>
+ <div className="bg-white rounded-xl border border-gray-200 p-3">
+ <p className="px-2 pt-1 pb-2 text-xs font-bold uppercase tracking-wider text-gray-500">Report Modules</p>
  <div className="space-y-1">
  {reports.map((r) => {
  const active = r.key === activeReport;
@@ -163,7 +163,7 @@ export default function AdminFinancialReportsPage() {
  </div>
  <div>
  <p className={cn("text-xs font-bold", active ? "text-[#144835]" : "text-gray-700")}>{r.label}</p>
- <p className="text-[10px] font-medium text-gray-400 mt-0.5">{r.desc}</p>
+ <p className="text-xs font-medium text-gray-400 mt-0.5">{r.desc}</p>
  </div>
  </div>
  </div>
@@ -173,10 +173,10 @@ export default function AdminFinancialReportsPage() {
  </div>
 
  {/* Export Actions */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4">
- <p className="text-[10px] font-black uppercase tracking-wider text-gray-500 mb-3">Actions</p>
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
+ <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Actions</p>
  <div className="flex gap-2">
- <ExportButton data={[]} filename="Export" className="flex-1 min-w-0 h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-[11px] font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
+ <ExportButton data={[]} filename="Export" className="flex-1 min-w-0 h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
  </div>
  </div>
  </aside>
@@ -190,19 +190,19 @@ export default function AdminFinancialReportsPage() {
  <div className="rounded-[16px] bg-[#144835] text-white p-4 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden shadow-md shadow-[#144835]/10">
  <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white opacity-5 rounded-full blur-2xl"></div>
  <div className="relative z-10">
- <p className="text-[10px] font-black text-emerald-100 uppercase tracking-wider mb-1">Net Profit</p>
- <p className="text-xl sm:text-4xl font-black tracking-tight">
+ <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-1">Net Profit</p>
+ <p className="text-xl sm:text-4xl font-bold tracking-tight">
  {pnl.net.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}
  </p>
  </div>
  <div className="relative z-10 flex flex-wrap items-center gap-3">
  <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/10 min-w-[120px]">
- <p className="text-[10px] font-black text-emerald-100 uppercase tracking-wider mb-0.5">Margin</p>
- <p className="text-xl font-black text-amber-300">{pnl.margin}%</p>
+ <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-0.5">Margin</p>
+ <p className="text-xl font-bold text-amber-300">{pnl.margin}%</p>
  </div>
  <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 border border-white/10 min-w-[120px]">
- <p className="text-[10px] font-black text-emerald-100 uppercase tracking-wider mb-0.5">Total Revenue</p>
- <p className="text-xl font-black text-white">
+ <p className="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-0.5">Total Revenue</p>
+ <p className="text-xl font-bold text-white">
  {pnl.totalIncome.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0, notation: "compact" })}
  </p>
  </div>
@@ -217,7 +217,7 @@ export default function AdminFinancialReportsPage() {
  <div className="h-7 w-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
  <TrendingUp size={14} />
  </div>
- <h3 className="text-xs font-black text-gray-900">Operating Income</h3>
+ <h3 className="text-xs font-bold text-gray-900">Operating Income</h3>
  </div>
  </div>
  <div className="p-4 flex-1 space-y-3">
@@ -231,8 +231,8 @@ export default function AdminFinancialReportsPage() {
  ))}
  </div>
  <div className="p-4 border-t border-gray-100 bg-gray-50/80 flex items-center justify-between">
- <span className="text-[10px] font-black text-gray-700 uppercase tracking-wider">Total Income</span>
- <span className="text-xs font-black text-emerald-600">
+ <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Total Income</span>
+ <span className="text-xs font-bold text-emerald-600">
  {pnl.totalIncome.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}
  </span>
  </div>
@@ -245,7 +245,7 @@ export default function AdminFinancialReportsPage() {
  <div className="h-7 w-7 rounded-md bg-rose-50 text-rose-600 flex items-center justify-center">
  <TrendingDown size={14} />
  </div>
- <h3 className="text-xs font-black text-gray-900">Operating Expenses</h3>
+ <h3 className="text-xs font-bold text-gray-900">Operating Expenses</h3>
  </div>
  </div>
  <div className="p-4 flex-1 space-y-3">
@@ -259,8 +259,8 @@ export default function AdminFinancialReportsPage() {
  ))}
  </div>
  <div className="p-4 border-t border-gray-100 bg-gray-50/80 flex items-center justify-between">
- <span className="text-[10px] font-black text-gray-700 uppercase tracking-wider">Total Expenses</span>
- <span className="text-xs font-black text-rose-600">
+ <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Total Expenses</span>
+ <span className="text-xs font-bold text-rose-600">
  {pnl.totalExpense.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}
  </span>
  </div>
@@ -293,7 +293,7 @@ export default function AdminFinancialReportsPage() {
  </div>
  <div className="p-4 border-t border-gray-100 flex items-center justify-between">
  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Total Assets</span>
- <span className="text-lg font-black text-blue-600">
+ <span className="text-lg font-bold text-blue-600">
  ₹{balanceSheet.totalAssets.toLocaleString("en-IN")}
  </span>
  </div>
@@ -319,7 +319,7 @@ export default function AdminFinancialReportsPage() {
  </div>
  <div className="p-4 border-t border-gray-100 flex items-center justify-between">
  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Total Liabilities</span>
- <span className="text-lg font-black text-rose-600">
+ <span className="text-lg font-bold text-rose-600">
  ₹{balanceSheet.totalLiabilities.toLocaleString("en-IN")}
  </span>
  </div>
@@ -336,7 +336,7 @@ export default function AdminFinancialReportsPage() {
  <p className="text-xs font-medium text-emerald-700">Assets minus Liabilities</p>
  </div>
  </div>
- <p className="text-xl font-black text-emerald-700">
+ <p className="text-xl font-bold text-emerald-700">
  ₹{balanceSheet.equity.toLocaleString("en-IN")}
  </p>
  </div>
@@ -350,10 +350,10 @@ export default function AdminFinancialReportsPage() {
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50 border-b border-gray-100">
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Category</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right">Inflow</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right">Outflow</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right">Net</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Category</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">Inflow</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">Outflow</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">Net</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -376,7 +376,7 @@ export default function AdminFinancialReportsPage() {
  </table>
  <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
  <span className="font-bold text-gray-700">Net Cash Flow</span>
- <span className="text-xl font-black text-[#144835]">
+ <span className="text-xl font-bold text-[#144835]">
  ₹{cashFlow.reduce((s, cf) => s + cf.net, 0).toLocaleString("en-IN")}
  </span>
  </div>
@@ -391,7 +391,7 @@ export default function AdminFinancialReportsPage() {
  {feeCollections.map((fc) => {
  const percent = Math.round((fc.collected / fc.expected) * 100);
  return (
- <div key={fc.grade} className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-4">
+ <div key={fc.grade} className="bg-white rounded-xl border border-gray-200 p-4">
  <div className="flex justify-between items-center mb-4">
  <h3 className="font-bold text-gray-900">{fc.grade}</h3>
  <span className="text-xs font-extrabold text-[#144835]">{percent}% Collected</span>
@@ -419,7 +419,7 @@ export default function AdminFinancialReportsPage() {
  {/* 5. Expense Report */}
  {activeReport === "expenses" && (
  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <div className="p-4 border-b border-gray-100">
  <h3 className="font-bold text-gray-900">Expense Distribution</h3>
  </div>
@@ -448,15 +448,15 @@ export default function AdminFinancialReportsPage() {
  {/* 6. Tax Reports */}
  {activeReport === "tax" && (
  <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50 border-b border-gray-100">
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Tax Type</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Amount</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Due Date</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-2.5 text-[10px] font-extrabold text-gray-500 uppercase tracking-wider text-right">Action</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Tax Type</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Amount</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Due Date</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">Action</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">

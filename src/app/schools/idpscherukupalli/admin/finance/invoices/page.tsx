@@ -108,8 +108,13 @@ export default function AdminInvoiceManagementPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
+  {/* Top Header */}
+ <AdminPageHeader
+  title="Invoices"
+  description="Generate, review, and manage student fee invoices"
+ />
  {/* Top Filter Bar */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
  <div className="relative flex-1 sm:w-[240px]">
  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -157,45 +162,45 @@ export default function AdminInvoiceManagementPage() {
 
  {/* KPI Cards */}
  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
  <FileText size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Revenue</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Revenue</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">₹{stats.totalRevenue.toLocaleString("en-IN")}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
  <CheckCircle2 size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Paid Invoices</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Paid Invoices</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.paid}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
  <Clock size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Pending</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.pending}</p>
  </div>
  </div>
  </div>
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex items-center gap-3">
+ <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
  <div className="h-10 w-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
  <AlertCircle size={18} />
  </div>
  <div>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Overdue</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Overdue</p>
  <div className="flex items-baseline gap-2 mt-0.5">
  <p className="text-xl font-extrabold text-gray-900">{stats.overdue}</p>
  </div>
@@ -203,22 +208,22 @@ export default function AdminInvoiceManagementPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col overflow-hidden">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col overflow-hidden">
  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
- <h2 className="text-sm font-black text-gray-800">Invoice Directory</h2>
- <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">{filteredInvoices.length} records</p>
+ <h2 className="text-sm font-bold text-gray-800">Invoice Directory</h2>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{filteredInvoices.length} records</p>
  </div>
 
  <div className="overflow-x-auto">
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Invoice Info</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Student</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Amount</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Dates</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-[10px] font-black text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Invoice Info</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Student</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Dates</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -234,23 +239,23 @@ export default function AdminInvoiceManagementPage() {
  </td>
  <td className="px-4 py-2.5">
  <div className="flex items-center gap-2.5">
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 border border-white/20", avatarColor)}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 border border-white/20", avatarColor)}>
  {initials}
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900">{inv.student}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">Grade {inv.grade} - {String(inv.section).toUpperCase()}</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">Grade {inv.grade} - {String(inv.section).toUpperCase()}</p>
  </div>
  </div>
  </td>
  <td className="px-4 py-2.5 text-xs font-bold text-[#144835]">₹{inv.amount.toLocaleString("en-IN")}</td>
  <td className="px-4 py-2.5">
  <p className="text-xs font-bold text-gray-700">{inv.date}</p>
- <p className="text-[10px] font-medium text-gray-500 mt-0.5">Due: {inv.dueDate}</p>
+ <p className="text-xs font-medium text-gray-500 mt-0.5">Due: {inv.dueDate}</p>
  </td>
  <td className="px-4 py-2.5">
  <span className={cn(
- "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold border",
+ "inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border",
  inv.status === "Paid" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
  inv.status === "Overdue" ? "bg-rose-50 text-rose-700 border-rose-200" :
  "bg-amber-50 text-amber-700 border-amber-200"
@@ -286,7 +291,7 @@ export default function AdminInvoiceManagementPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No invoice records found</p>
- <p className="text-[10px] text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
  </td>
  </tr>
  )}

@@ -592,14 +592,14 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  <div className="h-48 flex items-end justify-between gap-2 px-2">
  {branch.performanceTrend.slice(0, 12).map((point: any, i: number) => (
  <div key={point.label ?? i} className="w-full flex flex-col items-center gap-2 group relative">
- <div className="absolute bottom-full mb-2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded transition-opacity whitespace-nowrap z-10">
+ <div className="absolute bottom-full mb-2 bg-gray-800 text-white text-xs py-1 px-2 rounded transition-opacity whitespace-nowrap z-10">
  {point.value ?? "-"}%
  </div>
  <div
  className="w-full bg-indigo-500 rounded-t-md transition-all duration-500 group-hover:bg-indigo-600 group-hover:shadow-lg"
  style={{ height: `${Number(point.value ?? 0)}%` }}
  ></div>
- <span className="text-[10px] font-bold text-gray-400 uppercase">{point.label ?? "-"}</span>
+ <span className="text-xs font-bold text-gray-400 uppercase">{point.label ?? "-"}</span>
  </div>
  ))}
  </div>
@@ -810,7 +810,7 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900 leading-snug">{item.text ?? item.title ?? "-"}</p>
- <p className="text-[10px] text-gray-400 mt-1 font-medium">
+ <p className="text-xs text-gray-400 mt-1 font-medium">
  {item.createdAt?.toDate ? item.createdAt.toDate().toLocaleString() : item.createdAt ?? "-"}
  </p>
  </div>

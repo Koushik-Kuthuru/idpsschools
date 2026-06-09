@@ -60,7 +60,7 @@ function PasswordStrength({ password }: { password: string }) {
         ))}
       </div>
       {password.length > 0 && (
-        <p className={cn("text-[10px] font-bold",
+        <p className={cn("text-xs font-bold",
           strength <= 1 ? "text-red-500" : strength === 2 ? "text-amber-500" : strength === 3 ? "text-yellow-600" : "text-emerald-600")}>
           {config.label} password
         </p>
@@ -80,7 +80,7 @@ function FieldRow({ label, icon: Icon, children }: {
         <Icon size={15} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">{label}</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1.5">{label}</p>
         {children}
       </div>
     </div>
@@ -102,7 +102,7 @@ function PrivacySettingRow({ label, desc, icon: Icon, initialOn }: {
         </div>
         <div>
           <p className="text-xs font-bold text-gray-900">{label}</p>
-          <p className="text-[10px] text-gray-500 mt-0.5">{desc}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
         </div>
       </div>
       <Toggle checked={toggled} onChange={setToggled} />
@@ -225,7 +225,7 @@ export default function AdminProfileSettingsPage() {
             <div className="h-20 w-20 rounded-2xl border-4 border-white/30 shadow-xl overflow-hidden bg-[#144835]/40 flex items-center justify-center">
               {avatarSrc
                 ? <img src={avatarSrc} alt="Avatar" className="h-full w-full object-cover" />
-                : <span className="text-2xl font-black text-white">{initials}</span>}
+                : <span className="text-2xl font-bold text-white">{initials}</span>}
             </div>
             <button onClick={() => avatarInputRef.current?.click()} type="button"
               className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-[#a2c144] text-[#144835] flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
@@ -236,14 +236,14 @@ export default function AdminProfileSettingsPage() {
 
           {/* Info */}
           <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-xl font-black text-white tracking-tight">
+            <h1 className="text-xl font-bold text-white tracking-tight">
               {profile.displayName || profile.email || "Admin User"}
             </h1>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/15 rounded-lg text-[10px] font-bold text-white border border-white/10">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/15 rounded-lg text-xs font-bold text-white border border-white/10">
                 <Building2 size={10} /> {activeBranch.name}
               </span>
-              <span className="inline-flex items-center px-2.5 py-1 bg-[#a2c144]/80 rounded-lg text-[10px] font-black text-[#144835]">
+              <span className="inline-flex items-center px-2.5 py-1 bg-[#a2c144]/80 rounded-lg text-xs font-bold text-[#144835]">
                 {profile.designation}
               </span>
             </div>
@@ -277,7 +277,7 @@ export default function AdminProfileSettingsPage() {
 
         <div className="flex-1" />
         {saved && (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 text-[10px] font-bold animate-in fade-in duration-200 shrink-0">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-700 text-xs font-bold animate-in fade-in duration-200 shrink-0">
             <CheckCircle2 size={12} /> Saved
           </div>
         )}
@@ -292,7 +292,7 @@ export default function AdminProfileSettingsPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-base font-black text-gray-900">Personal Information</h2>
+                <h2 className="text-base font-bold text-gray-900">Personal Information</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Update your name, contact details and role</p>
               </div>
               <button onClick={handleSaveProfile}
@@ -317,11 +317,11 @@ export default function AdminProfileSettingsPage() {
                 <div className="flex items-center gap-2">
                   <input value={profile.email} readOnly
                     className={cn(inputCls, "bg-gray-50 cursor-not-allowed text-gray-500 flex-1")} />
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg text-[10px] font-black text-emerald-700 shrink-0">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 border border-emerald-100 rounded-lg text-xs font-bold text-emerald-700 shrink-0">
                     <CheckCircle2 size={10} /> Verified
                   </span>
                 </div>
-                <p className="text-[10px] text-gray-400 mt-1">Email is managed by your system administrator</p>
+                <p className="text-xs text-gray-400 mt-1">Email is managed by your system administrator</p>
               </FieldRow>
 
               <FieldRow label="Phone Number" icon={Phone}>
@@ -347,7 +347,7 @@ export default function AdminProfileSettingsPage() {
                   <Fingerprint size={15} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">User ID</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-gray-400">User ID</p>
                   <p className="text-xs font-bold text-gray-700 mt-0.5 font-mono tracking-wide">{user?.uid?.slice(0, 24)}…</p>
                 </div>
               </div>
@@ -359,7 +359,7 @@ export default function AdminProfileSettingsPage() {
         {tab === "security" && (
           <div>
             <div className="mb-6">
-              <h2 className="text-base font-black text-gray-900">Security Settings</h2>
+              <h2 className="text-base font-bold text-gray-900">Security Settings</h2>
               <p className="text-xs text-gray-500 mt-0.5">Manage your password and two-factor authentication</p>
             </div>
 
@@ -370,15 +370,15 @@ export default function AdminProfileSettingsPage() {
                   <Lock size={15} />
                 </div>
                 <div>
-                  <p className="text-sm font-black text-gray-900">Change Password</p>
-                  <p className="text-[10px] text-gray-500">Use a strong, unique password</p>
+                  <p className="text-sm font-bold text-gray-900">Change Password</p>
+                  <p className="text-xs text-gray-500">Use a strong, unique password</p>
                 </div>
               </div>
 
               <div className="space-y-4 max-w-md">
                 {/* Current */}
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Current Password</label>
+                  <label className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1.5 block">Current Password</label>
                   <div className="relative">
                     <input type={showCurrent ? "text" : "password"} value={currentPw}
                       onChange={e => setCurrentPw(e.target.value)}
@@ -392,7 +392,7 @@ export default function AdminProfileSettingsPage() {
 
                 {/* New */}
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">New Password</label>
+                  <label className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1.5 block">New Password</label>
                   <div className="relative">
                     <input type={showNew ? "text" : "password"} value={newPw}
                       onChange={e => setNewPw(e.target.value)}
@@ -407,7 +407,7 @@ export default function AdminProfileSettingsPage() {
 
                 {/* Confirm */}
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 block">Confirm New Password</label>
+                  <label className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1.5 block">Confirm New Password</label>
                   <div className="relative">
                     <input type={showConfirm ? "text" : "password"} value={confirmPw}
                       onChange={e => setConfirmPw(e.target.value)}
@@ -419,7 +419,7 @@ export default function AdminProfileSettingsPage() {
                     </button>
                   </div>
                   {confirmPw.length > 0 && (
-                    <p className={cn("text-[10px] font-bold mt-1.5", pwMatch ? "text-emerald-600" : "text-red-500")}>
+                    <p className={cn("text-xs font-bold mt-1.5", pwMatch ? "text-emerald-600" : "text-red-500")}>
                       {pwMatch ? "✓ Passwords match" : "✗ Passwords do not match"}
                     </p>
                   )}
@@ -447,11 +447,11 @@ export default function AdminProfileSettingsPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-900">Two-Factor Authentication</p>
-                  <p className="text-[10px] text-gray-500 mt-0.5">Add an extra layer of security to your account</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Add an extra layer of security to your account</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <span className={cn("text-[10px] font-black px-2.5 py-1 rounded-full",
+                <span className={cn("text-xs font-bold px-2.5 py-1 rounded-full",
                   twoFactor ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500")}>
                   {twoFactor ? "Enabled" : "Disabled"}
                 </span>
@@ -467,7 +467,7 @@ export default function AdminProfileSettingsPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-base font-black text-gray-900">Notification Preferences</h2>
+                <h2 className="text-base font-bold text-gray-900">Notification Preferences</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Choose how and when you want to be notified</p>
               </div>
               <button onClick={showSaved}
@@ -492,7 +492,7 @@ export default function AdminProfileSettingsPage() {
                     </div>
                     <div>
                       <p className="text-xs font-bold text-gray-900">{label}</p>
-                      <p className="text-[10px] text-gray-500 mt-0.5">{desc}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
                     </div>
                   </div>
                   <Toggle checked={notifs[key]} onChange={v => setNotifs(p => ({ ...p, [key]: v }))} />
@@ -501,7 +501,7 @@ export default function AdminProfileSettingsPage() {
             </div>
 
             <div className="rounded-xl border border-gray-100 p-4">
-              <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Digest Frequency</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">Digest Frequency</p>
               <div className="relative max-w-xs">
                 <select value={digestFreq} onChange={e => setDigestFreq(e.target.value)}
                   className="w-full h-9 appearance-none rounded-lg border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm cursor-pointer">
@@ -520,7 +520,7 @@ export default function AdminProfileSettingsPage() {
         {tab === "privacy" && (
           <div>
             <div className="mb-6">
-              <h2 className="text-base font-black text-gray-900">Privacy Controls</h2>
+              <h2 className="text-base font-bold text-gray-900">Privacy Controls</h2>
               <p className="text-xs text-gray-500 mt-0.5">Manage your data, visibility and account deletion</p>
             </div>
 
@@ -541,7 +541,7 @@ export default function AdminProfileSettingsPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-red-900">Danger Zone</p>
-                  <p className="text-[10px] text-red-600 mt-0.5">These actions are irreversible. Proceed with caution.</p>
+                  <p className="text-xs text-red-600 mt-0.5">These actions are irreversible. Proceed with caution.</p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
@@ -563,7 +563,7 @@ export default function AdminProfileSettingsPage() {
           <div>
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-base font-black text-gray-900">Active Sessions</h2>
+                <h2 className="text-base font-bold text-gray-900">Active Sessions</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Devices currently signed in to your account</p>
               </div>
               <button type="button" onClick={showSaved}
@@ -588,17 +588,17 @@ export default function AdminProfileSettingsPage() {
                     <div className="flex items-center gap-2">
                       <p className="text-xs font-bold text-gray-900 truncate">{s.device}</p>
                       {s.active && (
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded-full text-[9px] font-black text-emerald-700 shrink-0">
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded-full text-xs font-bold text-emerald-700 shrink-0">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                           ACTIVE NOW
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-gray-500 mt-0.5">{s.location}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{s.location}</p>
                   </div>
                   {!s.active && (
                     <button type="button"
-                      className="h-8 px-3 rounded-lg border border-rose-100 bg-rose-50 text-rose-600 text-[10px] font-bold hover:bg-rose-100 transition-colors shrink-0">
+                      className="h-8 px-3 rounded-lg border border-rose-100 bg-rose-50 text-rose-600 text-xs font-bold hover:bg-rose-100 transition-colors shrink-0">
                       Sign Out
                     </button>
                   )}
@@ -608,7 +608,7 @@ export default function AdminProfileSettingsPage() {
 
             <div className="mt-4 p-4 rounded-xl bg-amber-50/50 border border-amber-100 flex items-start gap-3">
               <Shield size={15} className="text-amber-600 mt-0.5 shrink-0" />
-              <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
+              <p className="text-xs text-amber-800 font-medium leading-relaxed">
                 If you see an unfamiliar device, sign it out immediately and change your password. We recommend reviewing active sessions regularly for security.
               </p>
             </div>

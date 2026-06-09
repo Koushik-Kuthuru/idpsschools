@@ -156,7 +156,13 @@ export default function AdminMessagesPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
+ {/* Top Header */}
+ <AdminPageHeader
+  title="Messages"
+  description="Send and manage school communications with staff and parents"
+ />
+
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col">
  <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col xl:flex-row gap-4 items-start xl:items-center justify-between">
  <div className="flex flex-wrap items-center gap-2">
  {(["Inbox", "Sent", "Drafts", "Announcements", "Archive"] as const).map((t) => {
@@ -174,7 +180,7 @@ export default function AdminMessagesPage() {
  {t}
  {t === "Inbox" ? (
  <span className={cn(
- "ml-1.5 inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[9px] font-black",
+ "ml-1.5 inline-flex items-center justify-center rounded px-1.5 py-0.5 text-xs font-bold",
  active ? "bg-[#144835]/10 text-[#144835]" : "bg-gray-200 text-gray-600"
  )}>
  {inboxCount}
@@ -216,13 +222,13 @@ export default function AdminMessagesPage() {
  Select All
  </label>
  <span className="h-4 w-px bg-gray-200 hidden sm:block mx-1" />
- <button type="button" className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-gray-50 text-gray-700 hover:bg-gray-100 text-[10px] font-extrabold uppercase tracking-wider transition-colors">
+ <button type="button" className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-gray-50 text-gray-700 hover:bg-gray-100 text-xs font-extrabold uppercase tracking-wider transition-colors">
  <CheckSquare size={12} /> Mark Read
  </button>
- <button type="button" className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-gray-50 text-gray-700 hover:bg-gray-100 text-[10px] font-extrabold uppercase tracking-wider transition-colors">
+ <button type="button" className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-gray-50 text-gray-700 hover:bg-gray-100 text-xs font-extrabold uppercase tracking-wider transition-colors">
  <Archive size={12} /> Archive
  </button>
- <button type="button" className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-rose-50 text-rose-700 hover:bg-rose-100 text-[10px] font-extrabold uppercase tracking-wider transition-colors">
+ <button type="button" className="h-8 px-2.5 inline-flex items-center gap-1.5 rounded-md bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-extrabold uppercase tracking-wider transition-colors">
  <Trash2 size={12} /> Delete
  </button>
  </div>
@@ -255,7 +261,7 @@ export default function AdminMessagesPage() {
  <button type="button" className={cn("h-7 w-7 rounded-md flex items-center justify-center transition-colors", m.starred ? "text-amber-500" : "text-gray-300 hover:text-amber-500")} onClick={(e) => e.stopPropagation()}>
  ★
  </button>
- <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0", avatarTone(m.senderName))}>
+ <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0", avatarTone(m.senderName))}>
  {initialsFromName(m.senderName)}
  </div>
  </div>
@@ -265,7 +271,7 @@ export default function AdminMessagesPage() {
  <p className={cn("text-xs font-bold truncate", m.unread ? "text-gray-900" : "text-gray-700")}>
  {m.senderName}
  </p>
- <p className="text-[10px] font-medium text-gray-500 truncate">{m.senderDept}</p>
+ <p className="text-xs font-medium text-gray-500 truncate">{m.senderDept}</p>
  </div>
 
  <div className="min-w-0 flex items-center gap-2">
@@ -273,7 +279,7 @@ export default function AdminMessagesPage() {
  <p className={cn("text-xs font-bold truncate", m.unread ? "text-gray-900" : "text-gray-700")}>
  {m.subject}
  </p>
- <p className="text-[10px] font-medium text-gray-500 truncate mt-0.5">{m.preview}</p>
+ <p className="text-xs font-medium text-gray-500 truncate mt-0.5">{m.preview}</p>
  </div>
  {m.hasAttachment && (
  <div className="text-gray-400 shrink-0">
@@ -285,7 +291,7 @@ export default function AdminMessagesPage() {
 
  <div className="text-left sm:text-right shrink-0 w-full sm:w-auto pl-[72px] sm:pl-0">
  <p className={cn("text-xs font-bold", m.unread ? "text-[#144835]" : "text-gray-500")}>{m.time}</p>
- <p className="text-[10px] font-medium text-gray-400 mt-0.5">{m.dateLabel}</p>
+ <p className="text-xs font-medium text-gray-400 mt-0.5">{m.dateLabel}</p>
  </div>
  </div>
  ))}

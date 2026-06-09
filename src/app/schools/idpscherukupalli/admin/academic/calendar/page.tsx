@@ -1,5 +1,7 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
+
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { 
@@ -169,13 +171,11 @@ export default function AcademicCalendarPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- {/* Header */}
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div>
- <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Academic Calendar</h1>
- <p className="text-xs font-medium text-gray-500 mt-0.5">Manage school events, holidays, and examination schedules</p>
- </div>
- <div className="flex items-center gap-2 w-full xl:w-auto justify-end">
+ <AdminPageHeader
+  title="Academic Calendar"
+  description="Manage school events, holidays, and examination schedules"
+  actions={
+   <>
  <ExportButton data={events} filename="Export" className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
  <Link
  href={`/schools/${schoolId}/admin/academic/calendar/new`}
@@ -183,14 +183,14 @@ export default function AcademicCalendarPage() {
  >
  <Plus size={14} /> Add Event
  </Link>
- </div>
- </div>
-
+   </>
+  }
+ />
  <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
  {/* Sidebar Filters */}
  <div className="space-y-4">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4">
- <h3 className="text-xs font-black text-gray-900 tracking-tight mb-3 flex items-center gap-1.5">
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
+ <h3 className="text-xs font-bold text-gray-900 tracking-tight mb-3 flex items-center gap-1.5">
  <Filter size={14} className="text-[#144835]" /> Filters
  </h3>
  <div className="space-y-1.5">
@@ -211,20 +211,20 @@ export default function AcademicCalendarPage() {
  </div>
  </div>
 
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] p-4">
- <h3 className="text-xs font-black text-gray-900 tracking-tight mb-3">Upcoming Events</h3>
+ <div className="bg-white rounded-xl border border-gray-200 p-4">
+ <h3 className="text-xs font-bold text-gray-900 tracking-tight mb-3">Upcoming Events</h3>
  <div className="space-y-3">
  {upcomingEvents.map((event) => {
  const dateObj = new Date(`${event.date}T00:00:00`);
  return (
  <div key={event.id} className="flex gap-3 group cursor-pointer">
  <div className="w-10 shrink-0 text-center">
- <p className="text-[10px] font-black text-gray-400 uppercase">{dateObj.toLocaleString('default', { month: 'short' })}</p>
- <p className="text-sm font-black text-gray-900 group-hover:text-[#144835] transition-colors">{dateObj.getDate()}</p>
+ <p className="text-xs font-bold text-gray-400 uppercase">{dateObj.toLocaleString('default', { month: 'short' })}</p>
+ <p className="text-sm font-bold text-gray-900 group-hover:text-[#144835] transition-colors">{dateObj.getDate()}</p>
  </div>
  <div className="pt-0.5">
  <p className="text-xs font-bold text-gray-900 group-hover:text-[#144835] transition-colors leading-tight">{event.title}</p>
- <span className={cn("inline-block px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest mt-1", eventColor(event.type))}>
+ <span className={cn("inline-block px-1.5 py-0.5 rounded text-xs font-bold uppercase tracking-wide mt-1", eventColor(event.type))}>
  {event.type}
  </span>
  </div>
@@ -237,11 +237,11 @@ export default function AcademicCalendarPage() {
 
  {/* Main Calendar Area */}
  <div className="xl:col-span-3">
- <div className="bg-white rounded-[16px] border border-gray-100 shadow-[0_2px_10px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col h-full">
+ <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col h-full">
  {/* Calendar Controls */}
  <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
  <div className="flex items-center gap-3">
- <h2 className="text-lg font-black text-gray-900">
+ <h2 className="text-lg font-bold text-gray-900">
  {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
  </h2>
  </div>
@@ -265,7 +265,7 @@ export default function AcademicCalendarPage() {
  <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200">
  {/* Day Headers */}
  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
- <div key={day} className="bg-gray-50 py-2 text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">
+ <div key={day} className="bg-gray-50 py-2 text-center text-xs font-bold text-gray-500 uppercase tracking-wide">
  {day}
  </div>
  ))}
@@ -302,7 +302,7 @@ export default function AcademicCalendarPage() {
  <div 
  key={eIdx}
  className={cn(
- "px-1.5 py-0.5 rounded text-[10px] font-bold truncate border",
+ "px-1.5 py-0.5 rounded text-xs font-bold truncate border",
  eventColor(event.type)
  )}
  title={event.title}
