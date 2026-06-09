@@ -1,5 +1,7 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
+
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -138,10 +140,20 @@ export default function AdminAdmissionLeadsPage() {
  {loadError}
  </div>
  )}
-  {/* Top Header */}
  <AdminPageHeader
   title="Leads"
   description="Manage prospective student leads through the admissions pipeline"
+  actions={
+   <>
+ <Link
+ href={`/schools/${schoolId}/admin/admission/leads/new`}
+ className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
+ >
+ <UserPlus size={14} /> New Lead
+ </Link>
+ <ExportButton data={filteredLeads} filename="Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
+   </>
+  }
  />
 
  {/* KPI Stats Grid */}

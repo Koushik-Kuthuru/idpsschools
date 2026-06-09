@@ -1,5 +1,6 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Building2, CalendarX2, ChevronRight, Download, Filter, Search, UserCheck, UserPlus, Users } from "lucide-react";
@@ -125,18 +126,18 @@ export default function AdminNonTeachingStaffPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div>
- <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Non-Teaching Staff</h1>
- <p className="text-xs text-gray-500 mt-1">Administration, finance, operations, and support teams</p>
- </div>
- <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
+ <AdminPageHeader
+  title="Non-Teaching Staff"
+  description="Administration, finance, operations, and support teams"
+  actions={
+   <>
  <ExportButton data={filtered} filename="Export" className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors" iconSize={14} />
  <Link href={`/schools/${schoolId}/admin/hr/non-teaching-staff/new`} className="h-9 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
  <UserPlus size={14} /> Add Non-Teaching Staff
  </Link>
- </div>
- </div>
+   </>
+  }
+ />
 
  {loadError && (
  <div className="rounded-[16px] border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700">

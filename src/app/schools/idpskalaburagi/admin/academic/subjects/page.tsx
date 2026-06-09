@@ -1,5 +1,6 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, ChevronRight, Plus, Search } from "lucide-react";
@@ -134,11 +135,16 @@ export default function AdminSubjectsPage() {
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
- <div className="p-4 flex flex-col xl:flex-row gap-4 justify-between items-start xl:items-center">
- <div>
- <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Subjects</h1>
- <p className="text-xs font-medium text-gray-500 mt-0.5">Different subjects for each class/section with portion planning</p>
- <div className="mt-2 flex flex-wrap items-center gap-2">
+ <AdminPageHeader
+  title="Subjects"
+  description="Different subjects for each class and section with portion planning"
+  actions={
+   <Link href={`/schools/${schoolId}/admin/academic/subjects/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
+ <Plus size={14} /> Add Subject
+ </Link>
+  }
+ />
+ <div className="flex flex-wrap items-center gap-2">
  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-bold bg-gray-100/80 text-gray-700">
  <BookOpen size={12} className="text-gray-400" /> {counts.total} subjects
  </span>
@@ -148,13 +154,6 @@ export default function AdminSubjectsPage() {
  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100/50">
  {counts.inProgress} in-progress portions
  </span>
- </div>
- </div>
- <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
- <Link href="/idpskalaburagi/academic/subjects/new" className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
- <Plus size={14} /> Add Subject
- </Link>
- </div>
  </div>
 
  {loadError && (

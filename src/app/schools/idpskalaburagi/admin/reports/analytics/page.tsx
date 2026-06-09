@@ -1,5 +1,7 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
+
 import Link from "next/link";
 import { useMemo } from "react";
 import { clsx, type ClassValue } from "clsx";

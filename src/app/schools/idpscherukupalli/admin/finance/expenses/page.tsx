@@ -1,5 +1,7 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
+
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, Filter, Download, Receipt, Wrench, Zap, Users, TrendingDown, Eye, CheckCircle2, ChevronRight } from "lucide-react";

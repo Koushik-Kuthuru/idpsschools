@@ -1,5 +1,7 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
+
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -148,10 +150,12 @@ export default function AdminAdmissionApplicationsPage() {
           {loadError}
         </div>
       )}
-       {/* Top Header */}
  <AdminPageHeader
   title="Applications"
   description="Review, verify, and process incoming admission applications"
+  actions={
+   <ExportButton data={filtered} filename="Applications_Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
+  }
  />
 
  {/* KPI Stats Grid */}

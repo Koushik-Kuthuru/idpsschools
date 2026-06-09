@@ -1,5 +1,7 @@
 "use client";
 
+import AdminPageHeader from "@/components/admin/PageHeader";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Check, ChevronRight, Clock, Download, Filter, Mail, PieChart, Plus, Search, X, CheckCircle2, AlertCircle } from "lucide-react";
