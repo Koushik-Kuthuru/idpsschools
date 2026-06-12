@@ -1,9 +1,11 @@
 "use client";
 
 import AdminPageHeader from "@/components/admin/PageHeader";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Download, Search, Settings, FileText, CheckCircle2, AlertCircle, ChevronRight, IndianRupee, Users, Briefcase } from "lucide-react";
+import { Download, Search, Settings, FileText, CheckCircle2, AlertCircle, ChevronRight, IndianRupee, Users, Briefcase , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
@@ -211,7 +213,7 @@ export default function AdminPayrollPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Other Deduct.</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Net Payable</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -246,24 +248,20 @@ export default function AdminPayrollPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <div className="flex items-center justify-end gap-1 transition-opacity">
- <button
- type="button"
- className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
- title="Generate Slip"
- >
- <FileText size={14} />
- </button>
- {p.status === "Pending" && (
- <button
- type="button"
- className="h-7 w-7 inline-flex items-center justify-center rounded-md text-emerald-600 hover:bg-emerald-50 transition-colors"
- title="Approve"
- >
- <CheckCircle2 size={14} />
- </button>
- )}
- </div>
+ <TableRowActions
+ items={[
+ { label: "Generate Slip", icon: FileText, onClick: () => {} },
+ ...(p.status === "Pending" ? [{ label: "Approve", icon: CheckCircle2, onClick: () => {} }] : []),
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete payroll record for ${p.employee}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "employees", p.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  )

@@ -85,11 +85,13 @@ export default function AcademicCalendarPage() {
  if (!schoolId) return;
  const eventsRef = query(collection(db, "schools", schoolId, "events"), orderBy("date", "asc"));
  const holidaysRef = query(collection(db, "schools", schoolId, "holidays"), orderBy("date", "asc"));
+ const examsRef = collection(db, "schools", schoolId, "exams");
  let currentEvents: Array<{ id: string; title: string; date: string; type: EventType; description?: string; location?: string }> = [];
  let currentHolidays: Array<{ id: string; title: string; date: string; type: EventType; description?: string; location?: string }> = [];
+ let currentExams: Array<{ id: string; title: string; date: string; type: EventType; description?: string; location?: string }> = [];
 
  const syncCalendarItems = () => {
-  const combined = [...currentEvents, ...currentHolidays];
+  const combined = [...currentEvents, ...currentHolidays, ...currentExams];
   const deduped = new Map<string, (typeof combined)[number]>();
   for (const item of combined) {
    const key = `${item.type}|${item.date}|${item.title.toLowerCase()}`;
@@ -140,9 +142,42 @@ export default function AcademicCalendarPage() {
   }
  );
 
+ const unsubExams = onSnapshot(
+  examsRef,
+  (snap) => {
+   currentExams = [];
+   snap.docs.forEach((d) => {
+    const data = d.data() as any;
+    const term = data.term || "Exam";
+    const grade = data.grade || "";
+    const section = data.section || "";
+    const schedule = data.schedule || [];
+    
+    schedule.forEach((exam: any) => {
+     if (exam.date && exam.subject) {
+      currentExams.push({
+       id: `${d.id}_${exam.id}`,
+       title: `${term}: ${exam.subject} (${grade}-${section})`,
+       date: exam.date,
+       type: "exam" as const,
+       description: `Time: ${exam.startTime} - ${exam.endTime} | Syllabus: ${exam.syllabus || "None"}`,
+       location: `Classroom ${grade}-${section}`,
+      });
+     }
+    });
+   });
+   syncCalendarItems();
+  },
+  () => {
+   currentExams = [];
+   syncCalendarItems();
+  }
+ );
+
  return () => {
   unsubEvents();
   unsubHolidays();
+  unsubExams();
  };
  }, [schoolId]);
 

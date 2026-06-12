@@ -8,6 +8,7 @@ import Sidebar from "@/components/admin/Sidebar";
 import Header from "@/components/admin/Header";
 import { BranchProvider } from "@/components/admin/BranchContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -41,6 +42,7 @@ export default function AdminLayout({
  return (
  <ProtectedRoute allowedRoles={["super_admin", "admin"]} requiredSchoolId="idpskalaburagi">
  <BranchProvider>
+ <AdminNotificationsProvider>
  <div className="min-h-screen bg-[#F8FAFB] flex">
  {isMobileMenuOpen && (
  <div 
@@ -68,6 +70,7 @@ export default function AdminLayout({
  </main>
  </div>
  </div>
+ </AdminNotificationsProvider>
  </BranchProvider>
  </ProtectedRoute>
  );

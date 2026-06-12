@@ -3,25 +3,35 @@
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { CalendarDays, Check, Download, MoreHorizontal, Save, Search, Users, XCircle, RotateCw, Filter, CheckCircle2, AlertCircle, User, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, Check, Download, Save, Search, Users, XCircle, RotateCw, Filter, CheckCircle2, AlertCircle, User, Pencil, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import Link from "next/link";
 import ExportButton from "@/components/ui/ExportButton";
-import { calculateAttendanceStats } from "@/utils/attendance";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import {
+  calculateAttendanceStats,
+  classifyAttendanceDay,
+  getAttendanceStatusForDate,
+  type AttendanceMarkStatus,
+  type HolidayEntry,
+} from "@/utils/attendance";
+import AttendanceMarkCell from "@/components/admin/attendance/AttendanceMarkCell";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
 }
 
-export type AttendanceStatus = "P" | "A" | "None";
+export type AttendanceStatus = AttendanceMarkStatus;
 
 export type StudentAttendanceRow = {
   roll: string;
   admissionNumber: string;
   name: string;
+  fatherName: string;
+  classSection: string;
   studentId: string;
   classId: string;
   section: string;
@@ -52,28 +62,40 @@ export default function AdminAttendancePage() {
  const [sectionOptions, setSectionOptions] = useState<string[]>([]);
  const [grade, setGrade] = useState<string>(allClassesKey);
  const [section, setSection] = useState<string>(allSectionsKey);
- const [holidays, setHolidays] = useState<string[]>([]);
+ const [holidayEntries, setHolidayEntries] = useState<HolidayEntry[]>([]);
+ const holidayDates = useMemo(
+  () => holidayEntries.map((h) => h.date).filter(Boolean),
+  [holidayEntries]
+ );
 
  useEffect(() => {
   const unsub = onSnapshot(collection(db, "schools", schoolId, "holidays"), (snap) => {
-   setHolidays(snap.docs.map(d => d.data().date));
+   setHolidayEntries(
+    snap.docs
+     .map((d) => {
+      const data = d.data();
+      return {
+       date: String(data.date || "").trim(),
+       name: String(data.name || "").trim(),
+       type: String(data.type || "").trim(),
+      };
+     })
+     .filter((h) => h.date)
+   );
   });
   return () => unsub();
  }, [schoolId]);
+
+ const markDayInfo = useMemo(
+  () => classifyAttendanceDay(academicDate, holidayEntries),
+  [academicDate, holidayEntries]
+ );
   const [sortBy, setSortBy] = useState<"name" | "admissionNumber">("name");
   const [roster, setRoster] = useState<StudentAttendanceRow[]>([]);
  const [searchQuery, setSearchQuery] = useState<string>("");
  const [selected, setSelected] = useState<Record<string, boolean>>({});
  const [isSaving, setIsSaving] = useState(false);
  const [loadError, setLoadError] = useState<string | null>(null);
- const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-
- useEffect(() => {
-   const handleClickOutside = () => setOpenDropdownId(null);
-   document.addEventListener("click", handleClickOutside);
-   return () => document.removeEventListener("click", handleClickOutside);
- }, []);
-
   useEffect(() => {
     async function loadMeta() {
  try {
@@ -100,15 +122,20 @@ export default function AdminAttendancePage() {
     return /^\d+$/.test(g) ? `Grade ${g}` : g;
   };
 
- useEffect(() => {
- if (classOptions.length && !classOptions.includes(grade)) setGrade(classOptions[0]);
- }, [classOptions, grade]);
+ const sectionLabel = (s: string) => {
+  if (s === allSectionsKey) return "All Sections";
+  return s;
+ };
 
  useEffect(() => {
- if (sectionOptions.length && !sectionOptions.includes(section)) setSection(sectionOptions[0]);
- }, [sectionOptions, section]);
+ if (classOptions.length && !classOptions.includes(grade)) setGrade(allClassesKey);
+ }, [classOptions, grade, allClassesKey]);
 
- const loadRoster = useCallback(async (nextGrade: string, nextSection: string) => {
+ useEffect(() => {
+ if (sectionOptions.length && !sectionOptions.includes(section)) setSection(allSectionsKey);
+ }, [sectionOptions, section, allSectionsKey]);
+
+ const loadRoster = useCallback(async (nextGrade: string, nextSection: string, date: string) => {
  try {
  setLoadError(null);
  const q = query(collection(db, "schools", schoolId, "students"));
@@ -136,19 +163,25 @@ export default function AdminAttendancePage() {
           s.attendance?.lateDates || [],
           undefined, // start date
           undefined, // end date
-          holidays // use dynamic holidays from settings
+          holidayDates
         );
+
+        const classId = String(s.classId || "-").trim();
+        const studentSection = String(s.section || "-").trim().toUpperCase();
+        const classLabel = /^\d+$/.test(classId) ? `Grade ${classId}` : classId;
 
         return {
           roll: String(s.rollNumber || idx + 1),
           admissionNumber: String(s.admissionNumber || s.rollNumber || s.id || idx + 1),
           name: `${s.firstName || ''} ${s.lastName || ''}`.trim() || 'Unnamed',
+          fatherName: String(s.fatherName || "").trim() || "-",
+          classSection: `${classLabel}-${studentSection}`,
           studentId: String(s.id),
-          classId: String(s.classId || "-"),
-          section: String(s.section || "-").toUpperCase(),
+          classId,
+          section: studentSection,
           gender: s.gender === "Female" ? "Female" : "Male",
           attendancePercent: stats.percentage,
-          status: "None",
+          status: getAttendanceStatusForDate(s.attendance, date),
           remarks: "",
         };
       });
@@ -160,15 +193,15 @@ export default function AdminAttendancePage() {
       setSelected({});
       setLoadError(e?.message || "Failed to load roster");
     }
-  }, [schoolId, allClassesKey, allSectionsKey, holidays]);
+  }, [schoolId, allClassesKey, allSectionsKey, holidayDates]);
 
  useEffect(() => {
  setAcademicDate(new Date().toISOString().split('T')[0]);
  }, []);
 
  useEffect(() => {
- loadRoster(grade, section);
- }, [grade, section, loadRoster]);
+ loadRoster(grade, section, academicDate);
+ }, [grade, section, academicDate, loadRoster]);
 
  const totals = useMemo(() => {
  const total = roster.length;
@@ -181,7 +214,7 @@ export default function AdminAttendancePage() {
     let result = roster;
     const q = searchQuery.trim().toLowerCase();
     if (q) {
-      result = result.filter((r) => `${r.name} ${r.studentId} ${r.admissionNumber} ${r.roll} ${r.classId} ${r.section}`.toLowerCase().includes(q));
+      result = result.filter((r) => `${r.name} ${r.fatherName} ${r.classSection} ${r.admissionNumber} ${r.roll}`.toLowerCase().includes(q));
     }
     
     result = [...result].sort((a, b) => {
@@ -199,12 +232,15 @@ export default function AdminAttendancePage() {
 
  const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
  const allSelectedOnPage = filteredRoster.length > 0 && filteredRoster.every((r) => selected[r.studentId]);
-
- useEffect(() => {
-    if (grade && section) {
-      loadRoster(grade, section);
-    }
-  }, [grade, section, loadRoster]);
+ const updateStudentStatus = (studentId: string, status: AttendanceMarkStatus) => {
+  setRoster((prev) =>
+   prev.map((x) =>
+    x.studentId === studentId
+     ? { ...x, status, remarks: status === "A" ? x.remarks : "" }
+     : x
+   )
+  );
+ };
 
   const handleSave = () => {
     setIsSaving(true);
@@ -296,7 +332,7 @@ export default function AdminAttendancePage() {
  )}
  >
  {sectionOptions.map((s) => (
- <option key={s} value={s}>{s}</option>
+ <option key={s} value={s}>{sectionLabel(s)}</option>
  ))}
  </select>
  </div>
@@ -351,8 +387,9 @@ export default function AdminAttendancePage() {
  <ExportButton data={filteredRoster} filename="Attendance" className="h-8 inline-flex items-center gap-1.5 rounded-lg bg-white border border-gray-200 px-3 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors shadow-sm" iconSize={12} />
  <button
  onClick={handleSave}
- disabled={isSaving}
+ disabled={isSaving || !markDayInfo.canMark}
  className="h-8 inline-flex items-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all disabled:opacity-70"
+ title={!markDayInfo.canMark ? `${markDayInfo.label} — marking not required` : undefined}
  >
  {isSaving ? <RotateCw size={12} className="animate-spin" /> : <Save size={12} />}
  {isSaving ? "Saving..." : "Save"}
@@ -360,8 +397,14 @@ export default function AdminAttendancePage() {
  </div>
  </div>
 
+ {!markDayInfo.canMark ? (
+ <div className="px-5 py-2.5 border-b border-purple-100 bg-purple-50/80 text-xs font-bold text-purple-700">
+  {markDayInfo.label} — no attendance marking required for this date.
+ </div>
+ ) : null}
+
  {/* Bulk Actions */}
- {selectedCount > 0 && (
+ {markDayInfo.canMark && selectedCount > 0 && (
  <div className="px-4 py-2 border-b border-gray-100 bg-blue-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-in slide-in-from-top-2">
  <div className="flex items-center gap-1.5">
  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
@@ -372,7 +415,7 @@ export default function AdminAttendancePage() {
  <div className="flex flex-wrap items-center gap-1.5">
  <button
  type="button"
- onClick={() => setRoster((prev) => prev.map((r) => (selected[r.studentId] ? { ...r, status: "P" } : r)))}
+ onClick={() => setRoster((prev) => prev.map((r) => (selected[r.studentId] ? { ...r, status: "P", remarks: "" } : r)))}
  className="h-7 inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
  >
  <CheckCircle2 size={12} /> Mark Present
@@ -384,6 +427,15 @@ export default function AdminAttendancePage() {
  >
  <AlertCircle size={12} /> Mark Absent
  </button>
+ {markDayInfo.mode === "halfday" ? (
+ <button
+ type="button"
+ onClick={() => setRoster((prev) => prev.map((r) => (selected[r.studentId] ? { ...r, status: "HD", remarks: "" } : r)))}
+ className="h-7 inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-50 px-2.5 text-xs font-bold text-amber-700 hover:bg-amber-100 transition-colors"
+ >
+ Half Day
+ </button>
+ ) : null}
  <div className="w-px h-3 bg-blue-200 mx-0.5"></div>
  <button 
  type="button" 
@@ -419,8 +471,9 @@ export default function AdminAttendancePage() {
  </th>
  <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-20">Roll</th>
  <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Student</th>
- <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center w-48">Attendance</th>
- <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Remarks</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Father Name</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Class</th>
+ <th className="px-3 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Attendance</th>
  <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right w-12"></th>
  </tr>
  </thead>
@@ -452,90 +505,50 @@ export default function AdminAttendancePage() {
  </div>
  <div>
  <p className="text-xs font-bold text-gray-900">{r.name}</p>
- <p className="text-xs font-medium text-gray-500 mt-0.5">{r.studentId}</p>
- {grade === "All" && (
- <p className="text-xs font-bold text-gray-600 mt-0.5">
- {gradeLabel(r.classId)}-{r.section}
- </p>
- )}
+ <p className="text-xs font-medium text-gray-500 mt-0.5">{r.admissionNumber}</p>
  </div>
  </div>
  </td>
  <td className="px-5 py-2.5">
- <div className="flex flex-col gap-1 items-center">
- <div className="flex items-center gap-1.5 p-1 bg-gray-50/50 rounded-lg border border-gray-100">
- <button
- type="button"
- onClick={() => setRoster((prev) => prev.map((x) => (x.studentId === r.studentId ? { ...x, status: "P" } : x)))}
- className={cn(
- "px-3 py-1 rounded text-xs font-bold transition-all",
- r.status === "P" ? "bg-emerald-500 text-white shadow-sm" : "text-gray-600 hover:bg-white hover:text-emerald-600"
- )}
- >
- Present
- </button>
- <button
- type="button"
- onClick={() => setRoster((prev) => prev.map((x) => (x.studentId === r.studentId ? { ...x, status: "A" } : x)))}
- className={cn(
- "px-3 py-1 rounded text-xs font-bold transition-all",
- r.status === "A" ? "bg-red-500 text-white shadow-sm" : "text-gray-600 hover:bg-white hover:text-red-600"
- )}
- >
- Absent
- </button>
- </div>
- </div>
- <div className="mt-1.5 flex items-center justify-center">
- <span className={cn(
- "text-xs font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide",
- r.attendancePercent >= 75 ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-rose-50 text-rose-700 border-rose-100"
- )}>
- {Math.round(r.attendancePercent)}% Overall
- </span>
- </div>
+ <p className="text-xs font-semibold text-gray-700">{r.fatherName}</p>
  </td>
  <td className="px-5 py-2.5">
- <input
- value={r.remarks}
- onChange={(e) => setRoster((prev) => prev.map((x) => (x.studentId === r.studentId ? { ...x, remarks: e.target.value } : x)))}
- className={cn(
- "w-full h-8 rounded-lg border px-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#144835]/20 transition-all",
- r.status === "A" && r.remarks 
- ? "border-red-200 bg-red-50/50 text-red-900 focus:border-red-500 focus:ring-red-500/20" 
- : "border-gray-200 bg-white text-gray-800 focus:border-[#144835] hover:border-gray-300"
- )}
- placeholder={r.status === "A" ? "Reason required..." : "Optional remark..."}
+ <span className="text-xs font-bold text-gray-800 bg-gray-100/80 px-2 py-0.5 rounded whitespace-nowrap">{r.classSection}</span>
+ </td>
+ <td className="px-3 py-2 text-center align-middle">
+ <AttendanceMarkCell
+ dayInfo={markDayInfo}
+ status={r.status}
+ attendancePercent={r.attendancePercent}
+ remarks={r.remarks}
+ onStatusChange={(status) => updateStudentStatus(r.studentId, status)}
+ onRemarksChange={(remarks) =>
+  setRoster((prev) => prev.map((x) => (x.studentId === r.studentId ? { ...x, remarks } : x)))
+ }
  />
  </td>
- <td className="px-5 py-2.5 text-right relative">
-  <div className="relative inline-block text-left"
-       onMouseEnter={() => setOpenDropdownId(r.studentId)}
-       onMouseLeave={() => setOpenDropdownId(null)}>
-  <button 
-    type="button" 
-    className="h-7 w-7 inline-flex items-center justify-center text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 rounded transition-colors"
-  >
-  <MoreHorizontal size={14} />
-  </button>
-  {openDropdownId === r.studentId && (
-    <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] py-1.5 text-left transition-all duration-200">
-      <Link href={`/schools/${schoolId}/admin/academic/students/${r.studentId}/profile?tab=Attendance`} className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-[#144835] w-full text-left">
-        <User size={14} /> View Profile
-      </Link>
-      <Link href={`/schools/${schoolId}/admin/academic/students/${r.studentId}/edit`} className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-[#144835] w-full text-left">
-        <Pencil size={14} /> Edit Student
-      </Link>
-    </div>
-  )}
-  </div>
-  </td>
+ <td className="px-5 py-2.5 text-right">
+ <TableRowActions
+ items={[
+ { label: "View Profile", icon: User, href: `/schools/${schoolId}/admin/academic/students/${r.studentId}/profile?tab=Attendance` },
+ { label: "Edit Student", icon: Pencil, href: `/schools/${schoolId}/admin/academic/students/${r.studentId}/edit` },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete ${r.name}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "students", r.studentId),
+ },
+ ]}
+ />
+ </td>
  </tr>
  );
  })
  ) : (
  <tr>
- <td colSpan={6} className="px-5 py-8 text-center">
+ <td colSpan={7} className="px-5 py-8 text-center">
  <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-50 mb-3">
  <Search size={24} className="text-gray-400" />
  </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import AdminPageHeader from "@/components/admin/PageHeader";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { clsx, type ClassValue } from "clsx";
@@ -22,7 +24,8 @@ import {
  TrendingUp,
  Filter,
  CheckCircle2,
- AlertCircle
+ AlertCircle,
+ Trash2,
 } from "lucide-react";
 
 function cn(...inputs: ClassValue[]) {
@@ -30,6 +33,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 type SectionRow = {
+ id: string;
  section: string;
  strength: number;
  teacherCount: number;
@@ -63,7 +67,7 @@ function strengthBg(strength: number) {
 
 export default function AdminClassesPage() {
  const schoolId = "idpscherukupalli";
- const [classEntries, setClassEntries] = useState<Array<{ grade: string; section: string; room?: string; status: "Active" | "Inactive"; classTeacherId?: string }>>([]);
+ const [classEntries, setClassEntries] = useState<Array<{ id: string; grade: string; section: string; room?: string; status: "Active" | "Inactive"; classTeacherId?: string }>>([]);
  const [gradeCatalog, setGradeCatalog] = useState<string[]>(["Nursery", "LKG", "UKG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]);
  const [loading, setLoading] = useState(true);
  const [loadError, setLoadError] = useState<string | null>(null);
@@ -133,6 +137,7 @@ export default function AdminClassesPage() {
  const section = String(data.section ?? "-").toUpperCase();
  const status: "Active" | "Inactive" = data.status === "Inactive" ? "Inactive" : "Active";
  return {
+ id: data.id,
  grade,
  section,
  room: data.room || "TBD",
@@ -223,6 +228,7 @@ export default function AdminClassesPage() {
 
  if (!classMap[grade]) classMap[grade] = [];
  classMap[grade].push({
+ id: e.id,
  section,
  strength,
  teacherCount,
@@ -442,7 +448,7 @@ export default function AdminClassesPage() {
  <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Strength</th>
  <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Teachers</th>
  <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -554,17 +560,21 @@ export default function AdminClassesPage() {
  </span>
  </td>
  <td className="px-5 py-2.5 text-right">
- <div className="flex items-center justify-end gap-0.5 transition-opacity">
- <button type="button" className="h-7 w-7 inline-flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Edit Section">
- <Pencil size={14} />
- </button>
- <button type="button" className="h-7 w-7 inline-flex items-center justify-center rounded text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 transition-colors" title="View Teachers">
- <Users size={14} />
- </button>
- <button type="button" className="h-7 w-7 inline-flex items-center justify-center rounded text-gray-400 hover:text-gray-900 hover:bg-gray-100 transition-colors" title="Student List">
- <ClipboardList size={14} />
- </button>
- </div>
+ <TableRowActions
+ items={[
+ { label: "Edit Section", icon: Pencil, onClick: () => {} },
+ { label: "View Teachers", icon: Users, onClick: () => {} },
+ { label: "Student List", icon: ClipboardList, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete section ${s.section} in ${gradeLabel(g.grade)}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "classes", s.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  );

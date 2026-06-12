@@ -96,6 +96,16 @@ export default function AdminMarksPage() {
  const allClassesKey = "All";
  const allSectionsKey = "All";
  const allSubjectsKey = "All";
+
+ const classLabel = (g: string) => {
+  if (g === allClassesKey) return "All Classes";
+  return /^\d+$/.test(g) ? `Grade ${g}` : g;
+ };
+
+ const sectionLabel = (s: string) => {
+  if (s === allSectionsKey) return "All Sections";
+  return s;
+ };
  const [exam, setExam] = useState("");
  const [examOptions, setExamOptions] = useState<string[]>([]);
  const [cls, setCls] = useState(allClassesKey);
@@ -249,13 +259,13 @@ export default function AdminMarksPage() {
 
   useEffect(() => {
    if (!classOptions.length) return;
-   if (!classOptions.includes(cls)) setCls(classOptions[0]);
-  }, [classOptions, cls]);
+   if (!classOptions.includes(cls)) setCls(allClassesKey);
+  }, [classOptions, cls, allClassesKey]);
 
   useEffect(() => {
    if (!sectionOptions.length) return;
-   if (!sectionOptions.includes(sec)) setSec(sectionOptions[0]);
-  }, [sectionOptions, sec]);
+   if (!sectionOptions.includes(sec)) setSec(allSectionsKey);
+  }, [sectionOptions, sec, allSectionsKey]);
 
   const subjectOptions = useMemo(() => {
    return [allSubjectsKey, ...subjectsForClass];
@@ -472,7 +482,7 @@ export default function AdminMarksPage() {
  className="w-full h-9 appearance-none rounded-lg border border-gray-200 bg-gray-50/50 pl-3 pr-8 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50 cursor-pointer"
  >
  {classOptions.map((c) => (
- <option key={c} value={c}>{c}</option>
+ <option key={c} value={c}>{classLabel(c)}</option>
  ))}
  </select>
  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
@@ -489,7 +499,7 @@ export default function AdminMarksPage() {
  className="w-full h-9 appearance-none rounded-lg border border-gray-200 bg-gray-50/50 pl-3 pr-8 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50 cursor-pointer"
  >
  {sectionOptions.map((s) => (
- <option key={s} value={s}>{s}</option>
+ <option key={s} value={s}>{sectionLabel(s)}</option>
  ))}
  </select>
  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">

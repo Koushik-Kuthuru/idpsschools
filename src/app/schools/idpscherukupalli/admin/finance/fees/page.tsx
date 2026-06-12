@@ -11,6 +11,8 @@ import BarSummary from "@/components/charts/BarSummary";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -26,7 +28,7 @@ function gradeLabel(grade: string) {
 type FeeStructureStatus = "Active" | "Draft";
 
 type FeeStructureRow = {
- id?: string;
+ id: string;
  grade: string;
  tuition: number;
  sports: number;
@@ -335,7 +337,7 @@ export default function AdminFeeManagementPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Other Fees</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Total/Student</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -381,17 +383,20 @@ export default function AdminFeeManagementPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <div className="flex items-center justify-end gap-1 transition-opacity">
- <button className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Duplicate">
- <Copy size={14} />
- </button>
- <button className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 transition-colors" title="Edit">
- <Edit2 size={14} />
- </button>
- <button className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Delete">
- <Trash2 size={14} />
- </button>
- </div>
+ <TableRowActions
+ items={[
+ { label: "Duplicate", icon: Copy, onClick: () => {} },
+ { label: "Edit", icon: Edit2, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete fee structure for ${gradeLabel(fee.grade)}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "fee_structures", fee.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  );
@@ -456,9 +461,7 @@ export default function AdminFeeManagementPage() {
  </div>
  </td>
  <td className="px-4 py-2.5 text-right">
- <button className="text-xs font-bold text-[#144835] hover:text-[#144835]/80 inline-flex items-center gap-1 justify-end transition-colors">
- View Details <ChevronRight size={14} />
- </button>
+ <TableRowActions items={[{ label: "View Details", icon: ChevronRight, onClick: () => {} }]} />
  </td>
  </tr>
  ))

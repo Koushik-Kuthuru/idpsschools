@@ -1,9 +1,11 @@
 "use client";
 
 import AdminPageHeader from "@/components/admin/PageHeader";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, ChevronRight, Plus, Search } from "lucide-react";
+import { BookOpen, ChevronRight, Plus, Search , Trash2, Eye, Pencil} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy, getDocs } from "firebase/firestore";
@@ -229,9 +231,20 @@ export default function AdminSubjectsPage() {
  </span>
  </td>
  <td className="px-5 py-2.5 text-right">
- <Link href={`/idpskalaburagi/academic/subjects/${encodeURIComponent(s.id)}`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
- View
- </Link>
+ <TableRowActions
+ items={[
+ { label: "View", icon: Eye, href: `/schools/${schoolId}/admin/academic/subjects/${encodeURIComponent(s.id)}` },
+ { label: "Edit", icon: Pencil, href: `/schools/${schoolId}/admin/academic/subjects/${encodeURIComponent(s.id)}/edit` },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete subject ${s.name}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "subjects", s.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  ))}

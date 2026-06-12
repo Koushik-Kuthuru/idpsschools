@@ -3,12 +3,14 @@
 import AdminPageHeader from "@/components/admin/PageHeader";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarX2, ChevronRight, Download, Filter, Search, UserCheck, UserPlus, Users } from "lucide-react";
+import { Building2, CalendarX2, ChevronRight, Download, Filter, Search, UserCheck, UserPlus, Users , Trash2, Eye} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -267,9 +269,19 @@ export default function AdminNonTeachingStaffPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <Link href={`/schools/${schoolId}/admin/hr/non-teaching-staff/${encodeURIComponent(e.id)}/profile`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
- View
- </Link>
+ <TableRowActions
+ items={[
+ { label: "View Profile", icon: Eye, href: `/schools/${schoolId}/admin/hr/non-teaching-staff/${encodeURIComponent(e.id)}/profile` },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete ${e.name}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "staff", e.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  ))}

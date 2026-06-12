@@ -10,6 +10,8 @@ import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -207,7 +209,7 @@ export default function AdminDepartmentsPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Head of Dept (HOD)</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Staff Count</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -257,17 +259,20 @@ export default function AdminDepartmentsPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <div className="flex items-center justify-end gap-1 transition-opacity">
- <button className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 transition-colors" type="button" title="View Details">
- <Eye size={14} />
- </button>
- <button className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" type="button" title="Edit Department">
- <Pencil size={14} />
- </button>
- <button className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors" type="button" title="Delete">
- <Trash2 size={14} />
- </button>
- </div>
+ <TableRowActions
+ items={[
+ { label: "View Details", icon: Eye, onClick: () => {} },
+ { label: "Edit Department", icon: Pencil, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete ${d.name}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "departments", d.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  );

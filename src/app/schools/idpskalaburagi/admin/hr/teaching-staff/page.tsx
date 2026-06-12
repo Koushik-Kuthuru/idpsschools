@@ -4,12 +4,14 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarX2, ChevronRight, Download, Filter, Search, UserCheck, UserPlus, Users } from "lucide-react";
+import { Building2, CalendarX2, ChevronRight, Download, Eye, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -243,7 +245,7 @@ export default function AdminTeachingStaffPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Department</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -269,9 +271,20 @@ export default function AdminTeachingStaffPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <Link href={`/schools/${schoolId}/admin/hr/teaching-staff/${encodeURIComponent(e.id)}/profile`} className="h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors ">
- View
- </Link>
+ <TableRowActions
+ items={[
+ { label: "View Profile", icon: Eye, href: `/schools/${schoolId}/admin/hr/teaching-staff/${encodeURIComponent(e.id)}/profile` },
+ { label: "Edit", icon: Pencil, href: `/schools/${schoolId}/admin/hr/teaching-staff/${encodeURIComponent(e.id)}/edit` },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete ${e.name}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "teachers", e.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  ))}

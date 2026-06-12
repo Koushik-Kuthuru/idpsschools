@@ -5,11 +5,13 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Download, Search, Filter, Plus, FileText, ChevronRight, CheckCircle2, AlertCircle, Laptop, Projector, BookOpen, Sofa, CalendarDays, ShieldCheck } from "lucide-react";
+import { Download, Search, Filter, Plus, FileText, ChevronRight, CheckCircle2, AlertCircle, Laptop, Projector, BookOpen, Sofa, CalendarDays, ShieldCheck , Trash2, Eye} from "lucide-react";
 import Link from "next/link";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -297,7 +299,7 @@ export default function AdminAssetsPage() {
  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Category</th>
  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Orig. Cost</th>
  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100 text-xs">
@@ -325,9 +327,19 @@ export default function AdminAssetsPage() {
  </div>
  </td>
  <td className="px-4 py-3 text-right">
- <button type="button" className="h-7 px-3 rounded-md bg-white border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
- View
- </button>
+ <TableRowActions
+ items={[
+ { label: "View", icon: Eye, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete asset ${a.name}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "assets", a.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  ))}

@@ -9,8 +9,10 @@ import { db } from "@/lib/firebase";
 import { clsx, type ClassValue } from "clsx";
 import Link from "next/link";
 import { twMerge } from "tailwind-merge";
-import { Download, Eye, Pencil, Search, UserCheck, UserMinus, UserPlus, UserX, Phone, Mail, Users, ChevronRight, CalendarCheck2 } from "lucide-react";
+import { Download, Eye, Pencil, Search, UserCheck, UserMinus, UserPlus, UserX, Phone, Mail, Users, ChevronRight, CalendarCheck2 , Trash2} from "lucide-react";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -302,7 +304,7 @@ export default function AdminAdmissionLeadsPage() {
  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Contact</th>
  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Source</th>
  <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -338,17 +340,21 @@ export default function AdminAdmissionLeadsPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <div className="flex items-center justify-end gap-1 transition-opacity">
- <button type="button" className="h-7 w-7 inline-flex items-center justify-center text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 rounded-md transition-colors" title="View">
- <Eye size={14} />
- </button>
- <button type="button" className="h-7 w-7 inline-flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors" title="Call">
- <Phone size={14} />
- </button>
- <button type="button" className="h-7 w-7 inline-flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors" title="Edit">
- <Pencil size={14} />
- </button>
- </div>
+ <TableRowActions
+ items={[
+ { label: "View", icon: Eye, onClick: () => {} },
+ { label: "Call", icon: Phone, onClick: () => { if (l.phone) window.location.href = `tel:${l.phone}`; } },
+ { label: "Edit", icon: Pencil, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete lead ${l.studentName}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "leads", l.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  ))}

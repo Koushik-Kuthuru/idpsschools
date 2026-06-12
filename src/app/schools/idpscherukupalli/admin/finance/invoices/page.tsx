@@ -4,12 +4,14 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Filter, Download, Eye, FileText, CheckCircle2, Clock, AlertCircle, ChevronRight, Users, Briefcase, Settings } from "lucide-react";
+import { Plus, Search, Filter, Download, Eye, FileText, CheckCircle2, Clock, AlertCircle, ChevronRight, Users, Briefcase, Settings , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -225,7 +227,7 @@ export default function AdminInvoiceManagementPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Dates</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -266,22 +268,20 @@ export default function AdminInvoiceManagementPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <div className="flex items-center justify-end gap-1 transition-opacity">
- <button
- type="button"
- className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 transition-colors"
- title="View Details"
- >
- <Eye size={14} />
- </button>
- <button
- type="button"
- className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 transition-colors"
- title="Download PDF"
- >
- <Download size={14} />
- </button>
- </div>
+ <TableRowActions
+ items={[
+ { label: "View Details", icon: Eye, onClick: () => {} },
+ { label: "Download PDF", icon: Download, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete invoice ${inv.id}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "invoices", inv.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  )

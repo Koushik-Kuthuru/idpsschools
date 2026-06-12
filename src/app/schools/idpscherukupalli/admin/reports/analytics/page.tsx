@@ -181,7 +181,7 @@ export default function AdminAnalyticsPage() {
  <th className="px-4 py-2.5">Attendance</th>
  <th className="px-4 py-2.5">Fee Due</th>
  <th className="px-4 py-2.5">Academic Status</th>
- <th className="px-4 py-2.5 text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100 bg-white">

@@ -22,8 +22,12 @@ import {
   Users,
   CheckCircle2,
   AlertCircle,
+  Trash2,
+  ShieldCheck,
 } from "lucide-react";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -322,7 +326,7 @@ export default function AdminAdmissionApplicationsPage() {
                   <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Grade</th>
                   <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Submission Date</th>
                   <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -361,30 +365,26 @@ export default function AdminAdmissionApplicationsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {a.status === "Submitted" && (
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateStatus(a.id, "Verification")}
-                            className="h-7 px-2.5 text-xs font-extrabold text-amber-700 hover:bg-amber-50 border border-amber-150 rounded-md transition-colors"
-                          >
-                            Verify
-                          </button>
-                        )}
-                        {a.status === "Verification" && (
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateStatus(a.id, "Selected")}
-                            className="h-7 px-2.5 text-xs font-extrabold text-emerald-700 hover:bg-emerald-50 border border-emerald-150 rounded-md transition-colors"
-                          >
-                            Select
-                          </button>
-                        )}
-                        <button type="button" className="h-7 w-7 inline-flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-md transition-colors" title="View details">
-                          <Eye size={14} />
-                        </button>
-                      </div>
-                    </td>
+ <TableRowActions
+ items={[
+ ...(a.status === "Submitted"
+ ? [{ label: "Verify", icon: ShieldCheck, onClick: () => handleUpdateStatus(a.id, "Verification") }]
+ : []),
+ ...(a.status === "Verification"
+ ? [{ label: "Select", icon: CheckCircle2, onClick: () => handleUpdateStatus(a.id, "Selected") }]
+ : []),
+ { label: "View Details", icon: Eye, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete application for ${a.name}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "applications", a.id),
+ },
+ ]}
+ />
+                  </td>
                   </tr>
                 ))}
               </tbody>

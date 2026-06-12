@@ -1,5 +1,14 @@
+export type AttendanceMarkStatus = "P" | "A" | "HD" | "None";
 
-import { StudentAttendanceRow } from "@/app/schools/idpscherukupalli/admin/academic/attendance/page";
+export type HolidayEntry = { date: string; name?: string; type?: string };
+
+export type AttendanceDayMode = "regular" | "halfday" | "holiday";
+
+export type AttendanceDayInfo = {
+  mode: AttendanceDayMode;
+  label: string;
+  canMark: boolean;
+};
 
 export interface AttendanceStats {
   presentDays: number;
@@ -65,4 +74,38 @@ export function calculateAttendanceStats(
     totalWorkingDays,
     percentage
   };
+}
+
+export function classifyAttendanceDay(date: string, holidays: HolidayEntry[]): AttendanceDayInfo {
+  const parsed = new Date(`${date}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return { mode: "regular", label: "Working Day", canMark: true };
+  }
+
+  if (parsed.getDay() === 0) {
+    return { mode: "holiday", label: "Sunday", canMark: false };
+  }
+
+  const entry = holidays.find((h) => h.date === date);
+  if (entry) {
+    const haystack = `${entry.type || ""} ${entry.name || ""}`;
+    if (/half/i.test(haystack)) {
+      return { mode: "halfday", label: entry.name || "Half Day", canMark: true };
+    }
+    return { mode: "holiday", label: entry.name || "Holiday", canMark: false };
+  }
+
+  return { mode: "regular", label: "Working Day", canMark: true };
+}
+
+export function getAttendanceStatusForDate(
+  attendance:
+    | { presentDates?: string[]; absentDates?: string[]; lateDates?: string[] }
+    | undefined,
+  date: string
+): AttendanceMarkStatus {
+  if (attendance?.presentDates?.includes(date)) return "P";
+  if (attendance?.absentDates?.includes(date)) return "A";
+  if (attendance?.lateDates?.includes(date)) return "HD";
+  return "None";
 }

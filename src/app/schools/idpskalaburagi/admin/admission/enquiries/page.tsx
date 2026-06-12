@@ -22,8 +22,12 @@ import {
   CalendarRange,
   PhoneCall,
   CheckCircle2,
+  Trash2,
+  UserCheck,
 } from "lucide-react";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -300,7 +304,7 @@ export default function AdminEnquiriesPage() {
                   <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Grade</th>
                   <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Date</th>
                   <th className="px-4 py-3 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-right text-xs font-extrabold text-gray-500 uppercase tracking-wider">Actions</th>
+                  <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -339,34 +343,26 @@ export default function AdminEnquiriesPage() {
                       </span>
                     </td>
                     <td className="px-4 py-2.5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {e.status === "Pending" && (
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateStatus(e.id, "Scheduled")}
-                            className="h-7 px-2.5 text-xs font-extrabold text-blue-700 hover:bg-blue-50 border border-blue-150 rounded-md transition-colors"
-                          >
-                            Schedule
-                          </button>
-                        )}
-                        {e.status === "Scheduled" && (
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateStatus(e.id, "Converted")}
-                            className="h-7 px-2.5 text-xs font-extrabold text-emerald-700 hover:bg-emerald-50 border border-emerald-150 rounded-md transition-colors"
-                          >
-                            Convert
-                          </button>
-                        )}
-                        <Link
-                          href={`/schools/${schoolId}/admin/admission/enquiries/new`}
-                          className="h-7 w-7 inline-flex items-center justify-center text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 rounded-md transition-colors"
-                          title="View"
-                        >
-                          <Eye size={14} />
-                        </Link>
-                      </div>
-                    </td>
+ <TableRowActions
+ items={[
+ ...(e.status === "Pending"
+ ? [{ label: "Schedule", icon: CalendarRange, onClick: () => handleUpdateStatus(e.id, "Scheduled") }]
+ : []),
+ ...(e.status === "Scheduled"
+ ? [{ label: "Convert", icon: UserCheck, onClick: () => handleUpdateStatus(e.id, "Converted") }]
+ : []),
+ { label: "View", icon: Eye, href: `/schools/${schoolId}/admin/admission/enquiries/new` },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete enquiry for ${e.studentName}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "enquiries", e.id),
+ },
+ ]}
+ />
+                  </td>
                   </tr>
                 ))}
               </tbody>

@@ -5,6 +5,7 @@ import {
   ClipboardList,
   FileText,
   GraduationCap,
+  HelpCircle,
   LayoutDashboard,
   MessageSquare,
   Receipt,
@@ -108,11 +109,26 @@ export function buildNavGroups(schoolId: string): NavGroup[] {
       name: "Settings",
       icon: Settings,
       items: [
+        { name: "Help Center",      href: `${base}/help`,               icon: HelpCircle },
         { name: "Profile",          href: `${base}/profile/settings`, icon: Users },
         { name: "Branch Settings",  href: `${base}/settings`,         icon: Settings },
       ],
     },
   ];
+}
+
+function isNavItemActive(pathname: string, href: string, dashboardHref: string) {
+  return pathname === href || (href !== dashboardHref && pathname.startsWith(href));
+}
+
+export function getActiveNavGroup(pathname: string, schoolId: string): NavGroup | null {
+  const groups = buildNavGroups(schoolId);
+  const dashboardHref = `/schools/${schoolId}/admin`;
+  return (
+    groups.find((group) =>
+      group.items.some((item) => isNavItemActive(pathname, item.href, dashboardHref))
+    ) ?? null
+  );
 }
 
 // Legacy static export kept for any direct imports — resolves to kalaburagi

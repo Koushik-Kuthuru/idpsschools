@@ -1867,7 +1867,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide">Reason / Message</th>
  <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-center">Gate Status</th>
  <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-center">Photo ID</th>
- <th className="py-2.5 px-4 text-xs font-bold text-gray-400 uppercase tracking-wide text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">

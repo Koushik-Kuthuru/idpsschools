@@ -24,7 +24,7 @@ function loadCollection(path: string): Array<{ id: string; data: DocData }> {
   if (typeof window === "undefined") return [];
 
   try {
-    const seededKey = "mock_firestore_seeded_v2"; // Changed to v2 to force re-seed
+    const seededKey = "mock_firestore_seeded_v8";
     if (!localStorage.getItem(seededKey)) {
       // Clear all existing mock_firestore keys first
       Object.keys(localStorage).forEach(key => {

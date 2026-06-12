@@ -4,12 +4,14 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Check, ChevronRight, Clock, Download, Filter, Mail, PieChart, Plus, Search, X, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarDays, Check, ChevronRight, Clock, Download, Filter, Mail, PieChart, Plus, Search, X, CheckCircle2, AlertCircle , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, doc, onSnapshot, orderBy, query as fsQuery, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -328,7 +330,7 @@ export default function AdminLeavesPage() {
  <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Type</th>
  <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">From - To</th>
  <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-2.5 text-xs font-extrabold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -367,35 +369,25 @@ export default function AdminLeavesPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <div className="flex items-center justify-end gap-1 transition-opacity">
- {r.status === "Pending" ? (
- <>
- <button
- type="button"
- onClick={() => updateStatus(r.id, "Approved")}
- className="h-7 w-7 inline-flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors"
- title="Approve"
- >
- <Check size={14} />
- </button>
- <button
- type="button"
- onClick={() => updateStatus(r.id, "Rejected")}
- className="h-7 w-7 inline-flex items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 transition-colors"
- title="Reject"
- >
- <X size={14} />
- </button>
- </>
- ) : null}
- <button
- type="button"
- className="h-7 w-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
- title="View Details"
- >
- <Mail size={14} />
- </button>
- </div>
+ <TableRowActions
+ items={[
+ ...(r.status === "Pending"
+ ? [
+ { label: "Approve", icon: Check, onClick: () => updateStatus(r.id, "Approved") },
+ { label: "Reject", icon: X, onClick: () => updateStatus(r.id, "Rejected") },
+ ]
+ : []),
+ { label: "View Details", icon: Mail, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete leave request for ${r.employeeName}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "leaves", r.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  );

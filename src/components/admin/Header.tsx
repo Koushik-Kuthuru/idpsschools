@@ -1,61 +1,80 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, Bell, Menu, LogOut, User, X } from "lucide-react";
-import { flatNav } from "./navigation";
+import Link from "next/link";
+import { Bell, CheckCheck, ChevronDown, ChevronRight, CircleHelp, LogOut, Menu, Settings, User, X } from "lucide-react";
+import AdminGlobalSearch from "@/components/admin/AdminGlobalSearch";
+import { notificationIcon, notificationIconStyles } from "@/components/admin/notificationStyles";
+import { getActiveNavGroup } from "./navigation";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdminNotifications } from "@/contexts/AdminNotificationsContext";
+import { formatRelativeTime } from "@/lib/adminNotifications";
 
 interface HeaderProps {
   setIsMobileMenuOpen: (open: boolean) => void;
 }
 
-const SAMPLE_NOTIFICATIONS = [
-  {
-    id: "1",
-    title: "Fee reminder sent",
-    body: "Class 10-A fee reminders were delivered to 42 parents.",
-    time: "2 min ago",
-    unread: true,
-  },
-  {
-    id: "2",
-    title: "New admission inquiry",
-    body: "A parent submitted an admission form for Grade 6.",
-    time: "1 hr ago",
-    unread: true,
-  },
-  {
-    id: "3",
-    title: "Staff attendance synced",
-    body: "Today's teaching staff attendance has been updated.",
-    time: "Yesterday",
-    unread: false,
-  },
-] as const;
-
 export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
 
-  const userInitials = React.useMemo(() => {
-    if (!user) return "BA";
-    const name = user.displayName || user.email || "Branch Admin";
-    return name
+  const schoolId = useMemo(() => {
+    const match = pathname.match(/^\/schools\/([^/]+)/);
+    return match ? match[1] : "idpskalaburagi";
+  }, [pathname]);
+
+  const headerTitle = useMemo(() => {
+    return getActiveNavGroup(pathname, schoolId)?.name ?? "Dashboard";
+  }, [pathname, schoolId]);
+
+  const helpHref = `/schools/${schoolId}/admin/help`;
+  const settingsHref = `/schools/${schoolId}/admin/settings`;
+  const profileHref = `/schools/${schoolId}/admin/profile/settings`;
+  const isHelpActive = pathname.startsWith(helpHref);
+  const isSettingsActive = pathname.startsWith(settingsHref);
+  const isProfileActive = pathname.startsWith(profileHref);
+
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const { user, role } = useAuth();
+  const { notifications, unreadCount, markAllRead, openNotification } = useAdminNotifications();
+
+  const handleOpenNotification = (notification: (typeof notifications)[number]) => {
+    setNotificationsOpen(false);
+    openNotification(notification);
+  };
+
+  const userDisplayName = useMemo(
+    () => user?.displayName || user?.email?.split("@")[0] || "Branch Admin",
+    [user]
+  );
+
+  const userDesignation = useMemo(() => {
+    if (user?.designation) return user.designation;
+    if (role === "super_admin") return "Super Administrator";
+    if (role === "admin") return "Branch Administrator";
+    return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Staff";
+  }, [user?.designation, role]);
+
+  const avatarSrc = user?.photoURL || user?.photo || null;
+
+  const userInitials = useMemo(() => {
+    return userDisplayName
       .split(" ")
+      .filter(Boolean)
       .map((w) => w[0])
       .join("")
       .slice(0, 2)
       .toUpperCase();
-  }, [user]);
+  }, [userDisplayName]);
 
   const handleLogout = async () => {
     try {
+      setUserMenuOpen(false);
       await auth.signOut();
       router.push("/login");
     } catch (error) {
@@ -96,34 +115,45 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
 
   return (
     <>
-      <header className="h-16 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between transition-all duration-300">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="lg:hidden p-1.5 text-gray-500 hover:text-[#144835]"
-            onClick={() => setIsMobileMenuOpen(true)}
-          >
-            <Menu size={18} />
-          </button>
-          <h2 className="text-sm sm:text-lg font-bold text-[#1A1A1A] max-w-[55vw] sm:max-w-none truncate">
-            {flatNav.find((n) => pathname === n.href || (n.href !== "/schools/idpskalaburagi/admin" && pathname.startsWith(n.href)))?.name ||
-              "Dashboard"}
-          </h2>
-        </div>
+      <header
+        className={`relative h-16 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 px-4 sm:px-6 transition-all duration-300 ${
+          searchOpen ? "z-50" : "z-30"
+        }`}
+      >
+        <div className="grid h-full w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-3 lg:gap-4">
+          <div className="flex items-center gap-3 min-w-0 max-w-[9rem] sm:max-w-[11rem] lg:max-w-[13rem] shrink-0">
+            <button
+              type="button"
+              className="lg:hidden shrink-0 p-1.5 text-gray-500 hover:text-[#144835]"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={18} />
+            </button>
+            <h2 className="text-sm sm:text-lg font-bold text-[#1A1A1A] truncate">
+              {headerTitle}
+            </h2>
+          </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#a2c144] transition-colors" size={14} />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-56 bg-gray-100/50 border border-gray-200 rounded-full py-1.5 pl-9 pr-4 text-xs focus:outline-none focus:ring-2 focus:ring-[#a2c144]/20 focus:border-[#a2c144] transition-all"
+          <div className="hidden md:flex w-full min-w-0 justify-center px-2">
+            <AdminGlobalSearch
+              schoolId={schoolId}
+              onOpenChange={(open) => {
+                setSearchOpen(open);
+                if (open) {
+                  setNotificationsOpen(false);
+                  setUserMenuOpen(false);
+                }
+              }}
             />
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-end gap-1 sm:gap-2 shrink-0 col-start-2 md:col-start-3">
             <div className="relative">
-              <span className="absolute top-0.5 right-0.5 h-1.5 w-1.5 bg-red-500 rounded-full ring-2 ring-white z-10" />
+              {unreadCount > 0 ? (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-500 rounded-full ring-2 ring-white z-10 flex items-center justify-center text-[10px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              ) : null}
               <button
                 type="button"
                 aria-label="Notifications"
@@ -138,6 +168,40 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
               </button>
             </div>
 
+            <Link
+              href={helpHref}
+              aria-label="Help center"
+              title="Help center"
+              onClick={() => {
+                setUserMenuOpen(false);
+                setNotificationsOpen(false);
+              }}
+              className={`p-1.5 rounded-full transition-colors ${
+                isHelpActive
+                  ? "text-[#144835] bg-[#144835]/10"
+                  : "text-gray-400 hover:text-[#144835] hover:bg-gray-100"
+              }`}
+            >
+              <CircleHelp size={18} />
+            </Link>
+
+            <Link
+              href={settingsHref}
+              aria-label="Settings"
+              title="Settings"
+              onClick={() => {
+                setUserMenuOpen(false);
+                setNotificationsOpen(false);
+              }}
+              className={`p-1.5 rounded-full transition-colors ${
+                isSettingsActive
+                  ? "text-[#144835] bg-[#144835]/10"
+                  : "text-gray-400 hover:text-[#144835] hover:bg-gray-100"
+              }`}
+            >
+              <Settings size={18} />
+            </Link>
+
             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
 
             <div className="relative hidden sm:block" ref={userMenuRef}>
@@ -150,38 +214,62 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                   setNotificationsOpen(false);
                   setUserMenuOpen((open) => !open);
                 }}
-                className="h-8 w-8 rounded-full bg-[#144835] text-white flex items-center justify-center border-2 border-white shadow-sm hover:bg-[#0f3628] transition-colors overflow-hidden font-bold text-xs"
+                className={`flex items-center gap-2 rounded-xl border px-1.5 py-1 transition-colors shrink-0 xl:gap-2.5 xl:max-w-[220px] ${
+                  isProfileActive || userMenuOpen
+                    ? "border-[#144835]/20 bg-[#144835]/5"
+                    : "border-transparent hover:border-gray-200 hover:bg-gray-50"
+                }`}
               >
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="Avatar" className="h-full w-full object-cover" />
-                ) : (
-                  userInitials
-                )}
+                <div className="h-8 w-8 shrink-0 rounded-full bg-[#144835] text-white flex items-center justify-center border-2 border-white shadow-sm overflow-hidden font-bold text-xs">
+                  {avatarSrc ? (
+                    <img src={avatarSrc} alt={userDisplayName} className="h-full w-full object-cover" />
+                  ) : (
+                    userInitials
+                  )}
+                </div>
+                <div className="min-w-0 hidden xl:block max-w-[160px] text-left">
+                  <p className="text-xs font-bold text-gray-900 truncate leading-tight">{userDisplayName}</p>
+                  <p className="text-[11px] font-medium text-gray-500 truncate leading-tight">{userDesignation}</p>
+                </div>
+                <ChevronDown
+                  size={14}
+                  className={`text-gray-400 shrink-0 transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`}
+                />
               </button>
 
-              {userMenuOpen && (
+              {userMenuOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 z-50 animate-in fade-in slide-in-from-top-1 duration-150"
+                  className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-gray-200 bg-white py-1 z-50 shadow-lg animate-in fade-in zoom-in-95 duration-150"
                 >
-                  <div className="px-3 py-2 border-b border-gray-50">
-                    <p className="text-xs font-bold text-gray-800 truncate">{user?.displayName || "Branch Admin"}</p>
-                    <p className="text-xs text-gray-500 truncate">{user?.email || "admin@school.edu"}</p>
+                  <div className="px-3 py-2.5 border-b border-gray-100">
+                    <p className="text-xs font-bold text-gray-900 truncate">{userDisplayName}</p>
+                    <p className="text-[11px] text-gray-500 truncate mt-0.5">{userDesignation}</p>
                   </div>
                   <button
                     type="button"
                     role="menuitem"
                     onClick={() => {
                       setUserMenuOpen(false);
-                      void handleLogout();
+                      router.push(profileHref);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:text-[#144835] transition-colors"
                   >
-                    <LogOut size={14} />
+                    <User size={14} className="shrink-0" />
+                    Profile
+                  </button>
+                  <div className="my-1 border-t border-gray-100" />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => void handleLogout()}
+                    className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut size={14} className="shrink-0" />
                     Log out
                   </button>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -198,44 +286,103 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
           <aside
             role="dialog"
             aria-label="Notifications"
-            className="relative h-full w-full max-w-sm bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300"
+            className="relative h-full w-full max-w-sm bg-white border-l border-gray-200 flex flex-col animate-in slide-in-from-right duration-300"
           >
-            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-100">
-              <div>
-                <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {SAMPLE_NOTIFICATIONS.filter((n) => n.unread).length} unread
-                </p>
+            <div className="px-4 py-4 border-b border-gray-100 bg-gray-50/40">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-gray-900">Notifications</h3>
+                    {unreadCount > 0 ? (
+                      <span className="inline-flex items-center rounded-full bg-[#144835]/10 px-2 py-0.5 text-[10px] font-bold text-[#144835]">
+                        {unreadCount} unread
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">
+                        All caught up
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">Tap a notification to open the related page.</p>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => setNotificationsOpen(false)}
+                  className="p-1.5 rounded-lg text-gray-400 hover:text-[#144835] hover:bg-white border border-transparent hover:border-gray-200 transition-colors shrink-0"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={() => setNotificationsOpen(false)}
-                className="p-1.5 rounded-full text-gray-400 hover:text-[#144835] hover:bg-gray-100 transition-colors"
-              >
-                <X size={18} />
-              </button>
+
+              {unreadCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={markAllRead}
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-[#144835] hover:bg-[#144835]/5 transition-colors"
+                >
+                  <CheckCheck size={14} />
+                  Mark all as read
+                </button>
+              ) : null}
             </div>
 
-            <ul className="flex-1 overflow-y-auto divide-y divide-gray-50">
-              {SAMPLE_NOTIFICATIONS.map((n) => (
-                <li
-                  key={n.id}
-                  className={`px-4 py-3 ${n.unread ? "bg-[#144835]/[0.03]" : ""}`}
-                >
-                  <div className="flex items-start gap-2">
-                    {n.unread && (
-                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#a2c144]" />
-                    )}
-                    <div className={n.unread ? "" : "pl-3.5"}>
-                      <p className="text-xs font-bold text-gray-900">{n.title}</p>
-                      <p className="text-xs text-gray-600 mt-0.5 leading-snug">{n.body}</p>
-                      <p className="text-xs text-gray-400 mt-1">{n.time}</p>
-                    </div>
-                  </div>
-                </li>
-              ))}
+            <ul className="flex-1 overflow-y-auto">
+              {notifications.map((n) => {
+                const style = notificationIconStyles(n.category);
+                const Icon = notificationIcon(n.category);
+                return (
+                  <li key={n.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenNotification(n)}
+                      className={`group w-full text-left px-4 py-3.5 border-b border-gray-50 transition-colors hover:bg-gray-50/80 focus:outline-none focus-visible:bg-gray-50 ${
+                        n.unread ? "bg-[#144835]/[0.03] border-l-2 border-l-[#a2c144]" : "border-l-2 border-l-transparent"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${style.bg} ${style.text} ${style.border}`}
+                        >
+                          <Icon size={16} strokeWidth={2.25} />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className={`text-xs leading-snug ${n.unread ? "font-bold text-gray-900" : "font-semibold text-gray-800"}`}>
+                              {n.title}
+                            </p>
+                            {n.unread ? (
+                              <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#a2c144]" aria-hidden />
+                            ) : null}
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1 leading-relaxed line-clamp-2">{n.body}</p>
+                          <div className="mt-2 flex items-center justify-between gap-2">
+                            <p className="text-[11px] font-semibold text-gray-400">{formatRelativeTime(n.createdAt)}</p>
+                            <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-[#144835] opacity-0 group-hover:opacity-100 transition-opacity">
+                              Open <ChevronRight size={12} />
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
+
+            <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/40">
+              <button
+                type="button"
+                onClick={() => {
+                  setNotificationsOpen(false);
+                  router.push(`/schools/${schoolId}/admin/notifications`);
+                }}
+                className="w-full h-9 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-700 hover:bg-gray-50 hover:text-[#144835] transition-colors"
+              >
+                View all notifications
+                <ChevronRight size={14} />
+              </button>
+            </div>
           </aside>
         </div>
       )}

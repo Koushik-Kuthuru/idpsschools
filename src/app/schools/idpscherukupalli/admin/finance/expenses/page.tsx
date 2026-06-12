@@ -4,12 +4,14 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Filter, Download, Receipt, Wrench, Zap, Users, TrendingDown, Eye, CheckCircle2, ChevronRight } from "lucide-react";
+import { Plus, Search, Filter, Download, Receipt, Wrench, Zap, Users, TrendingDown, Eye, CheckCircle2, ChevronRight , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
+import TableRowActions from "@/components/ui/TableRowActions";
+import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -184,7 +186,7 @@ export default function AdminExpensesPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Amount</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
+ <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions"></th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
@@ -220,16 +222,20 @@ export default function AdminExpensesPage() {
  </span>
  </td>
  <td className="px-4 py-2.5 text-right">
- <div className="flex items-center justify-end gap-1 transition-opacity">
- {expense.status === 'Pending' && (
- <button className="h-7 px-2.5 inline-flex items-center justify-center bg-[#144835]/10 text-[#144835] hover:bg-[#144835] hover:text-white rounded-md text-xs font-bold transition-colors">
- Approve
- </button>
- )}
- <button className="h-7 w-7 inline-flex items-center justify-center rounded-md text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 transition-colors" title="View Details">
- <Eye size={14} />
- </button>
- </div>
+ <TableRowActions
+ items={[
+ ...(expense.status === "Pending" ? [{ label: "Approve", icon: CheckCircle2, onClick: () => {} }] : []),
+ { label: "View Details", icon: Eye, onClick: () => {} },
+ {
+ label: "Delete",
+ icon: Trash2,
+ destructive: true,
+ dividerBefore: true,
+ confirmMessage: `Delete expense ${expense.id}? This cannot be undone.`,
+ onClick: () => deleteSchoolDocument(schoolId, "expenses", expense.id),
+ },
+ ]}
+ />
  </td>
  </tr>
  ))
