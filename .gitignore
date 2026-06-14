@@ -1,39 +1,10 @@
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
+node_modules
 .DS_Store
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# local env files
-.env*.local
-.env
-scripts/serviceAccountKey.json
-*firebase-adminsdk-*.json
-serviceAccount.json
-service-account.json
-firebase-service-account.json
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+.env*
+!.env.example
+.next/
+dist/
+build/
+apps/mobile/student/node_modules/
+apps/mobile/teacher/node_modules/
+apps/web/node_modules/

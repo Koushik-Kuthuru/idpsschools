@@ -1,0 +1,12 @@
+export { default } from "@/app/schools/idpscherukupalli idpskalaburagi/hr/
+teaching-staff/page.tsx
+teaching-staff/new/page.tsx
+teaching-staff/[id]/edit/page.tsx
+teaching-staff/[id]/profile/page.tsx
+non-teaching-staff/page.tsx
+non-teaching-staff/new/page.tsx
+non-teaching-staff/[id]/edit/page.tsx
+non-teaching-staff/[id]/profile/page.tsx
+departments/page.tsx
+departments/new/page.tsx
+";
