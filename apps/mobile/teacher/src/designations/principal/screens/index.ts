@@ -1,0 +1,13 @@
+export { DashboardScreen } from './DashboardScreen';
+export { StaffManagementScreen } from './StaffManagementScreen';
+export { AcademicPerformanceScreen } from './AcademicPerformanceScreen';
+export { ReportsAnalyticsScreen } from './ReportsAnalyticsScreen';
+export { ProfileHubScreen } from './ProfileHubScreen';
+export { AttendanceOverviewScreen } from './AttendanceOverviewScreen';
+export { CommunicationAnnouncementsScreen } from './CommunicationAnnouncementsScreen';
+export { ExamResultsManagementScreen } from './ExamResultsManagementScreen';
+export { FeeFinanceOverviewScreen } from './FeeFinanceOverviewScreen';
+export { LeaveApprovalsCentreScreen } from './LeaveApprovalsCentreScreen';
+export { TimetableManagementScreen } from './TimetableManagementScreen';
+export { NotificationsScreen } from './NotificationsScreen';
+export { ChangePasswordScreen } from './ChangePasswordScreen';

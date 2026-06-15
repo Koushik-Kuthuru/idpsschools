@@ -1,0 +1,46 @@
+import { StyleSheet } from 'react-native';
+import { borderRadius, colors, spacing } from '@/theme';
+
+export const styles = StyleSheet.create({
+  content: { padding: spacing.md, gap: spacing.md },
+  summary: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceContainerLowest,
+    borderRadius: borderRadius.xl,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.slate100,
+  },
+  summaryCell: { flex: 1, alignItems: 'center' },
+  summaryValue: { fontWeight: '700' },
+  summaryLabel: { color: colors.outline, marginTop: 2 },
+  summaryDivider: { width: 1, backgroundColor: colors.slate100 },
+  meta: { color: colors.outline },
+  list: { gap: spacing.sm },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.surfaceContainerLowest,
+    borderRadius: borderRadius.xl,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.slate100,
+  },
+  rowInfo: { flex: 1, marginRight: spacing.sm },
+  name: { color: colors.onSurface, fontWeight: '600' },
+  roll: { color: colors.outline, marginTop: 2 },
+  badge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+  },
+  badgeText: { fontWeight: '700', textTransform: 'capitalize' },
+  badgePresent: { backgroundColor: `${colors.primaryContainer}1A` },
+  badgeAbsent: { backgroundColor: `${colors.absent}1A` },
+  badgeLate: { backgroundColor: `${colors.late}1A` },
+  textPresent: { color: colors.primaryContainer },
+  textAbsent: { color: colors.absent },
+  textLate: { color: colors.late },
+  empty: { color: colors.outline, textAlign: 'center', padding: spacing.xl },
+});

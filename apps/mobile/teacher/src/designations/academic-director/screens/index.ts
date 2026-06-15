@@ -1,0 +1,13 @@
+export { DashboardScreen } from './DashboardScreen';
+export { HodDepartmentScreen } from './HodDepartmentScreen';
+export { CurriculumTrackerScreen } from './CurriculumTrackerScreen';
+export { ExamManagementScreen } from './ExamManagementScreen';
+export { ProfileHubScreen } from './ProfileHubScreen';
+export { AcademicSettingsScreen } from './AcademicSettingsScreen';
+export { CircularsScreen } from './CircularsScreen';
+export { NotificationsScreen } from './NotificationsScreen';
+export { ReportsAnalyticsScreen } from './ReportsAnalyticsScreen';
+export { StudentAnalyticsScreen } from './StudentAnalyticsScreen';
+export { TeacherPerformanceScreen } from './TeacherPerformanceScreen';
+export { TimetableOverviewScreen } from './TimetableOverviewScreen';
+export { ExamTimetableScreen } from './ExamTimetableScreen';

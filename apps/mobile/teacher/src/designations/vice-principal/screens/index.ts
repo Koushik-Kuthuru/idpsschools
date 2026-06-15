@@ -1,0 +1,15 @@
+export { DashboardScreen } from './DashboardScreen';
+export { TimetableSubstitutionScreen } from './TimetableSubstitutionScreen';
+export { CalendarEventsScreen } from './CalendarEventsScreen';
+export { ReportsAnalyticsScreen } from './ReportsAnalyticsScreen';
+export { ProfileHubScreen } from './ProfileHubScreen';
+export { AcademicPerformanceScreen } from './AcademicPerformanceScreen';
+export { StaffManagementScreen } from './StaffManagementScreen';
+export { CampusOperationsScreen } from './CampusOperationsScreen';
+export { DepartmentCoordinationScreen } from './DepartmentCoordinationScreen';
+export { ExaminationOversightScreen } from './ExaminationOversightScreen';
+export { LeaveApprovalsScreen } from './LeaveApprovalsScreen';
+export { NotificationsScreen } from './NotificationsScreen';
+export { ParentCommunicationScreen } from './ParentCommunicationScreen';
+export { StudentDisciplineScreen } from './StudentDisciplineScreen';
+export { ChangePasswordScreen } from './ChangePasswordScreen';

@@ -1,0 +1,1 @@
+export { FacultyRootNavigator } from './FacultyRootNavigator';

@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "IDPS Management ERP",
+    "slug": "idps-management-erp",
+    "version": "2.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f6f8f7"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "teacher.app",
+      "googleServicesFile": "./src/GoogleService-Info.plist"
+    },
+    "android": {
+      "package": "teacher.app",
+      "googleServicesFile": "./src/google-services.json",
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow IDPS Management ERP to access your photos to update your profile picture."
+        }
+      ]
+    ]
+  }
+}

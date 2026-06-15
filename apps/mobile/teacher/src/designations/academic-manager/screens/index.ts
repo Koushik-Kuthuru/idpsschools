@@ -1,0 +1,11 @@
+export { DashboardScreen } from './DashboardScreen';
+export { TimetableManagementScreen } from './TimetableManagementScreen';
+export { ExaminationCalendarScreen } from './ExaminationCalendarScreen';
+export { LeaveDutyManagementScreen } from './LeaveDutyManagementScreen';
+export { ProfileHubScreen } from './ProfileHubScreen';
+export { AcademicRecordsScreen } from './AcademicRecordsScreen';
+export { CurriculumTrackerScreen } from './CurriculumTrackerScreen';
+export { NotificationsAlertsScreen } from './NotificationsAlertsScreen';
+export { ParentCommunicationsScreen } from './ParentCommunicationsScreen';
+export { ReportsAnalyticsScreen } from './ReportsAnalyticsScreen';
+export { StaffCoordinationScreen } from './StaffCoordinationScreen';

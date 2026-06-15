@@ -1,0 +1,77 @@
+import { StyleSheet } from 'react-native';
+import { borderRadius, colors, shadows, spacing } from '@/theme';
+
+export const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: colors.canvas,
+    maxWidth: spacing.maxWidth,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  /** @deprecated use safe */
+  root: {
+    flex: 1,
+    backgroundColor: colors.canvas,
+    maxWidth: spacing.maxWidth,
+    width: '100%',
+    alignSelf: 'center',
+    padding: spacing.md,
+  },
+  flex: { flex: 1 },
+  scrollContent: {
+    flexGrow: 1,
+    padding: spacing.md,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl * 2,
+  },
+  header: { alignItems: 'center', gap: spacing.xs, marginBottom: spacing.lg },
+  logoWrap: {
+    width: 96,
+    height: 96,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.surfaceContainerLowest,
+    borderWidth: 2,
+    borderColor: colors.primaryContainer,
+    padding: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.sm,
+  },
+  logo: { width: '100%', height: '100%' },
+  school: {
+    color: colors.primary,
+    textAlign: 'center',
+    fontWeight: '700',
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.sm,
+    maxWidth: 320,
+    letterSpacing: -0.2,
+  },
+  title: {
+    color: colors.onSurfaceVariant,
+    marginTop: spacing.sm,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+  },
+  card: {
+    backgroundColor: colors.surfaceContainerLowest,
+    borderRadius: borderRadius.card20,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.slate100,
+    ...shadows.sm,
+    gap: spacing.md,
+  },
+  forgot: { alignSelf: 'flex-end' },
+  forgotText: { color: colors.primaryContainer },
+  footer: { marginTop: spacing.lg, alignItems: 'center', gap: spacing.md },
+  securityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  securityText: { color: colors.outline },
+  loginError: {
+    color: colors.error,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+});
