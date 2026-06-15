@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@student/*": ["./student/src/*"],
+            "@teacher/*": ["./teacher/src/*"]
+        }
+    }
+}

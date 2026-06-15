@@ -2,7 +2,21 @@
   "name": "idps-schools-monorepo",
   "private": true,
   "workspaces": [
-    "apps/*",
-    "apps/mobile/*"
-  ]
+    "apps/web",
+    "apps/mobile/student",
+    "apps/mobile/teacher"
+  ],
+  "dependencies": {
+    "patch-package": "^8.0.1"
+  },
+  "scripts": {
+    "postinstall": "patch-package",
+    "dev": "turbo dev",
+    "ios": "turbo ios",
+    "android": "turbo android"
+  },
+  "devDependencies": {
+    "turbo": "^2.9.18"
+  },
+  "packageManager": "npm@10.9.0"
 }
