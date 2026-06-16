@@ -18,7 +18,7 @@ export const STITCH_SCREEN_ROUTES = {
   attendance_detailed_view: '/attendance/detailed',
   attendance_by_subject: '/attendance/by-subject',
 
-  marks_overview_with_navigation: '/(tabs)/marks',
+  marks_overview_with_navigation: '/marks',
   marks_overview: '/marks/overview',
   subject_detailed_marks: '/marks/subject/1',
   performance_analysis: '/marks/performance',
@@ -28,7 +28,7 @@ export const STITCH_SCREEN_ROUTES = {
   assignment_details_submission: '/assignments/1',
 
   exam_schedule: '/exams/schedule',
-  class_timetable: '/exams/timetable',
+  class_timetable: '/timetable',
 
   fees_overview_with_navigation: '/(tabs)/fees',
   fees_payments_overview: '/fees/payments-overview',
@@ -38,7 +38,7 @@ export const STITCH_SCREEN_ROUTES = {
   fee_receipt: '/fees/receipt',
 
   notifications_alerts: '/notifications',
-  full_announcements: '/announcements',
+  full_announcements: '/(tabs)/notice-board',
 
   student_profile_with_navigation: '/(tabs)/profile',
   student_profile: '/profile',
@@ -78,7 +78,7 @@ export const STITCH_SCREEN_LIST: { id: StitchScreenId; label: string; route: str
   { id: 'payment_confirmation', label: 'Payment Confirmation', route: STITCH_SCREEN_ROUTES.payment_confirmation },
   { id: 'fee_receipt', label: 'Fee Receipt', route: STITCH_SCREEN_ROUTES.fee_receipt },
   { id: 'notifications_alerts', label: 'Notifications', route: STITCH_SCREEN_ROUTES.notifications_alerts },
-  { id: 'full_announcements', label: 'Announcements', route: STITCH_SCREEN_ROUTES.full_announcements },
+  { id: 'full_announcements', label: 'Notice board', route: STITCH_SCREEN_ROUTES.full_announcements },
   { id: 'student_profile_with_navigation', label: 'Profile (Tab)', route: STITCH_SCREEN_ROUTES.student_profile_with_navigation },
   { id: 'student_profile', label: 'Student Profile', route: STITCH_SCREEN_ROUTES.student_profile },
   { id: 'settings', label: 'Settings', route: STITCH_SCREEN_ROUTES.settings },

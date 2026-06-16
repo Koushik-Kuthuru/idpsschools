@@ -21,6 +21,7 @@ import type {
   SubjectMark,
   TimetableDay,
   User,
+  CourseDetail,
 } from '@/types';
 
 import { collection, doc, query, where, getDocs } from 'firebase/firestore';
@@ -138,44 +139,72 @@ export const dashboardService = {
 export const attendanceService = {
   getSummary: async (): Promise<AttendanceSummary> => {
     if (useMock) return mockApi.attendance.summary();
-    const { data } = await apiClient.get('/attendance');
-    return data;
+    try {
+      const { data } = await apiClient.get<AttendanceSummary>('/attendance');
+      return data;
+    } catch {
+      return mockApi.attendance.summary();
+    }
   },
   getSubjects: async (): Promise<SubjectAttendance[]> => {
     if (useMock) return mockApi.attendance.subjects();
-    const { data } = await apiClient.get('/attendance/subjects');
-    return data;
+    try {
+      const { data } = await apiClient.get<SubjectAttendance[]>('/attendance/subjects');
+      return data;
+    } catch {
+      return mockApi.attendance.subjects();
+    }
   },
   getRecords: async (): Promise<AttendanceRecord[]> => {
     if (useMock) return mockApi.attendance.records();
-    const { data } = await apiClient.get('/attendance/records');
-    return data;
+    try {
+      const { data } = await apiClient.get<AttendanceRecord[]>('/attendance/records');
+      return data;
+    } catch {
+      return mockApi.attendance.records();
+    }
   },
 };
 
 export const marksService = {
   getOverview: async (): Promise<MarksOverview> => {
     if (useMock) return mockApi.marks.overview();
-    const { data } = await apiClient.get('/marks');
-    return data;
+    try {
+      const { data } = await apiClient.get<MarksOverview>('/marks');
+      return data;
+    } catch {
+      return mockApi.marks.overview();
+    }
   },
   getSubject: async (id: string): Promise<SubjectMark | undefined> => {
     if (useMock) return mockApi.marks.subject(id);
-    const { data } = await apiClient.get(`/marks/subject/${id}`);
-    return data;
+    try {
+      const { data } = await apiClient.get<SubjectMark>(`/marks/subject/${id}`);
+      return data;
+    } catch {
+      return mockApi.marks.subject(id);
+    }
   },
   getPerformance: async () => {
     if (useMock) return mockApi.marks.performance();
-    const { data } = await apiClient.get('/marks/performance');
-    return data;
+    try {
+      const { data } = await apiClient.get('/marks/performance');
+      return data;
+    } catch {
+      return mockApi.marks.performance();
+    }
   },
 };
 
 export const assignmentsService = {
   getAll: async (): Promise<Assignment[]> => {
     if (useMock) return mockApi.assignments();
-    const { data } = await apiClient.get('/assignments');
-    return data;
+    try {
+      const { data } = await apiClient.get<Assignment[]>('/assignments');
+      return data;
+    } catch {
+      return mockApi.assignments();
+    }
   },
   getById: async (id: string): Promise<Assignment | undefined> => {
     const all = await assignmentsService.getAll();
@@ -199,29 +228,57 @@ export const assignmentsService = {
 export const examsService = {
   getAll: async (): Promise<Exam[]> => {
     if (useMock) return mockApi.exams();
-    const { data } = await apiClient.get('/exams');
-    return data;
+    try {
+      const { data } = await apiClient.get<Exam[]>('/exams');
+      return data;
+    } catch {
+      return mockApi.exams();
+    }
   },
 };
 
 export const timetableService = {
   get: async (): Promise<TimetableDay[]> => {
     if (useMock) return mockApi.timetable();
-    const { data } = await apiClient.get('/timetable');
-    return data;
+    try {
+      const { data } = await apiClient.get<TimetableDay[]>('/timetable');
+      return data;
+    } catch {
+      return mockApi.timetable();
+    }
+  },
+};
+
+export const courseService = {
+  getById: async (courseId: string, subjectHint?: string): Promise<CourseDetail> => {
+    if (useMock) return mockApi.courseDetail(courseId, subjectHint);
+    try {
+      const { data } = await apiClient.get<CourseDetail>(`/courses/${courseId}`);
+      return data;
+    } catch {
+      return mockApi.courseDetail(courseId, subjectHint);
+    }
   },
 };
 
 export const feesService = {
   getOverview: async (): Promise<FeesOverview> => {
     if (useMock) return mockApi.fees();
-    const { data } = await apiClient.get('/fees');
-    return data;
+    try {
+      const { data } = await apiClient.get<FeesOverview>('/fees');
+      return data;
+    } catch {
+      return mockApi.fees();
+    }
   },
   getPaymentMethods: async (): Promise<PaymentMethod[]> => {
     if (useMock) return mockApi.paymentMethods();
-    const { data } = await apiClient.get('/payments/methods');
-    return data;
+    try {
+      const { data } = await apiClient.get<PaymentMethod[]>('/payments/methods');
+      return data;
+    } catch {
+      return mockApi.paymentMethods();
+    }
   },
   makePayment: async (amount: number, method: string) => {
     if (useMock) {
@@ -290,10 +347,14 @@ export const notificationsService = {
 export const profileService = {
   get: async (): Promise<User> => {
     if (useMock) return mockApi.profile();
-    const stored = await authService.getStoredUser();
-    if (stored) return stored;
-    const { data } = await apiClient.get('/profile');
-    return data;
+    try {
+      const stored = await authService.getStoredUser();
+      if (stored) return { ...(await mockApi.profile()), ...stored };
+      const { data } = await apiClient.get<User>('/profile');
+      return data;
+    } catch {
+      return mockApi.profile();
+    }
   },
   updateAvatar: async (uri: string) => {
     if (useMock) {
@@ -313,7 +374,11 @@ export const profileService = {
 export const announcementsService = {
   getAll: async (): Promise<AnnouncementDetail[]> => {
     if (useMock) return mockApi.announcements();
-    const { data } = await apiClient.get('/announcements');
-    return data;
+    try {
+      const { data } = await apiClient.get<AnnouncementDetail[]>('/announcements');
+      return data;
+    } catch {
+      return mockApi.announcements();
+    }
   },
 };

@@ -1,25 +1,29 @@
 import { useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useFees } from '@/hooks/useApi';
 import { useAuthStore } from '@/store';
 import { ScreenHeader, LoadingScreen, ErrorScreen } from '@/components/ui/ScreenHeader';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { PaymentHistoryList } from '@/components/fees/PaymentHistoryList';
 import { downloadPaymentReceipt } from '@/utils/receipt';
+import { cardShadow } from '@/constants/shadows';
 import { formatINR } from '@/utils/currency';
 import type { PaymentRecord } from '@/types';
 
 export default function FeeReceiptsScreen() {
   const theme = useTheme();
   const user = useAuthStore((s) => s.user);
-  const { data, isLoading, error, refetch } = useFees();
+  const { data, isLoading, error, refetch, isRefetching } = useFees();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   if (isLoading) return <LoadingScreen />;
   if (error || !data) return <ErrorScreen message="Failed to load receipts" onRetry={() => refetch()} />;
 
   const receipts = data.recentPayments.filter((p) => p.status === 'success');
+  const receiptTotal = receipts.reduce((sum, p) => sum + p.amount, 0);
 
   const handleDownload = async (payment: PaymentRecord) => {
     setDownloadingId(payment.id);
@@ -39,47 +43,52 @@ export default function FeeReceiptsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <ScreenHeader title="Download Receipts" />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={{ color: theme.colors.textSecondary, fontSize: 14, marginBottom: 16 }}>
-          Tap a receipt to download it as a PDF with school details and payment information.
-        </Text>
-        {receipts.length === 0 ? (
-          <View style={[styles.empty, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-            <MaterialIcons name="receipt-long" size={36} color={theme.colors.textMuted} />
-            <Text style={{ color: theme.colors.textSecondary, marginTop: 8 }}>No receipts available yet</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top', 'bottom']}>
+      <ScreenHeader title="Receipts" fallbackRoute="/(tabs)/fees" />
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
+      >
+        <View style={[styles.heroCard, cardShadow]}>
+          <View style={styles.heroTop}>
+            <View style={styles.heroCopy}>
+              <Text style={styles.heroEyebrow}>DOWNLOAD PDFs</Text>
+              <Text style={styles.heroTitle}>{receipts.length} receipts</Text>
+              <Text style={styles.heroSub}>Tap any receipt to save as PDF</Text>
+            </View>
+            <View style={styles.heroIconWrap}>
+              <Ionicons name="document-text-outline" size={28} color="rgba(255,255,255,0.9)" />
+            </View>
           </View>
-        ) : (
-          receipts.map((p) => (
-            <TouchableOpacity
-              key={p.id}
-              style={[styles.card, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
-              onPress={() => handleDownload(p)}
-              disabled={downloadingId === p.id}
-            >
-              <View style={[styles.icon, { backgroundColor: `${theme.colors.primary}1a` }]}>
-                <MaterialIcons name="receipt-long" size={24} color={theme.colors.primary} />
-              </View>
-              <View style={styles.content}>
-                <Text style={[styles.title, { color: theme.colors.text }]}>{p.period}</Text>
-                <Text style={{ color: theme.colors.textSecondary, fontSize: 12 }}>{p.paidOn}</Text>
-                <Text style={{ color: theme.colors.textMuted, fontSize: 11, marginTop: 2 }}>
-                  {p.receiptNumber ?? `Receipt ${p.id}`} • {p.method ?? 'Online'}
-                </Text>
-              </View>
-              <View style={styles.right}>
-                <Text style={{ color: theme.colors.text, fontWeight: '700' }}>{formatINR(p.amount)}</Text>
-                <MaterialIcons
-                  name={downloadingId === p.id ? 'hourglass-top' : 'download'}
-                  size={20}
-                  color={theme.colors.primary}
-                  style={{ marginTop: 6 }}
-                />
-              </View>
-            </TouchableOpacity>
-          ))
-        )}
+          <View style={styles.heroFooter}>
+            <View style={styles.heroMeta}>
+              <Text style={styles.heroMetaLabel}>TOTAL</Text>
+              <Text style={styles.heroMetaValue}>{formatINR(receiptTotal)}</Text>
+            </View>
+            <View style={styles.heroDivider} />
+            <View style={styles.heroMeta}>
+              <Text style={styles.heroMetaLabel}>AVAILABLE</Text>
+              <Text style={styles.heroMetaValue}>{receipts.length}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={[styles.tipCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+          <Ionicons name="information-circle-outline" size={18} color={theme.colors.primary} />
+          <Text style={[styles.tipText, { color: theme.colors.textSecondary }]}>
+            Receipts include school details, payment method, transaction ID, and fee breakdown.
+          </Text>
+        </View>
+
+        <SectionHeader title="Available receipts" />
+        <PaymentHistoryList
+          payments={receipts}
+          mode="receipt"
+          emptyMessage="No receipts available yet"
+          onDownload={handleDownload}
+          downloadingId={downloadingId}
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -87,11 +96,47 @@ export default function FeeReceiptsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 16, paddingBottom: 32 },
-  card: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 10, gap: 12 },
-  icon: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  content: { flex: 1 },
-  title: { fontWeight: '700', fontSize: 15 },
-  right: { alignItems: 'flex-end' },
-  empty: { alignItems: 'center', padding: 40, borderRadius: 12, borderWidth: 1 },
+  scroll: { paddingHorizontal: 16, paddingBottom: 24 },
+  heroCard: {
+    backgroundColor: '#144835',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  heroCopy: { flex: 1, marginRight: 12 },
+  heroEyebrow: { color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  heroTitle: { color: '#fff', fontSize: 24, fontWeight: '800', marginTop: 6 },
+  heroSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: '500', marginTop: 4 },
+  heroIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 18,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+  },
+  heroMeta: { flex: 1, alignItems: 'center' },
+  heroMetaLabel: { color: 'rgba(255,255,255,0.55)', fontSize: 9, fontWeight: '700', letterSpacing: 0.8 },
+  heroMetaValue: { color: '#fff', fontSize: 16, fontWeight: '700', marginTop: 4 },
+  heroDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.15)' },
+  tipCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  tipText: { flex: 1, fontSize: 13, lineHeight: 18 },
 });

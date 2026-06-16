@@ -45,7 +45,7 @@ export function getWorkItemsSummary(items: Assignment[]) {
 
 export function getWorkItemsOverviewSubtitle(items: Assignment[]): string {
   if (items.length === 0) {
-    return 'No homework or assignments assigned';
+    return 'No homework or projects assigned';
   }
   const { total, pending, dueToday, subjects } = getWorkItemsSummary(items);
   const parts = [`${total} items across ${subjects} subject${subjects === 1 ? '' : 's'}`];

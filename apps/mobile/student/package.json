@@ -53,7 +53,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "dev": "expo start --port 8081"
+    "dev": "node ../../../scripts/start-expo-unified.mjs student",
+    "dev:all": "node ../../../scripts/start-expo-unified.mjs student --ios --android --web",
+    "dev:native": "node ../../../scripts/start-expo-unified.mjs student --ios --android"
   },
   "private": true
 }

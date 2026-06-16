@@ -4,7 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfile, useUpdateAvatar } from '@/hooks/useApi';
-import { LoadingScreen, ErrorScreen } from '@/components/ui/ScreenHeader';
+import { ErrorScreen } from '@/components/ui/ScreenHeader';
+import { ProfileSkeleton } from '@/components/ui/Skeleton';
 import { openPhoneDialer } from '@/utils/phone';
 import { AnimatedChevron, Collapsible } from '@/components/ui/Collapsible';
 
@@ -30,7 +31,7 @@ export function StudentProfileView({ showClose, onClose }: StudentProfileViewPro
     }
   };
 
-  if (isLoading) return <LoadingScreen />;
+  if (isLoading) return <ProfileSkeleton />;
   if (error || !profile) return <ErrorScreen message="Failed to load profile" onRetry={() => refetch()} />;
 
   const infoRows = [

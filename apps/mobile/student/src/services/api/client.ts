@@ -4,7 +4,7 @@ import { getSecureItem, setSecureItem, deleteSecureItem } from '@/utils/storage'
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 15000,
+  timeout: 5000,
   headers: { 'Content-Type': 'application/json' },
 });
 

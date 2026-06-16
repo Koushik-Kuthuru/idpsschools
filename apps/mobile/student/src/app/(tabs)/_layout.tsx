@@ -14,8 +14,9 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Home' }} />
-      <Tabs.Screen name="marks" options={{ title: 'Marks' }} />
-      <Tabs.Screen name="attendance" options={{ title: 'Attendance' }} />
+      <Tabs.Screen name="notice-board" options={{ title: 'Notice board' }} />
+      <Tabs.Screen name="learning" options={{ title: 'Learning Management' }} />
+      <Tabs.Screen name="attendance" options={{ href: null }} />
       <Tabs.Screen name="fees" options={{ title: 'Fees' }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile' }} />
     </Tabs>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { subtleShadow } from '@/constants/shadows';
 
 interface CardProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ export function Card({ children, style, padding = 16 }: CardProps) {
     <View
       style={[
         styles.card,
+        subtleShadow,
         {
           backgroundColor: theme.colors.card,
           borderColor: theme.mode === 'dark' ? theme.colors.border : theme.colors.slate100,
@@ -51,11 +53,6 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 12,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
   },
   label: {
     fontSize: 10,

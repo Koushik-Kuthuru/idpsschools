@@ -1,11 +1,22 @@
 export interface TransportInfo {
+  routeNo: string;
+  pickupPoint: string;
+  vehicleNo?: string;
   inchargeNumber: string;
   driverName: string;
   driverNumber: string;
-  routeNo: string;
   destinationAddress: string;
   captainName: string;
   trackingLink: string;
+}
+
+export interface HostelInfo {
+  block: string;
+  roomNo: string;
+  bedNo: string;
+  wardenName: string;
+  wardenPhone: string;
+  messTimings?: string;
 }
 
 export interface User {
@@ -26,6 +37,7 @@ export interface User {
   parentName?: string;
   parentPhone?: string;
   transport?: TransportInfo;
+  hostel?: HostelInfo;
 }
 
 export interface AuthTokens {
@@ -63,9 +75,11 @@ export type AnnouncementCategory = 'important' | 'holiday' | 'events' | 'general
 export interface AnnouncementDetail extends Announcement {
   category: AnnouncementCategory;
   postedAt: string;
+  postedBy?: string;
   dateTime?: string;
   priority?: string;
   attachments?: number;
+  attachmentFiles?: string[];
   imageUrl?: string;
   content?: string;
 }
@@ -151,6 +165,56 @@ export interface TimetableSlot {
   color: string;
   isLive?: boolean;
   isBreak?: boolean;
+  courseId?: string;
+}
+
+export interface CourseTimelineEntry {
+  id: string;
+  date: string;
+  timeRange: string;
+  status: 'present' | 'absent' | 'late' | 'leave';
+  topic?: string;
+}
+
+export interface CourseTopicAttachment {
+  id: string;
+  title: string;
+  type: 'pdf' | 'notes' | 'link' | 'video';
+  fileName?: string;
+  size?: string;
+}
+
+export interface CourseSyllabusTopic {
+  id: string;
+  title: string;
+  attachments?: CourseTopicAttachment[];
+}
+
+export interface CourseSyllabusChapter {
+  id: string;
+  unitNumber?: number;
+  title: string;
+  topics: CourseSyllabusTopic[];
+}
+
+export interface CourseResource {
+  id: string;
+  title: string;
+  type: 'book' | 'pdf' | 'link';
+  author?: string;
+  subtitle?: string;
+}
+
+export interface CourseDetail {
+  id: string;
+  code: string;
+  subject: string;
+  teacher: string;
+  yourAttendancePercent: number;
+  classAveragePercent: number;
+  syllabus: CourseSyllabusChapter[];
+  resources: CourseResource[];
+  timeline: CourseTimelineEntry[];
 }
 
 export interface TimetableDay {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, G } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 
 interface CircularProgressProps {
@@ -15,28 +15,32 @@ export function CircularProgress({ percent, size = 160, strokeWidth = 12 }: Circ
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
 
+  const center = size / 2;
+
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={`${theme.colors.primary}1a`}
-          strokeWidth={strokeWidth}
-          fill="transparent"
-        />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={theme.colors.primary}
-          strokeWidth={strokeWidth}
-          fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-        />
+      <Svg width={size} height={size}>
+        <G transform={`rotate(-90 ${center} ${center})`}>
+          <Circle
+            cx={center}
+            cy={center}
+            r={radius}
+            stroke={`${theme.colors.primary}1a`}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+          />
+          <Circle
+            cx={center}
+            cy={center}
+            r={radius}
+            stroke={theme.colors.primary}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+          />
+        </G>
       </Svg>
       <View style={styles.center}>
         <Text style={[styles.percent, { color: theme.colors.text }]}>{percent}%</Text>

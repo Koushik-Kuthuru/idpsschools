@@ -21,9 +21,10 @@ export default function AssignmentsOverviewScreen() {
   const { data, isLoading, error, refetch } = useAssignments();
 
   if (isLoading) return <LoadingScreen />;
-  if (error || !data) return <ErrorScreen message="Failed to load homework" onRetry={() => refetch()} />;
+  if (error && !data) return <ErrorScreen message="Failed to load homework" onRetry={() => refetch()} />;
 
-  const subjectGroups = groupAssignmentsBySubject(data);
+  const items = data ?? [];
+  const subjectGroups = groupAssignmentsBySubject(items);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
@@ -32,7 +33,7 @@ export default function AssignmentsOverviewScreen() {
           <MaterialIcons name="arrow-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>
         <View style={styles.headerText}>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Homeworks / Assignments</Text>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Homeworks / Projects</Text>
           <Text style={{ color: theme.colors.textSecondary, fontSize: 11 }}>{SCHOOL_NAME}</Text>
         </View>
         <TouchableOpacity onPress={() => router.push('/assignments')}>
@@ -46,8 +47,9 @@ export default function AssignmentsOverviewScreen() {
             icon="assignment"
             iconColor={theme.colors.textMuted}
             iconBg={`${theme.colors.textMuted}1a`}
+            accentColor={theme.colors.textMuted}
             title="No work items assigned"
-            subtitle="Homework and assignments from your teachers will appear here, grouped by subject"
+            subtitle="Homework and projects from your teachers will appear here, grouped by subject"
           />
         ) : (
           subjectGroups.map((group) => (
@@ -71,6 +73,7 @@ export default function AssignmentsOverviewScreen() {
                     icon={getWorkItemIcon(item.type)}
                     iconColor={iconStyle.iconColor}
                     iconBg={iconStyle.iconBg}
+                    accentColor={iconStyle.iconColor}
                     title={item.title}
                     subtitle={getWorkItemOverviewSubtitle(item)}
                     badge={getWorkItemStatusLabel(item.status)}

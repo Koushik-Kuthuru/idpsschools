@@ -11,7 +11,13 @@
   },
   "scripts": {
     "postinstall": "patch-package",
+    "predev": "node scripts/clear-expo-cache.mjs",
     "dev": "turbo dev",
+    "dev:web": "turbo dev --filter=educational-erp-web",
+    "dev:mobile": "turbo dev --filter=erp-school-app --filter=idps-management-erp",
+    "dev:student": "npm run dev:all --workspace=erp-school-app",
+    "dev:student:native": "npm run dev:native --workspace=erp-school-app",
+    "dev:teacher": "npm run dev:all --workspace=idps-management-erp",
     "ios": "turbo ios",
     "android": "turbo android"
   },

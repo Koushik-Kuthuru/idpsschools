@@ -4,10 +4,13 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { changePasswordSchema, type ChangePasswordForm, getPasswordStrength } from '@/utils/validation';
+import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Button } from '@/components/ui/Button';
+import { cardShadow } from '@/constants/shadows';
 
 export default function ChangePasswordScreen() {
   const theme = useTheme();
@@ -26,11 +29,14 @@ export default function ChangePasswordScreen() {
   const password = watch('password');
   const strength = getPasswordStrength(password);
 
-  const requirements = useMemo(() => [
-    { label: 'At least 8 characters', met: password.length >= 8 },
-    { label: 'Mix of letters & numbers', met: /[A-Za-z]/.test(password) && /[0-9]/.test(password) },
-    { label: 'Special character', met: /[^A-Za-z0-9]/.test(password) },
-  ], [password]);
+  const requirements = useMemo(
+    () => [
+      { label: 'At least 8 characters', met: password.length >= 8 },
+      { label: 'Mix of letters & numbers', met: /[A-Za-z]/.test(password) && /[0-9]/.test(password) },
+      { label: 'Special character', met: /[^A-Za-z0-9]/.test(password) },
+    ],
+    [password],
+  );
 
   const onSubmit = async () => {
     setLoading(true);
@@ -41,59 +47,70 @@ export default function ChangePasswordScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
-        <TouchableOpacity style={styles.headerBtn} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={24} color={theme.colors.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Change Password</Text>
-        <TouchableOpacity style={styles.headerBtn} onPress={() => router.replace('/(tabs)/profile')}>
-          <MaterialIcons name="close" size={24} color={theme.colors.text} />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top', 'bottom']}>
+      <ScreenHeader title="Change password" fallbackRoute="/settings" />
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Text style={[styles.hint, { color: theme.colors.textSecondary }]}>
-          Ensure your account is secure by using a strong password that you don't use elsewhere.
-        </Text>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <View style={[styles.heroCard, cardShadow]}>
+          <View style={styles.heroIcon}>
+            <Ionicons name="shield-checkmark" size={28} color="#144835" />
+          </View>
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroEyebrow}>ACCOUNT SECURITY</Text>
+            <Text style={styles.heroTitle}>Update password</Text>
+            <Text style={styles.heroSub}>Use a strong password you don't use elsewhere</Text>
+          </View>
+        </View>
 
-        <PasswordField label="Current Password" control={control} name="currentPassword" error={errors.currentPassword?.message} show={showCurrent} onToggle={() => setShowCurrent(!showCurrent)} theme={theme} />
-        <PasswordField label="New Password" control={control} name="password" error={errors.password?.message} show={showNew} onToggle={() => setShowNew(!showNew)} theme={theme} placeholder="Enter new password" />
+        <SectionHeader title="Password details" />
+        <View style={[styles.formCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+          <PasswordField label="Current password" control={control} name="currentPassword" error={errors.currentPassword?.message} show={showCurrent} onToggle={() => setShowCurrent(!showCurrent)} theme={theme} />
+          <PasswordField label="New password" control={control} name="password" error={errors.password?.message} show={showNew} onToggle={() => setShowNew(!showNew)} theme={theme} placeholder="Enter new password" />
 
-        <View style={[styles.reqBox, { backgroundColor: `${theme.colors.primary}0d` }]}>
-          <Text style={[styles.reqTitle, { color: theme.colors.textMuted }]}>SECURITY REQUIREMENTS</Text>
-          {requirements.map((r) => (
-            <View key={r.label} style={styles.reqRow}>
-              <MaterialIcons name={r.met ? 'check-circle' : 'radio-button-unchecked'} size={18} color={r.met ? theme.colors.primary : theme.colors.textMuted} />
-              <Text style={{ color: r.met ? theme.colors.primary : theme.colors.textSecondary, fontSize: 14, fontWeight: r.met ? '600' : '400' }}>{r.label}</Text>
+          <View style={[styles.reqBox, { backgroundColor: `${theme.colors.primary}08`, borderColor: theme.colors.border }]}>
+            <Text style={[styles.reqTitle, { color: theme.colors.textMuted }]}>Security requirements</Text>
+            {requirements.map((r) => (
+              <View key={r.label} style={styles.reqRow}>
+                <Ionicons name={r.met ? 'checkmark-circle' : 'ellipse-outline'} size={18} color={r.met ? theme.colors.primary : theme.colors.textMuted} />
+                <Text style={{ color: r.met ? theme.colors.primary : theme.colors.textSecondary, fontSize: 13, fontWeight: r.met ? '600' : '400' }}>{r.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          <PasswordField label="Confirm password" control={control} name="confirmPassword" error={errors.confirmPassword?.message} show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)} theme={theme} placeholder="Re-enter new password" />
+
+          <View style={styles.strengthBlock}>
+            <View style={styles.strengthHeader}>
+              <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Password strength</Text>
+              <Text style={{ color: theme.colors.primary, fontWeight: '800' }}>{strength.label}</Text>
             </View>
-          ))}
+            <View style={[styles.strengthTrack, { backgroundColor: theme.colors.border }]}>
+              <View style={[styles.strengthFill, { width: `${strength.score}%`, backgroundColor: theme.colors.primary }]} />
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.checkRow} onPress={() => setLogoutDevices(!logoutDevices)} activeOpacity={0.75}>
+            <Ionicons name={logoutDevices ? 'checkbox' : 'square-outline'} size={22} color={theme.colors.primary} />
+            <Text style={{ color: theme.colors.text, fontSize: 14, fontWeight: '500' }}>Sign out all devices after change</Text>
+          </TouchableOpacity>
         </View>
 
-        <PasswordField label="Confirm Password" control={control} name="confirmPassword" error={errors.confirmPassword?.message} show={showConfirm} onToggle={() => setShowConfirm(!showConfirm)} theme={theme} placeholder="Re-enter new password" />
-
-        <View style={styles.strengthBlock}>
-          <View style={styles.strengthHeader}>
-            <Text style={{ color: theme.colors.text, fontWeight: '500' }}>Password strength</Text>
-            <Text style={{ color: theme.colors.primary, fontWeight: '700' }}>{strength.label}</Text>
-          </View>
-          <View style={[styles.strengthTrack, { backgroundColor: theme.colors.slate200 }]}>
-            <View style={[styles.strengthFill, { width: `${strength.score}%`, backgroundColor: theme.colors.primary }]} />
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.checkRow} onPress={() => setLogoutDevices(!logoutDevices)}>
-          <MaterialIcons name={logoutDevices ? 'check-box' : 'check-box-outline-blank'} size={24} color={theme.colors.primary} />
-          <Text style={{ color: theme.colors.text, fontSize: 14, fontWeight: '500' }}>Logout all devices after change</Text>
-        </TouchableOpacity>
-
-        <Button title="Update Password" onPress={handleSubmit(onSubmit)} loading={loading} style={{ marginTop: 8 }} />
+        <Button title="Update password" onPress={handleSubmit(onSubmit)} loading={loading} style={{ marginTop: 4 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function PasswordField({ label, control, name, error, show, onToggle, theme, placeholder }: {
+function PasswordField({
+  label,
+  control,
+  name,
+  error,
+  show,
+  onToggle,
+  theme,
+  placeholder,
+}: {
   label: string;
   control: ReturnType<typeof useForm<ChangePasswordForm>>['control'];
   name: keyof ChangePasswordForm;
@@ -110,59 +127,58 @@ function PasswordField({ label, control, name, error, show, onToggle, theme, pla
         control={control}
         name={name}
         render={({ field: { onChange, onBlur, value } }) => (
-          <View style={[styles.inputWrap, { borderColor: error ? theme.colors.red500 : theme.colors.slate200, backgroundColor: theme.colors.card }]}>
-            <TextInputStyled value={value} onChangeText={onChange} onBlur={onBlur} secureTextEntry={!show} placeholder={placeholder} theme={theme} />
+          <View style={[styles.inputWrap, { borderColor: error ? theme.colors.red500 : theme.colors.border, backgroundColor: theme.colors.background }]}>
+            <TextInput
+              value={value}
+              onChangeText={onChange}
+              onBlur={onBlur}
+              secureTextEntry={!show}
+              placeholder={placeholder}
+              placeholderTextColor={theme.colors.textMuted}
+              style={[styles.input, { color: theme.colors.text }]}
+            />
             <TouchableOpacity onPress={onToggle} style={styles.eyeBtn}>
-              <MaterialIcons name={show ? 'visibility' : 'visibility-off'} size={22} color={theme.colors.textMuted} />
+              <Ionicons name={show ? 'eye-outline' : 'eye-off-outline'} size={20} color={theme.colors.textMuted} />
             </TouchableOpacity>
           </View>
         )}
       />
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error ? <Text style={[styles.error, { color: theme.colors.red500 }]}>{error}</Text> : null}
     </View>
-  );
-}
-
-function TextInputStyled({ value, onChangeText, onBlur, secureTextEntry, placeholder, theme }: {
-  value: string;
-  onChangeText: (t: string) => void;
-  onBlur: () => void;
-  secureTextEntry?: boolean;
-  placeholder?: string;
-  theme: ReturnType<typeof useTheme>;
-}) {
-  return (
-    <TextInput
-      value={value}
-      onChangeText={onChangeText}
-      onBlur={onBlur}
-      secureTextEntry={secureTextEntry}
-      placeholder={placeholder}
-      placeholderTextColor={theme.colors.textMuted}
-      style={[styles.input, { color: theme.colors.text }]}
-    />
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, paddingVertical: 8, borderBottomWidth: 1 },
-  headerBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20 },
-  headerTitle: { fontSize: 18, fontWeight: '700' },
-  scroll: { padding: 16, paddingBottom: 100 },
-  hint: { fontSize: 14, lineHeight: 22, marginBottom: 20 },
+  scroll: { paddingHorizontal: 16, paddingBottom: 32 },
+  heroCard: {
+    backgroundColor: '#144835',
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 4,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  heroIcon: { width: 56, height: 56, borderRadius: 16, backgroundColor: '#a2c144', alignItems: 'center', justifyContent: 'center' },
+  heroCopy: { flex: 1 },
+  heroEyebrow: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  heroTitle: { color: '#fff', fontSize: 22, fontWeight: '800', marginTop: 4 },
+  heroSub: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 4, lineHeight: 17 },
+  formCard: { borderRadius: 14, borderWidth: 1, padding: 16, marginBottom: 12 },
   field: { marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '500', marginBottom: 8 },
-  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 12, height: 56 },
-  input: { flex: 1, paddingHorizontal: 16, fontSize: 16, height: '100%' },
+  label: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 12, height: 52 },
+  input: { flex: 1, paddingHorizontal: 14, fontSize: 15, height: '100%' },
   eyeBtn: { paddingHorizontal: 14 },
-  error: { color: '#ef4444', fontSize: 12, marginTop: 4 },
-  reqBox: { padding: 16, borderRadius: 12, marginBottom: 16 },
-  reqTitle: { fontSize: 10, fontWeight: '700', letterSpacing: 1, marginBottom: 12 },
+  error: { fontSize: 12, marginTop: 4 },
+  reqBox: { padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 16 },
+  reqTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5, marginBottom: 10, textTransform: 'uppercase' },
   reqRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   strengthBlock: { marginBottom: 16 },
   strengthHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   strengthTrack: { height: 8, borderRadius: 4, overflow: 'hidden' },
   strengthFill: { height: '100%', borderRadius: 4 },
-  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 },
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
 });

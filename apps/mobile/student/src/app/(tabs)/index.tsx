@@ -1,21 +1,35 @@
 import { useCallback } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useDashboard, useAssignments, useNotifications, useUnreadNotificationCount } from '@/hooks/useApi';
 import { useAuthStore } from '@/store';
-import { DashboardHeader, OverviewCard, AnnouncementCard } from '@/components/cards/DashboardCards';
+import { DashboardHeader, OverviewCard, StatCard } from '@/components/cards/DashboardCards';
+import { cardShadow } from '@/constants/shadows';
 import { ProgressBar } from '@/components/charts/ProgressChart';
 import { LoadingScreen, ErrorScreen } from '@/components/ui/ScreenHeader';
-import { MaterialIcons } from '@expo/vector-icons';
 import { formatINR } from '@/utils/currency';
 import { TAB_SCREEN_SCROLL_PADDING } from '@/constants/layout';
 import { getWorkItemsOverviewSubtitle } from '@/utils/workItems';
+import { appNavigate } from '@/utils/navigation';
+
+function SectionHeader({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{title}</Text>
+      {actionLabel && onAction ? (
+        <TouchableOpacity onPress={onAction} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={[styles.sectionAction, { color: theme.colors.primary }]}>{actionLabel}</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+}
 
 export default function DashboardHome() {
   const theme = useTheme();
-  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const { data, isLoading, error, refetch, isRefetching } = useDashboard();
   const {
@@ -43,16 +57,13 @@ export default function DashboardHome() {
   if (error || !data) return <ErrorScreen message="Failed to load dashboard" onRetry={() => refetch()} />;
 
   const workItems = assignments ?? [];
+  const hasPendingWork = workItems.some((item) => item.status === 'pending' || item.status === 'overdue');
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <DashboardHeader
-        studentName={data.studentName}
-        avatar={user?.avatar}
-        notificationCount={unreadNotificationCount}
-      />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ScrollView
         contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
             refreshing={isRefetching || assignmentsRefetching || notificationsRefetching}
@@ -61,91 +72,142 @@ export default function DashboardHome() {
           />
         }
       >
-        <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Today's Overview</Text>
-        <OverviewCard
-          icon="school"
-          iconColor={theme.colors.primary}
-          iconBg={`${theme.colors.primary}1a`}
-          title={`${data.classesToday} Classes Today`}
-          subtitle={`Next: ${data.nextClass}`}
-          onPress={() => router.push('/exams/timetable')}
-        />
-        <OverviewCard
-          icon="calendar-today"
-          iconColor={theme.colors.blue500}
-          iconBg="rgba(59, 130, 246, 0.1)"
-          title={`${data.attendancePercent}% Average Attendance`}
-          subtitle={`Status: ${data.attendanceStatus}`}
-          onPress={() => router.push('/attendance/overview')}
+        <DashboardHeader
+          studentName={user?.name ?? data.studentName}
+          className={user?.className}
+          admissionNumber={user?.studentId}
+          avatar={user?.avatar}
+          notificationCount={unreadNotificationCount}
+          onProfilePress={() => appNavigate('/profile')}
+          onIdCardPress={() => appNavigate('/profile/id-card')}
+          onHomeworksPress={() => appNavigate('/assignments')}
         />
 
+        <View style={styles.content}>
+        <SectionHeader title="Today's overview" />
+        <OverviewCard
+          icon="schedule"
+          iconColor={theme.colors.primary}
+          iconBg={`${theme.colors.primary}14`}
+          accentColor={theme.colors.primary}
+          title={`${data.classesToday} classes today`}
+          subtitle={`Next up · ${data.nextClass}`}
+          badge="Active"
+          onPress={() => appNavigate('/timetable')}
+        />
+        <OverviewCard
+          icon="fact-check"
+          iconColor="#2563eb"
+          iconBg="rgba(37, 99, 235, 0.1)"
+          accentColor="#2563eb"
+          title={`${data.attendancePercent}% attendance`}
+          subtitle={`Today · ${data.attendanceStatus}`}
+          onPress={() => appNavigate('/(tabs)/attendance')}
+        />
         <OverviewCard
           icon="assignment"
-          iconColor={theme.colors.primary}
-          iconBg={`${theme.colors.primary}1a`}
-          title="Homeworks / Assignments"
+          iconColor="#d97706"
+          iconBg="rgba(217, 119, 6, 0.1)"
+          accentColor="#d97706"
+          title="Homework & projects"
           subtitle={getWorkItemsOverviewSubtitle(workItems)}
-          onPress={() => router.push('/assignments/overview')}
+          badge={hasPendingWork ? 'Pending' : undefined}
+          onPress={() => appNavigate('/assignments')}
         />
 
-        <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 8 }]}>Quick Stats</Text>
+        <SectionHeader title="Quick stats" />
         <View style={styles.statsGrid}>
-          <TouchableOpacity
-            style={[styles.statCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
-            onPress={() => router.push('/(tabs)/marks')}
+          <StatCard
+            label="Attendance"
+            value={`${data.attendancePercent}%`}
+            subValue={data.attendanceStatus}
+            icon="event-available"
+            accent="#2563eb"
+            onPress={() => appNavigate('/(tabs)/attendance')}
           >
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>GPA</Text>
-            <View style={styles.statValueRow}>
-              <Text style={[styles.statValue, { color: theme.colors.text }]}>{data.gpa}</Text>
-              <Text style={{ color: theme.colors.textMuted, fontSize: 14 }}>/ 4.0</Text>
+            <View style={styles.progressWrap}>
+              <ProgressBar percent={data.attendancePercent} height={5} color="#2563eb" />
             </View>
-            <ProgressBar percent={(data.gpa / 4) * 100} height={6} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.statCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
-            onPress={() => router.push('/fees/payments-overview')}
+          </StatCard>
+          <StatCard
+            label="Fees due"
+            value={formatINR(data.feesDue)}
+            icon="payments"
+            accent={theme.colors.accent}
+            onPress={() => appNavigate('/fees/payments-overview')}
           >
-            <Text style={[styles.statLabel, { color: theme.colors.textSecondary }]}>Fees Due</Text>
-            <Text style={[styles.statValue, { color: theme.colors.text }]}>{formatINR(data.feesDue)}</Text>
-            <View style={styles.payRow}>
-              <Text style={{ color: theme.colors.primary, fontSize: 12, fontWeight: '700' }}>Pay Now</Text>
+            <View style={styles.payPill}>
+              <Text style={[styles.payPillText, { color: theme.colors.primary }]}>Pay now</Text>
               <MaterialIcons name="arrow-forward" size={14} color={theme.colors.primary} />
             </View>
-          </TouchableOpacity>
+          </StatCard>
         </View>
 
-        <View style={styles.announceHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Announcements</Text>
-          <TouchableOpacity onPress={() => router.push('/announcements' as '/assignments')}>
-            <Text style={{ color: theme.colors.primary, fontSize: 14, fontWeight: '600' }}>See all</Text>
+        <SectionHeader title="Tools" />
+        <View style={styles.toolsGrid}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => appNavigate('/exams/schedule')}
+            style={[styles.toolCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
+          >
+            <View style={[styles.toolIcon, { backgroundColor: `${theme.colors.primary}14` }]}>
+              <MaterialIcons name="calendar-today" size={22} color={theme.colors.primary} />
+            </View>
+            <Text style={[styles.toolLabel, { color: theme.colors.text }]}>Exam schedule</Text>
+            <Text style={[styles.toolSub, { color: theme.colors.textSecondary }]}>Exam dates & halls</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => appNavigate('/timetable')}
+            style={[styles.toolCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
+          >
+            <View style={[styles.toolIcon, { backgroundColor: 'rgba(37, 99, 235, 0.1)' }]}>
+              <MaterialIcons name="schedule" size={22} color="#2563eb" />
+            </View>
+            <Text style={[styles.toolLabel, { color: theme.colors.text }]}>Class timetable</Text>
+            <Text style={[styles.toolSub, { color: theme.colors.textSecondary }]}>Daily class timings</Text>
           </TouchableOpacity>
         </View>
-        {data.announcements.map((a) => (
-          <AnnouncementCard key={a.id} item={a} />
-        ))}
-
-        <TouchableOpacity
-          style={[styles.refinedLink, { borderColor: theme.colors.primary }]}
-          onPress={() => router.push('/profile/refined-dashboard')}
-        >
-          <MaterialIcons name="dashboard" size={20} color={theme.colors.primary} />
-          <Text style={{ color: theme.colors.primary, fontWeight: '600', marginLeft: 8 }}>View Refined Dashboard</Text>
-        </TouchableOpacity>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 16, paddingBottom: TAB_SCREEN_SCROLL_PADDING },
-  sectionTitle: { fontSize: 20, fontWeight: '700', marginBottom: 16 },
-  statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-  statCard: { flex: 1, padding: 16, borderRadius: 12, borderWidth: 1 },
-  statLabel: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  statValue: { fontSize: 24, fontWeight: '700' },
-  statValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4, marginBottom: 8 },
-  payRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8 },
-  announceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  refinedLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 14, borderRadius: 12, borderWidth: 1, marginTop: 16 },
+  scroll: { paddingBottom: TAB_SCREEN_SCROLL_PADDING },
+  content: { paddingHorizontal: 16, paddingTop: 8 },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  sectionTitle: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
+  sectionAction: { fontSize: 13, fontWeight: '600' },
+  statsGrid: { flexDirection: 'row', gap: 10, marginBottom: 8 },
+  progressWrap: { marginTop: 10 },
+  payPill: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
+  payPillText: { fontSize: 12, fontWeight: '700' },
+  toolsGrid: { flexDirection: 'row', gap: 10, marginBottom: 8 },
+  toolCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    minHeight: 120,
+  },
+  toolIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  toolLabel: { fontSize: 15, fontWeight: '700' },
+  toolSub: { fontSize: 12, marginTop: 4, textAlign: 'center' },
 });

@@ -18,6 +18,10 @@ import { OfflineBanner } from '@/components/navigation/OfflineBanner';
 
 SplashScreen.preventAutoHideAsync();
 
+export const unstable_settings = {
+  anchor: '(tabs)',
+};
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 1000 * 60 * 5, retry: 2 } },
 });
@@ -92,10 +96,19 @@ export default function RootLayout() {
             <Stack.Screen name="marks" />
             <Stack.Screen name="assignments" />
             <Stack.Screen name="exams" />
+            <Stack.Screen name="timetable" />
             <Stack.Screen name="fees" />
-            <Stack.Screen name="announcements" />
-            <Stack.Screen name="notifications/index" />
+            <Stack.Screen
+              name="notifications"
+              options={{
+                animation: 'slide_from_right',
+                gestureEnabled: true,
+                fullScreenGestureEnabled: true,
+              }}
+            />
             <Stack.Screen name="profile" />
+            <Stack.Screen name="transport" />
+            <Stack.Screen name="hostel" />
             <Stack.Screen name="settings" />
             <Stack.Screen name="offline" options={{ presentation: 'modal' }} />
           </Stack>

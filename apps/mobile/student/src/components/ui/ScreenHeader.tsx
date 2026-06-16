@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'rea
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
-
+import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton';
 interface ScreenHeaderProps {
   title: string;
   showBack?: boolean;
@@ -60,8 +60,14 @@ export function ScreenHeader({ title, showBack = true, onBack, fallbackRoute = '
 export function LoadingScreen() {
   const theme = useTheme();
   return (
-    <View style={[styles.loading, { backgroundColor: theme.colors.background }]}>
-      <ActivityIndicator size="large" color={theme.colors.primary} />
+    <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+      <View style={styles.skeletonHeader}>
+        <Skeleton width="60%" height={24} borderRadius={8} />
+      </View>
+      <SkeletonCard />
+      <SkeletonCard />
+      <SkeletonCard />
+      <SkeletonCard />
     </View>
   );
 }
@@ -103,6 +109,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     paddingRight: 40,
+  },
+  loadingContainer: { 
+    flex: 1, 
+    padding: 16 
+  },
+  skeletonHeader: {
+    marginBottom: 24,
+    marginTop: 8,
   },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   errorText: { marginTop: 12, fontSize: 16, textAlign: 'center', paddingHorizontal: 24 },

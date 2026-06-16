@@ -17,10 +17,10 @@ export default function RefinedDashboardScreen() {
   if (isLoading || !dashboard) return <LoadingScreen />;
 
   const quickLinks = [
-    { icon: 'assignment' as const, label: 'Assignments', route: '/assignments' },
+    { icon: 'assignment' as const, label: 'Projects', route: '/assignments' },
     { icon: 'event' as const, label: 'Exams', route: '/exams/schedule' },
-    { icon: 'schedule' as const, label: 'Timetable', route: '/exams/timetable' },
-    { icon: 'campaign' as const, label: 'Announcements', route: '/announcements' },
+    { icon: 'schedule' as const, label: 'Class timetable', route: '/timetable' },
+    { icon: 'campaign' as const, label: 'Notice board', route: '/(tabs)/notice-board' },
   ];
 
   return (
@@ -45,8 +45,8 @@ export default function RefinedDashboardScreen() {
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           <MaterialIcons name="calendar-today" size={18} color={theme.colors.primary} /> Today's Overview
         </Text>
-        <OverviewCard icon="menu-book" iconColor={theme.colors.primary} iconBg={`${theme.colors.primary}1a`} title={`${dashboard.classesToday} Classes Today`} subtitle={`Next: ${dashboard.nextClass}`} badge="Active" />
-        <OverviewCard icon="person" iconColor={theme.colors.blue500} iconBg="rgba(59,130,246,0.1)" title={`${dashboard.attendancePercent}% Average Attendance`} subtitle={`Status: ${dashboard.attendanceStatus}`} />
+        <OverviewCard icon="menu-book" iconColor={theme.colors.primary} iconBg={`${theme.colors.primary}1a`} accentColor={theme.colors.primary} title={`${dashboard.classesToday} Classes Today`} subtitle={`Next: ${dashboard.nextClass}`} badge="Active" />
+        <OverviewCard icon="person" iconColor={theme.colors.blue500} iconBg="rgba(59,130,246,0.1)" accentColor={theme.colors.blue500} title={`${dashboard.attendancePercent}% Average Attendance`} subtitle={`Status: ${dashboard.attendanceStatus}`} />
 
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>
           <MaterialIcons name="insights" size={18} color={theme.colors.primary} /> Quick Stats

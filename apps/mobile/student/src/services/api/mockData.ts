@@ -19,9 +19,11 @@ import type {
   TimetableDay,
   User,
   WorkItemType,
+  CourseDetail,
 } from '@/types';
 import { formatDueDate } from '@/utils/workItems';
-import { buildSchoolWeekDays } from '@/utils/timetable';
+import { buildAcademicYearSchoolDays } from '@/utils/timetable';
+import { getMockCourseDetail } from '@/utils/courses';
 import { getMergedFeesOverview } from './feesState';
 
 const delay = (ms = MOCK_API_DELAY) => new Promise((r) => setTimeout(r, ms));
@@ -77,13 +79,23 @@ const mockUser: User = {
   parentName: 'Robert Johnson',
   parentPhone: '+91 98765-43211',
   transport: {
+    routeNo: 'R-12',
+    pickupPoint: 'Green Valley Towers Gate 2, Sector 45, New Delhi',
+    vehicleNo: 'DL-01-AB-4521',
     inchargeNumber: '+91 98765-43220',
     driverName: 'Mr. Suresh Patel',
     driverNumber: '+91 98765-43221',
-    routeNo: 'R-12',
-    destinationAddress: 'Green Valley Towers, Sector 45, New Delhi',
+    destinationAddress: 'International Delhi Public School, Kalaburagi',
     captainName: 'Mr. Ramesh Kumar',
     trackingLink: 'https://track.idps.edu/bus/R-12',
+  },
+  hostel: {
+    block: 'Dome Block',
+    roomNo: '204',
+    bedNo: 'B2',
+    wardenName: 'Mrs. Anitha Reddy',
+    wardenPhone: '+91 98765-43230',
+    messTimings: 'Breakfast 7:30 AM · Lunch 1:00 PM · Dinner 7:30 PM',
   },
 };
 
@@ -124,7 +136,7 @@ export const mockApi = {
     await delay();
     const fees = await getMergedFeesOverview();
     return {
-      studentName: mockUser.name.split(' ')[0],
+      studentName: mockUser.name,
       schoolName: mockUser.schoolName,
       attendancePercent: 92,
       attendanceStatus: 'Present Today',
@@ -177,10 +189,7 @@ export const mockApi = {
     },
     records: async (): Promise<AttendanceRecord[]> => {
       await delay();
-      return Array.from({ length: 20 }, (_, i) => ({
-        date: `2026-01-${String(i + 1).padStart(2, '0')}`,
-        status: (['present', 'present', 'absent', 'late', 'present'] as const)[i % 5],
-      }));
+      return buildAttendanceRecords();
     },
   },
   marks: {
@@ -226,24 +235,34 @@ export const mockApi = {
   },
   timetable: async (): Promise<TimetableDay[]> => {
     await delay();
-    const week = buildSchoolWeekDays();
+    const yearDays = buildAcademicYearSchoolDays();
     const todaySlots = [
-      { id: 'w1', subject: 'English', color: '#3b82f6', teacher: 'Ms. Sarah', room: '101', startTime: '09:00', endTime: '10:00' },
-      { id: 'w2', subject: 'Math', color: '#0fbd83', teacher: 'Mr. John', room: '102', startTime: '10:00', endTime: '11:00', isLive: true },
-      { id: 'w3', subject: 'Lunch Break', color: '#94a3b8', teacher: '', room: 'Cafeteria', startTime: '11:00', endTime: '11:30', isBreak: true },
-      { id: 'w4', subject: 'Science', color: '#8b5cf6', teacher: 'Dr. Patel', room: 'Lab 1', startTime: '11:30', endTime: '12:30' },
-      { id: 'w5', subject: 'History', color: '#f59e0b', teacher: 'Mr. Brown', room: '305', startTime: '01:00', endTime: '02:00' },
+      { id: 'w1', subject: 'Environmental Impact Assessment', color: '#2563eb', teacher: 'Dr. Rao', room: '201', startTime: '09:20', endTime: '10:10' },
+      { id: 'w2', subject: 'Human Computer Interaction', color: '#2563eb', teacher: 'Ms. Priya', room: '305', startTime: '10:10', endTime: '11:00' },
+      { id: 'w2b', subject: 'Short Break', color: '#64748b', teacher: '', room: '', startTime: '11:00', endTime: '11:50', isBreak: true },
+      { id: 'w3', subject: 'Organizational Behaviour', color: '#2563eb', teacher: 'Mr. Kumar', room: '102', startTime: '11:50', endTime: '12:40' },
+      { id: 'w3b', subject: 'Lunch Break', color: '#64748b', teacher: '', room: '', startTime: '12:40', endTime: '13:20', isBreak: true },
+      { id: 'w4', subject: 'Project Stage-II Including Seminar', color: '#f59e0b', teacher: 'Guide', room: 'Lab 2', startTime: '13:20', endTime: '15:50' },
     ];
-    return week.map((d) => ({
+    return yearDays.map((d) => ({
       ...d,
       slots: d.isToday
         ? todaySlots
-        : [
-            { id: `${d.fullDate}-1`, subject: 'Math', color: '#0fbd83', teacher: 'Mr. John', room: '102', startTime: '09:00', endTime: '10:00' },
-            { id: `${d.fullDate}-2`, subject: 'English', color: '#3b82f6', teacher: 'Ms. Sarah', room: '101', startTime: '10:00', endTime: '11:00' },
-            { id: `${d.fullDate}-3`, subject: 'Science', color: '#8b5cf6', teacher: 'Dr. Patel', room: 'Lab 1', startTime: '11:30', endTime: '12:30' },
-          ],
+        : d.day === 'Saturday'
+          ? []
+          : [
+              { id: `${d.fullDate}-1`, subject: 'Mathematics', color: '#2563eb', teacher: 'Mr. John', room: '102', startTime: '09:00', endTime: '10:00' },
+              { id: `${d.fullDate}-2`, subject: 'English Literature', color: '#2563eb', teacher: 'Ms. Sarah', room: '101', startTime: '10:00', endTime: '11:00' },
+              { id: `${d.fullDate}-2b`, subject: 'Short Break', color: '#64748b', teacher: '', room: '', startTime: '11:00', endTime: '11:30', isBreak: true },
+              { id: `${d.fullDate}-3`, subject: 'Science Lab', color: '#2563eb', teacher: 'Dr. Patel', room: 'Lab 1', startTime: '11:30', endTime: '12:30' },
+              { id: `${d.fullDate}-3b`, subject: 'Lunch Break', color: '#64748b', teacher: '', room: '', startTime: '12:30', endTime: '13:15', isBreak: true },
+              { id: `${d.fullDate}-4`, subject: 'History', color: '#2563eb', teacher: 'Mrs. Emma', room: '103', startTime: '13:15', endTime: '14:15' },
+            ],
     }));
+  },
+  courseDetail: async (courseId: string, subjectHint?: string): Promise<CourseDetail> => {
+    await delay();
+    return getMockCourseDetail(courseId, subjectHint);
   },
   fees: async (): Promise<FeesOverview> => {
     await delay();
@@ -271,50 +290,61 @@ export const mockApi = {
     return [
       {
         id: '1',
-        title: 'Final Exams Schedule',
-        description: 'Exam timetable has been published for all grades.',
+        title: 'I B.Tech Regular/Supplementary Exams — June 2026 Time Tables',
+        description:
+          'I B.Tech II Semester Regular/Supplementary and I B.Tech I Semester Supplementary Exams — June 2026 Time Tables are now published.',
         timeAgo: '2h ago',
         isNew: true,
         category: 'important',
-        postedAt: 'Posted: 10 Jan',
-        dateTime: 'Jan 10, 2025 • 9:00 AM',
+        postedBy: 'IDPS ADMIN | EXAMINATION CELL',
+        postedAt: 'Jun 12, 2026 10:13 AM',
+        dateTime: 'Jun 12, 2026 • 10:13 AM',
         priority: 'High',
-        attachments: 2,
-        imageUrl: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800',
-        content: 'Dear students, the final examination schedule for Term 2 is now available. Please download the attached PDF and review your exam dates, rooms, and reporting times.',
+        attachments: 3,
+        attachmentFiles: [
+          'I B.TECH I SEMESTER R22 SUPPLEMENTARY EXAMS JUNE-2026 TIME TABLE.PDF',
+          'I B.TECH II SEMESTER R22 REGULAR EXAMS JUNE-2026 TIME TABLE.PDF',
+          'I B.TECH II SEMESTER R22 SUPPLEMENTARY EXAMS JUNE-2026 TIME TABLE.PDF',
+        ],
+        content:
+          'Dear students, the final examination schedule for Term 2 is now available. Please download the attached PDF and review your exam dates, rooms, and reporting times.',
       },
       {
         id: '2',
-        title: 'Republic Day',
-        description: 'Campus closed on Jan 26.',
+        title: 'Republic Day Holiday',
+        description: 'Campus will remain closed on Jan 26. Regular classes resume Jan 27.',
         timeAgo: '1d ago',
         isNew: false,
         category: 'holiday',
-        postedAt: 'Jan 8, 2025',
-        dateTime: 'Jan 26, 2025',
+        postedBy: 'IDPS ADMIN | GENERAL NOTICES',
+        postedAt: 'Jan 8, 2026 9:00 AM',
+        dateTime: 'Jan 26, 2026',
         priority: 'Closed',
         content: 'The school will remain closed on Republic Day. Regular classes resume Jan 27.',
       },
       {
         id: '3',
-        title: 'Annual Sports Day',
-        description: 'Register by Jan 20 for events.',
+        title: 'Annual Sports Day Registration',
+        description: 'Register by Jan 20 for track, field, and team events.',
         timeAgo: '3d ago',
         isNew: false,
         category: 'events',
-        postedAt: 'Posted: 5 Jan',
-        dateTime: 'Feb 2, 2025 • 8:00 AM',
+        postedBy: 'IDPS ADMIN | SPORTS DEPARTMENT',
+        postedAt: 'Jan 5, 2026 8:00 AM',
+        dateTime: 'Feb 2, 2026 • 8:00 AM',
         attachments: 1,
+        attachmentFiles: ['Sports_Day_Registration_Form.pdf'],
         content: 'Join us for Annual Sports Day! Students can register for track, field, and team events through the portal.',
       },
       {
         id: '4',
-        title: 'Library Hours Extended',
-        description: 'Library open until 6 PM during exams.',
+        title: 'Library Hours Extended During Exams',
+        description: 'Library open until 6 PM on weekdays during the exam period.',
         timeAgo: '5d ago',
         isNew: false,
         category: 'general',
-        postedAt: 'Posted: 3 Jan',
+        postedBy: 'IDPS ADMIN | LIBRARY',
+        postedAt: 'Jan 3, 2026 11:30 AM',
         content: 'During exam week, the library will remain open until 6:00 PM on weekdays.',
       },
     ];
@@ -354,6 +384,56 @@ function termStats(subjects: SubjectMark[]) {
   const gpa = Math.round((totalPercent / 100) * 4 * 10) / 10;
   const grade = totalPercent >= 90 ? 'A' : totalPercent >= 80 ? 'B+' : 'B';
   return { gpa, grade, rank: '5/45', totalPercent, subjects };
+}
+
+function buildAttendanceRecords(): AttendanceRecord[] {
+  const statuses = ['present', 'present', 'absent', 'late', 'present', 'leave'] as const;
+  const subjectTargets = [
+    { subject: 'English', percent: 95 },
+    { subject: 'Math', percent: 90 },
+    { subject: 'Science', percent: 88 },
+    { subject: 'History', percent: 92 },
+    { subject: 'PE', percent: 100 },
+  ];
+  const months = [
+    { year: 2025, month: 9 },
+    { year: 2025, month: 10 },
+    { year: 2025, month: 11 },
+    { year: 2025, month: 12 },
+    { year: 2026, month: 1 },
+  ];
+  const records: AttendanceRecord[] = [];
+
+  months.forEach(({ year, month }, monthIndex) => {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month - 1, day);
+      const weekday = date.getDay();
+      if (weekday === 0 || weekday === 6) continue;
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      records.push({
+        date: dateStr,
+        status: statuses[(day + monthIndex) % statuses.length],
+      });
+
+      subjectTargets.forEach((item, subjectIndex) => {
+        const seed = day * 17 + monthIndex * 13 + subjectIndex * 29 + item.subject.charCodeAt(0);
+        const roll = seed % 100;
+        let status: AttendanceRecord['status'] = 'present';
+        if (roll >= item.percent) {
+          status = roll >= item.percent + 6 ? 'absent' : roll >= item.percent + 3 ? 'leave' : 'late';
+        }
+        records.push({ date: dateStr, status, subject: item.subject });
+      });
+    }
+  });
+
+  return records.sort((a, b) => {
+    const dateCmp = b.date.localeCompare(a.date);
+    if (dateCmp !== 0) return dateCmp;
+    return (a.subject ?? '').localeCompare(b.subject ?? '');
+  });
 }
 
 function buildMarksOverview(): MarksOverview {

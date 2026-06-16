@@ -6,9 +6,11 @@ import {
   ActivityIndicator,
   ViewStyle,
   TextStyle,
+  Platform,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+import { buttonShadow } from '@/constants/shadows';
 
 interface ButtonProps {
   title: string;
@@ -44,10 +46,10 @@ export function Button({
       style={[
         styles.base,
         isPrimary && { backgroundColor: theme.colors.primary },
-        !flat && isPrimary && styles.shadow,
+        !flat && isPrimary && buttonShadow,
         variant === 'outline' && { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: theme.colors.primary },
         variant === 'ghost' && { backgroundColor: 'transparent' },
-        flat && styles.noShadow,
+        flat && (Platform.OS === 'web' ? { boxShadow: 'none' } : styles.noShadow),
         (disabled || loading) && styles.disabled,
         style,
       ]}
@@ -87,13 +89,6 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
-  },
-  shadow: {
-    shadowColor: '#0fbd83',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
   },
   noShadow: {
     shadowOpacity: 0,

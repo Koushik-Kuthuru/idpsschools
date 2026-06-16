@@ -1,5 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { Platform } from 'react-native';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAuth, initializeAuth, type Auth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,10 +16,23 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+function createAuth(firebaseApp: FirebaseApp): Auth {
+  if (Platform.OS === 'web') {
+    return getAuth(firebaseApp);
+  }
+
+  // Resolved at runtime by Metro to the React Native auth bundle.
+  const { getReactNativePersistence } = require('firebase/auth') as {
+    getReactNativePersistence: (storage: typeof AsyncStorage) => import('firebase/auth').Persistence;
+  };
+
+  return initializeAuth(firebaseApp, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+}
+
 export const db = getFirestore(app);
-export const fbAuth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+export const fbAuth = createAuth(app);
 export const fbStorage = getStorage(app);
 
 export default app;

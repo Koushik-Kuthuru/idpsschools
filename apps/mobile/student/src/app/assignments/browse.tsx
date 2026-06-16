@@ -29,7 +29,7 @@ export default function AssignmentsBrowseScreen() {
   }, [data, filter, search]);
 
   if (isLoading) return <LoadingScreen />;
-  if (error || !data) return <ErrorScreen message="Failed to load assignments" onRetry={() => refetch()} />;
+  if (error || !data) return <ErrorScreen message="Failed to load projects" onRetry={() => refetch()} />;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
@@ -42,7 +42,7 @@ export default function AssignmentsBrowseScreen() {
       <View style={styles.searchWrap}>
         <MaterialIcons name="search" size={20} color={theme.colors.textMuted} style={styles.searchIcon} />
         <TextInput
-          placeholder="Search assignments..."
+          placeholder="Search projects..."
           placeholderTextColor={theme.colors.textMuted}
           value={search}
           onChangeText={setSearch}

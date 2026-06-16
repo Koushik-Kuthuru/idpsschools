@@ -1,5 +1,5 @@
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { appNavigate } from '@/utils/navigation';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
@@ -16,7 +16,6 @@ const TYPE_ICONS: Record<string, keyof typeof MaterialIcons.glyphMap> = {
 
 export default function NotificationsScreen() {
   const theme = useTheme();
-  const router = useRouter();
   const { data, isLoading, error, refetch } = useNotifications();
   const markRead = useMarkNotificationRead();
 
@@ -24,10 +23,10 @@ export default function NotificationsScreen() {
   if (error || !data) return <ErrorScreen message="Failed to load notifications" onRetry={() => refetch()} />;
 
   const navigateForNotification = (n: NotificationItem) => {
-    if (n.type === 'notice') router.push('/announcements' as '/assignments');
-    else if (n.type === 'fee') router.push('/(tabs)/fees');
-    else if (n.type === 'exam') router.push('/exams/schedule');
-    else router.push('/assignments');
+    if (n.type === 'notice') appNavigate('/(tabs)/notice-board');
+    else if (n.type === 'fee') appNavigate('/(tabs)/fees');
+    else if (n.type === 'exam') appNavigate('/exams/schedule');
+    else appNavigate('/assignments');
   };
 
   const handlePress = async (n: NotificationItem) => {

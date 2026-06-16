@@ -6,6 +6,7 @@ export default function AttendanceLayout() {
       <Stack.Screen name="overview" />
       <Stack.Screen name="detailed" />
       <Stack.Screen name="by-subject" />
+      <Stack.Screen name="subject/[id]" />
     </Stack>
   );
 }

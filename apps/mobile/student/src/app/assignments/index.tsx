@@ -1,169 +1,248 @@
-import { useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useState, useMemo } from 'react';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useAssignments } from '@/hooks/useApi';
 import { ScreenHeader, LoadingScreen, ErrorScreen } from '@/components/ui/ScreenHeader';
-import { SCHOOL_NAME } from '@/constants/config';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { cardShadow } from '@/constants/shadows';
+import { appNavigate } from '@/utils/navigation';
 import type { Assignment } from '@/types';
 
 type FilterOption = 'all' | 'pending' | 'submitted' | 'overdue';
 
-/** Stitch: assignments_homework_1 */
+const TYPE_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  homework: 'book-outline',
+  assignment: 'document-text-outline',
+  project: 'people-outline',
+  task: 'checkbox-outline',
+  assessment: 'school-outline',
+  classwork: 'pencil-outline',
+};
+
 export default function AssignmentsListScreen() {
   const theme = useTheme();
-  const router = useRouter();
   const [filter, setFilter] = useState<FilterOption>('all');
-  const { data, isLoading, error, refetch } = useAssignments();
+  const { data, isLoading, error, refetch, isRefetching } = useAssignments();
+
+  const counts = useMemo(() => {
+    const list = data ?? [];
+    return {
+      pending: list.filter((a) => a.status === 'pending').length,
+      overdue: list.filter((a) => a.status === 'overdue').length,
+      submitted: list.filter((a) => a.status === 'submitted').length,
+      total: list.length,
+    };
+  }, [data]);
 
   if (isLoading) return <LoadingScreen />;
-  if (error || !data) return <ErrorScreen message="Failed to load assignments" onRetry={() => refetch()} />;
+  if (error && !data) return <ErrorScreen message="Failed to load projects" onRetry={() => refetch()} />;
 
-  const pending = data.filter((a) => a.status === 'pending' || a.status === 'overdue');
-  const completed = data.filter((a) => a.status === 'submitted');
+  const items = data ?? [];
+  const pending = items.filter((a) => a.status === 'pending' || a.status === 'overdue');
+  const completed = items.filter((a) => a.status === 'submitted');
   const showPending = filter === 'all' || filter === 'pending' || filter === 'overdue';
   const showCompleted = filter === 'all' || filter === 'submitted';
-
   const filterPending = filter === 'all' ? pending : pending.filter((a) => a.status === filter);
   const filterCompleted = filter === 'all' ? completed : completed;
 
+  const stats = [
+    { label: 'Pending', value: String(counts.pending), color: theme.colors.amber500, icon: 'time-outline' as const },
+    { label: 'Overdue', value: String(counts.overdue), color: theme.colors.red500, icon: 'alert-circle-outline' as const },
+    { label: 'Done', value: String(counts.submitted), color: theme.colors.primary, icon: 'checkmark-circle-outline' as const },
+  ];
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top']}>
-      <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={24} color={theme.colors.text} />
-        </TouchableOpacity>
-        <View>
-          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>ASSIGNMENTS</Text>
-          <Text style={{ color: theme.colors.textSecondary, fontSize: 11 }}>{SCHOOL_NAME}</Text>
-        </View>
-        <TouchableOpacity onPress={() => router.push('/assignments/browse')}>
-          <MaterialIcons name="search" size={24} color={theme.colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
-        {(['all', 'pending', 'submitted', 'overdue'] as FilterOption[]).map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterChip, { backgroundColor: filter === f ? theme.colors.primary : theme.colors.card, borderColor: theme.colors.border }]}
-            onPress={() => setFilter(f)}
-          >
-            <Text style={{ color: filter === f ? '#fff' : theme.colors.text, fontSize: 12, fontWeight: '600' }}>
-              {f === 'all' ? 'All' : f === 'submitted' ? 'Completed' : f.charAt(0).toUpperCase() + f.slice(1)}
-            </Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top', 'bottom']}>
+      <ScreenHeader
+        title="Projects"
+        fallbackRoute="/(tabs)/profile"
+        rightAction={
+          <TouchableOpacity onPress={() => appNavigate('/assignments/browse')} style={styles.headerAction}>
+            <Ionicons name="search-outline" size={22} color={theme.colors.text} />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        }
+      />
 
-      <ScrollView contentContainerStyle={styles.scroll}>
-        {showPending && filterPending.length > 0 && (
-          <Section title="Pending" count={filterPending.length} badgeColor="#fed7aa" badgeTextColor="#ea580c" theme={theme}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
+      >
+        <View style={[styles.heroCard, cardShadow]}>
+          <Text style={styles.heroEyebrow}>HOMEWORK & PROJECTS</Text>
+          <Text style={styles.heroTitle}>{counts.total} projects</Text>
+          <Text style={styles.heroSub}>{counts.pending + counts.overdue} need your attention</Text>
+        </View>
+
+        <View style={styles.statsRow}>
+          {stats.map((s) => (
+            <View
+              key={s.label}
+              style={[styles.statCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
+            >
+              <View style={[styles.statIcon, { backgroundColor: `${s.color}14` }]}>
+                <Ionicons name={s.icon} size={14} color={s.color} />
+              </View>
+              <Text style={[styles.statValue, { color: s.color }]}>{s.value}</Text>
+              <Text style={[styles.statLabel, { color: theme.colors.textMuted }]}>{s.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <SectionHeader title="Filter" />
+        <View style={[styles.filterBar, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+          {(['all', 'pending', 'submitted', 'overdue'] as FilterOption[]).map((f) => {
+            const active = filter === f;
+            const label = f === 'all' ? 'All' : f === 'submitted' ? 'Done' : f.charAt(0).toUpperCase() + f.slice(1);
+            return (
+              <TouchableOpacity
+                key={f}
+                activeOpacity={0.75}
+                style={[styles.filterTab, active && { backgroundColor: theme.colors.primary }]}
+                onPress={() => setFilter(f)}
+              >
+                <Text style={[styles.filterTabText, { color: active ? '#fff' : theme.colors.textSecondary }]} numberOfLines={1}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {showPending && filterPending.length > 0 ? (
+          <>
+            <SectionHeader title="Pending" />
             {filterPending.map((item) => (
-              <HomeworkCard key={item.id} item={item} theme={theme} onView={() => router.push(`/assignments/${item.id}`)} onSubmit={() => router.push(`/assignments/${item.id}/submit`)} />
+              <AssignmentCard key={item.id} item={item} theme={theme} onView={() => appNavigate(`/assignments/${item.id}`)} onSubmit={() => appNavigate(`/assignments/${item.id}/submit`)} />
             ))}
-          </Section>
-        )}
-        {showCompleted && filterCompleted.length > 0 && (
-          <Section title="Completed" count={filterCompleted.length} theme={theme} subtitle={`SHOWING ${filterCompleted.length} OF ${completed.length}`}>
+          </>
+        ) : null}
+
+        {showCompleted && filterCompleted.length > 0 ? (
+          <>
+            <SectionHeader title="Completed" />
             {filterCompleted.map((item) => (
-              <CompletedCard key={item.id} item={item} theme={theme} onPress={() => router.push(`/assignments/${item.id}`)} />
+              <AssignmentCard key={item.id} item={item} theme={theme} completed onPress={() => appNavigate(`/assignments/${item.id}`)} />
             ))}
-          </Section>
-        )}
+          </>
+        ) : null}
+
+        {filterPending.length === 0 && filterCompleted.length === 0 ? (
+          <View style={[styles.emptyCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+            <Ionicons name="document-text-outline" size={32} color={theme.colors.textMuted} />
+            <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>No projects found</Text>
+            <Text style={[styles.emptySub, { color: theme.colors.textSecondary }]}>Try a different filter</Text>
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function Section({ title, count, badgeColor, badgeTextColor, subtitle, theme, children }: {
-  title: string;
-  count: number;
-  badgeColor?: string;
-  badgeTextColor?: string;
-  subtitle?: string;
+function AssignmentCard({
+  item,
+  theme,
+  completed = false,
+  onView,
+  onSubmit,
+  onPress,
+}: {
+  item: Assignment;
   theme: ReturnType<typeof useTheme>;
-  children: React.ReactNode;
+  completed?: boolean;
+  onView?: () => void;
+  onSubmit?: () => void;
+  onPress?: () => void;
 }) {
-  return (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.textMuted }]}>{title.toUpperCase()}</Text>
-        {badgeColor ? (
-          <View style={[styles.countBadge, { backgroundColor: badgeColor }]}>
-            <Text style={{ color: badgeTextColor, fontSize: 10, fontWeight: '700' }}>{count} TASKS</Text>
+  const isOverdue = item.status === 'overdue';
+  const statusColor = completed ? theme.colors.primary : isOverdue ? theme.colors.red500 : theme.colors.amber500;
+  const icon = TYPE_ICONS[item.type] ?? 'document-text-outline';
+
+  if (completed) {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.75}
+        style={[styles.card, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
+        onPress={onPress}
+      >
+        <View style={styles.cardTop}>
+          <View style={[styles.cardIcon, { backgroundColor: `${theme.colors.primary}14` }]}>
+            <Ionicons name={icon} size={20} color={theme.colors.primary} />
           </View>
-        ) : (
-          <Text style={{ color: theme.colors.textMuted, fontSize: 10, fontWeight: '700' }}>{subtitle}</Text>
-        )}
-      </View>
-      {children}
-    </View>
-  );
-}
+          <View style={[styles.statusPill, { backgroundColor: `${theme.colors.primary}14` }]}>
+            <Ionicons name="checkmark-circle" size={12} color={theme.colors.primary} />
+            <Text style={[styles.statusText, { color: theme.colors.primary }]}>Submitted</Text>
+          </View>
+        </View>
+        <Text style={[styles.cardSubject, { color: theme.colors.textSecondary }]}>{item.subject}</Text>
+        <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{item.title}</Text>
+        <Text style={[styles.cardMeta, { color: theme.colors.textMuted }]}>{item.teacher} · {item.dueDate}</Text>
+      </TouchableOpacity>
+    );
+  }
 
-function HomeworkCard({ item, theme, onView, onSubmit }: { item: Assignment; theme: ReturnType<typeof useTheme>; onView: () => void; onSubmit: () => void }) {
-  const isUrgent = item.status === 'overdue';
   return (
-    <View style={[styles.hwCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }, isUrgent && { borderLeftWidth: 4, borderLeftColor: theme.colors.amber500 }]}>
-      <View style={styles.hwCardTop}>
-        <View style={[styles.hwIcon, { backgroundColor: `${theme.colors.primary}1a` }]}>
-          <MaterialIcons name="menu-book" size={22} color={theme.colors.primary} />
+    <View
+      style={[
+        styles.card,
+        cardShadow,
+        { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
+        isOverdue && { borderLeftWidth: 4, borderLeftColor: theme.colors.red500 },
+      ]}
+    >
+      <View style={styles.cardTop}>
+        <View style={[styles.cardIcon, { backgroundColor: `${statusColor}14` }]}>
+          <Ionicons name={icon} size={20} color={statusColor} />
         </View>
-        <Text style={{ color: theme.colors.textMuted, fontSize: 10, fontWeight: '700' }}>{item.subject.toUpperCase()}</Text>
+        <View style={[styles.statusPill, { backgroundColor: `${statusColor}14` }]}>
+          <Text style={[styles.statusText, { color: statusColor }]}>{isOverdue ? 'Overdue' : 'Pending'}</Text>
+        </View>
       </View>
-      <Text style={[styles.hwTitle, { color: theme.colors.text }]}>{item.title}</Text>
-      <Text style={{ color: theme.colors.textSecondary, fontSize: 12, marginBottom: 12 }}>By {item.teacher} • Due {item.dueDate}</Text>
-      <View style={[styles.hwActions, { borderTopColor: theme.colors.border }]}>
-        <TouchableOpacity style={[styles.hwBtn, { backgroundColor: theme.mode === 'dark' ? theme.colors.slate800 : '#e8f1ed' }]} onPress={onView}>
-          <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '700' }}>View</Text>
+      <Text style={[styles.cardSubject, { color: theme.colors.textSecondary }]}>{item.subject} · {item.type}</Text>
+      <Text style={[styles.cardTitle, { color: theme.colors.text }]}>{item.title}</Text>
+      <Text style={[styles.cardMeta, { color: theme.colors.textMuted }]}>{item.teacher} · Due {item.dueDate}</Text>
+      <View style={[styles.cardActions, { borderTopColor: theme.colors.border }]}>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.colors.primaryLight }]} onPress={onView}>
+          <Text style={[styles.actionBtnText, { color: theme.colors.primary }]}>View</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.hwBtn, { backgroundColor: theme.colors.primary }]} onPress={onSubmit}>
-          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>{isUrgent ? 'Submit Now' : 'Submit'}</Text>
+        <TouchableOpacity style={[styles.actionBtn, { backgroundColor: theme.colors.primary }]} onPress={onSubmit}>
+          <Text style={[styles.actionBtnText, { color: '#fff' }]}>{isOverdue ? 'Submit now' : 'Submit'}</Text>
         </TouchableOpacity>
       </View>
     </View>
-  );
-}
-
-function CompletedCard({ item, theme, onPress }: { item: Assignment; theme: ReturnType<typeof useTheme>; onPress: () => void }) {
-  return (
-    <TouchableOpacity style={[styles.hwCard, styles.completedCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]} onPress={onPress}>
-      <View style={styles.hwCardTop}>
-        <View style={[styles.hwIcon, { backgroundColor: theme.colors.slate100 }]}>
-          <MaterialIcons name="history-edu" size={22} color={theme.colors.textMuted} />
-        </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text style={{ color: theme.colors.primary, fontSize: 18, fontWeight: '700' }}>A</Text>
-          <Text style={{ color: theme.colors.textMuted, fontSize: 10, fontWeight: '700' }}>90/100</Text>
-        </View>
-      </View>
-      <Text style={[styles.hwTitle, { color: theme.colors.text }]}>{item.title}</Text>
-      <Text style={{ color: theme.colors.textSecondary, fontSize: 12 }}>Submitted • {item.teacher}</Text>
-    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12, borderBottomWidth: 1 },
-  backBtn: { padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: '800' },
-  filterScroll: { maxHeight: 48, marginBottom: 8 },
-  filterRow: { paddingHorizontal: 16, gap: 8 },
-  filterChip: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 999, borderWidth: 1 },
-  scroll: { paddingHorizontal: 16, paddingBottom: 32 },
-  section: { marginBottom: 24 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 1 },
-  countBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
-  hwCard: { padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 12 },
-  completedCard: { opacity: 0.9 },
-  hwCardTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  hwIcon: { padding: 8, borderRadius: 8 },
-  hwTitle: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
-  hwActions: { flexDirection: 'row', gap: 8, paddingTop: 12, borderTopWidth: 1 },
-  hwBtn: { flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
+  headerAction: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  scroll: { paddingHorizontal: 16, paddingBottom: 24, paddingTop: 4 },
+  filterBar: { flexDirection: 'row', padding: 4, borderRadius: 12, borderWidth: 1, marginBottom: 12 },
+  filterTab: { flex: 1, paddingVertical: 10, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', borderRadius: 10, minHeight: 40 },
+  filterTabText: { fontSize: 12, fontWeight: '700' },
+  heroCard: { backgroundColor: '#144835', borderRadius: 16, padding: 20, marginTop: 4, marginBottom: 12 },
+  heroEyebrow: { color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  heroTitle: { color: '#fff', fontSize: 26, fontWeight: '800', marginTop: 6 },
+  heroSub: { color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 4 },
+  statsRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  statCard: { flex: 1, paddingVertical: 12, paddingHorizontal: 6, borderRadius: 14, borderWidth: 1, alignItems: 'center', minWidth: 0 },
+  statIcon: { width: 28, height: 28, borderRadius: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  statValue: { fontSize: 16, fontWeight: '800' },
+  statLabel: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 4 },
+  card: { padding: 16, borderRadius: 14, borderWidth: 1, marginBottom: 10 },
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  cardIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
+  statusText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+  cardSubject: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
+  cardTitle: { fontSize: 16, fontWeight: '700', marginTop: 4 },
+  cardMeta: { fontSize: 12, marginTop: 6 },
+  cardActions: { flexDirection: 'row', gap: 8, paddingTop: 12, marginTop: 12, borderTopWidth: 1 },
+  actionBtn: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
+  actionBtnText: { fontSize: 13, fontWeight: '700' },
+  emptyCard: { alignItems: 'center', padding: 32, borderRadius: 14, borderWidth: 1, marginTop: 8 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', marginTop: 12 },
+  emptySub: { fontSize: 13, marginTop: 4 },
 });

@@ -6,6 +6,7 @@ import {
   assignmentsService,
   examsService,
   timetableService,
+  courseService,
   feesService,
   notificationsService,
   profileService,
@@ -25,6 +26,7 @@ export const queryKeys = {
   assignment: (id: string) => ['assignments', id] as const,
   exams: ['exams'] as const,
   timetable: ['timetable'] as const,
+  course: (id: string) => ['course', id] as const,
   fees: ['fees'] as const,
   paymentMethods: ['paymentMethods'] as const,
   notifications: ['notifications'] as const,
@@ -61,7 +63,7 @@ export function usePerformanceAnalysis() {
 }
 
 export function useAssignments() {
-  return useQuery({ queryKey: queryKeys.assignments, queryFn: assignmentsService.getAll });
+  return useQuery({ queryKey: queryKeys.assignments, queryFn: assignmentsService.getAll, refetchOnMount: 'always' });
 }
 
 export function useAssignment(id: string) {
@@ -69,11 +71,19 @@ export function useAssignment(id: string) {
 }
 
 export function useExams() {
-  return useQuery({ queryKey: queryKeys.exams, queryFn: examsService.getAll });
+  return useQuery({ queryKey: queryKeys.exams, queryFn: examsService.getAll, refetchOnMount: 'always' });
 }
 
 export function useTimetable() {
-  return useQuery({ queryKey: queryKeys.timetable, queryFn: timetableService.get });
+  return useQuery({ queryKey: queryKeys.timetable, queryFn: timetableService.get, refetchOnMount: 'always' });
+}
+
+export function useCourseDetail(courseId: string, subjectHint?: string) {
+  return useQuery({
+    queryKey: queryKeys.course(courseId),
+    queryFn: () => courseService.getById(courseId, subjectHint),
+    enabled: !!courseId,
+  });
 }
 
 export function useFees() {
@@ -106,7 +116,11 @@ export function useProfile() {
 }
 
 export function useAnnouncements() {
-  return useQuery({ queryKey: queryKeys.announcements, queryFn: announcementsService.getAll });
+  return useQuery({
+    queryKey: queryKeys.announcements,
+    queryFn: announcementsService.getAll,
+    refetchOnMount: 'always',
+  });
 }
 
 export function useSubmitAssignment() {
