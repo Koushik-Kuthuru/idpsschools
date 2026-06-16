@@ -35,7 +35,7 @@ export default function ProfileTab() {
 
   const menuItems: { icon: keyof typeof Ionicons.glyphMap; label: string; route: Href }[] = [
     { icon: 'folder-open-outline', label: 'Projects', route: '/assignments' },
-    { icon: 'calendar-outline', label: 'Exam schedule', route: '/exams/schedule' },
+    { icon: 'calendar-outline', label: 'Academic calendar', route: '/calendar' },
     { icon: 'time-outline', label: 'Class timetable', route: '/timetable' },
     { icon: 'settings-outline', label: 'Settings', route: '/settings' },
   ];

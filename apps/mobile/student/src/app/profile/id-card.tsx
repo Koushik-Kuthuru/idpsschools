@@ -1,10 +1,12 @@
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfile } from '@/hooks/useApi';
 import { ScreenHeader, LoadingScreen, ErrorScreen } from '@/components/ui/ScreenHeader';
+import { AdmissionBarcode } from '@/components/id-card/AdmissionBarcode';
 import { cardShadow } from '@/constants/shadows';
+import type { User } from '@/types';
 
 export default function StudentIdCardScreen() {
   const theme = useTheme();
@@ -13,53 +15,86 @@ export default function StudentIdCardScreen() {
   if (isLoading) return <LoadingScreen />;
   if (error || !profile) return <ErrorScreen message="Failed to load ID card" onRetry={() => refetch()} />;
 
+  const academicYear = profile.idCardAcademicYear ?? '2025–26';
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]} edges={['top', 'bottom']}>
       <ScreenHeader title="ID Card" fallbackRoute="/(tabs)/profile" />
-      <View style={styles.content}>
-        <View style={[styles.card, cardShadow]}>
-          <View style={styles.cardHeader}>
-            <View style={styles.logoWrap}>
-              <Ionicons name="school" size={22} color="#144835" />
-            </View>
-            <View style={styles.headerCopy}>
-              <Text style={styles.schoolName} numberOfLines={2}>
-                {profile.schoolName}
-              </Text>
-              <Text style={styles.cardType}>STUDENT IDENTITY CARD</Text>
-            </View>
-          </View>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={[styles.card, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+          {profile.idCardImageUrl ? (
+            <AdminGeneratedIdCard profile={profile} academicYear={academicYear} />
+          ) : (
+            <DefaultIdCard profile={profile} academicYear={academicYear} />
+          )}
 
-          <View style={styles.cardBody}>
-            <View style={styles.photoWrap}>
-              {profile.avatar ? (
-                <Image source={{ uri: profile.avatar }} style={styles.photo} />
-              ) : (
-                <View style={styles.photoFallback}>
-                  <Ionicons name="person" size={48} color="#144835" />
-                </View>
-              )}
-            </View>
-            <View style={styles.details}>
-              <Text style={styles.studentName} numberOfLines={2}>
-                {profile.name}
-              </Text>
-              <IdRow label="Admission No." value={profile.studentId} />
-              <IdRow label="Class" value={profile.className} />
-              <IdRow label="Roll No." value={profile.rollNumber} />
-              <IdRow label="Grade" value={profile.grade} />
-            </View>
-          </View>
-
-          <View style={styles.cardFooter}>
-            <Text style={styles.footerNote}>Valid for academic year 2025–26</Text>
-            <View style={styles.barcode}>
-              <Text style={styles.barcodeText}>{profile.studentId.replace(/-/g, '')}</Text>
-            </View>
+          <View style={[styles.barcodeSection, { borderTopColor: theme.colors.border, backgroundColor: theme.colors.slate50 }]}>
+            <AdmissionBarcode admissionNumber={profile.studentId} />
           </View>
         </View>
-      </View>
+
+        <Text style={[styles.helperText, { color: theme.colors.textSecondary }]}>
+          {profile.idCardImageUrl
+            ? 'Official ID card issued by your school administration.'
+            : 'Your digital ID card. Contact the school office if details need updating.'}
+        </Text>
+      </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function AdminGeneratedIdCard({ profile, academicYear }: { profile: User; academicYear: string }) {
+  return (
+    <View style={styles.adminCardWrap}>
+      <Image source={{ uri: profile.idCardImageUrl }} style={styles.adminCardImage} resizeMode="contain" accessibilityLabel={`${profile.name} student ID card`} />
+      <View style={styles.adminMeta}>
+        <Text style={styles.adminMetaText}>{profile.name}</Text>
+        <Text style={styles.adminMetaSub}>Adm. {profile.studentId} · {profile.className} · AY {academicYear}</Text>
+      </View>
+    </View>
+  );
+}
+
+function DefaultIdCard({ profile, academicYear }: { profile: User; academicYear: string }) {
+  return (
+    <>
+      <View style={styles.cardHeader}>
+        <View style={styles.logoWrap}>
+          <Ionicons name="school" size={22} color="#144835" />
+        </View>
+        <View style={styles.headerCopy}>
+          <Text style={styles.schoolName} numberOfLines={2}>
+            {profile.schoolName}
+          </Text>
+          <Text style={styles.cardType}>STUDENT IDENTITY CARD</Text>
+        </View>
+      </View>
+
+      <View style={styles.cardBody}>
+        <View style={styles.photoWrap}>
+          {profile.avatar ? (
+            <Image source={{ uri: profile.avatar }} style={styles.photo} />
+          ) : (
+            <View style={styles.photoFallback}>
+              <Ionicons name="person" size={48} color="#144835" />
+            </View>
+          )}
+        </View>
+        <View style={styles.details}>
+          <Text style={styles.studentName} numberOfLines={2}>
+            {profile.name}
+          </Text>
+          <IdRow label="Admission No." value={profile.studentId} />
+          <IdRow label="Class" value={profile.className} />
+          <IdRow label="Roll No." value={profile.rollNumber} />
+          <IdRow label="Grade" value={profile.grade} />
+        </View>
+      </View>
+
+      <View style={[styles.templateFooter, { borderTopColor: '#e2e8f0' }]}>
+        <Text style={styles.footerNote}>Valid for academic year {academicYear}</Text>
+      </View>
+    </>
   );
 }
 
@@ -74,13 +109,36 @@ function IdRow({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { flex: 1, padding: 20, justifyContent: 'center' },
+  content: { padding: 20, paddingBottom: 32, flexGrow: 1, justifyContent: 'center' },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
+  },
+  adminCardWrap: {
+    padding: 12,
+    gap: 10,
+  },
+  adminCardImage: {
+    width: '100%',
+    minHeight: 220,
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+  },
+  adminMeta: {
+    paddingHorizontal: 6,
+    paddingBottom: 4,
+    gap: 2,
+  },
+  adminMetaText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  adminMetaSub: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748b',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -117,23 +175,25 @@ const styles = StyleSheet.create({
   idRow: { gap: 2 },
   idLabel: { fontSize: 10, fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.4 },
   idValue: { fontSize: 14, fontWeight: '700', color: '#144835' },
-  cardFooter: {
+  templateFooter: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e2e8f0',
     paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
-    gap: 10,
     backgroundColor: '#f8fafc',
   },
   footerNote: { fontSize: 11, fontWeight: '600', color: '#64748b' },
-  barcode: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
+  barcodeSection: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    alignItems: 'center',
   },
-  barcodeText: { fontSize: 12, fontWeight: '800', letterSpacing: 2, color: '#144835' },
+  helperText: {
+    fontSize: 12,
+    lineHeight: 18,
+    textAlign: 'center',
+    marginTop: 16,
+    paddingHorizontal: 12,
+  },
 });

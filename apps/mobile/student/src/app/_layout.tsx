@@ -97,6 +97,7 @@ export default function RootLayout() {
             <Stack.Screen name="assignments" />
             <Stack.Screen name="exams" />
             <Stack.Screen name="timetable" />
+            <Stack.Screen name="calendar" />
             <Stack.Screen name="fees" />
             <Stack.Screen
               name="notifications"

@@ -5,7 +5,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
 import { useFees } from '@/hooks/useApi';
 import { ScreenHeader, LoadingScreen, ErrorScreen } from '@/components/ui/ScreenHeader';
-import { Button } from '@/components/ui/Button';
 import { formatINR } from '@/utils/currency';
 
 /** Stitch: fees_payments_overview */
@@ -29,7 +28,6 @@ export default function FeesPaymentsOverviewScreen() {
           <Text style={{ color: theme.colors.textSecondary, fontSize: 12 }}>Total Outstanding</Text>
           <Text style={[styles.heroAmount, { color: theme.colors.text }]}>{formatINR(data.dueAmount)}</Text>
           <Text style={{ color: theme.colors.textSecondary }}>Due: {data.dueDate}</Text>
-          <Button title="PAY NOW" onPress={() => router.push('/fees/payment-options')} style={{ marginTop: 16 }} />
         </View>
         <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Fee Structure</Text>
         {data.structure.map((item) => (

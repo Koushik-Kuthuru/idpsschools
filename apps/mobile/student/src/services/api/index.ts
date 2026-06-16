@@ -22,6 +22,8 @@ import type {
   TimetableDay,
   User,
   CourseDetail,
+  AcademicCalendarEvent,
+  AcademicCalendarEventType,
 } from '@/types';
 
 import { collection, doc, query, where, getDocs } from 'firebase/firestore';
@@ -380,5 +382,78 @@ export const announcementsService = {
     } catch {
       return mockApi.announcements();
     }
+  },
+};
+
+const CALENDAR_EVENT_TYPES: AcademicCalendarEventType[] = ['academic', 'holiday', 'exam', 'event', 'meeting'];
+
+function normalizeCalendarType(value: unknown): AcademicCalendarEventType {
+  return CALENDAR_EVENT_TYPES.includes(value as AcademicCalendarEventType)
+    ? (value as AcademicCalendarEventType)
+    : 'event';
+}
+
+function mapFirestoreCalendarDoc(
+  id: string,
+  data: Record<string, unknown>,
+  fallbackType: AcademicCalendarEventType,
+): AcademicCalendarEvent | null {
+  const date = String(data.date ?? '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+
+  const title = String(data.title ?? data.subject ?? data.name ?? '').trim();
+  if (!title) return null;
+
+  return {
+    id,
+    title,
+    date,
+    type: normalizeCalendarType(data.type ?? fallbackType),
+    description: String(data.description ?? data.notes ?? '').trim() || undefined,
+    location: String(data.location ?? data.hallNumber ?? data.venue ?? '').trim() || undefined,
+    time: String(data.time ?? data.startTime ?? '').trim() || undefined,
+  };
+}
+
+async function fetchFirestoreCalendarEvents(schoolId: string): Promise<AcademicCalendarEvent[]> {
+  const [eventsSnap, holidaysSnap, examsSnap] = await Promise.all([
+    getDocs(collection(db, 'schools', schoolId, 'events')),
+    getDocs(collection(db, 'schools', schoolId, 'holidays')),
+    getDocs(collection(db, 'schools', schoolId, 'exams')),
+  ]);
+
+  const items: AcademicCalendarEvent[] = [
+    ...eventsSnap.docs
+      .map((docSnap) => mapFirestoreCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'event'))
+      .filter((item): item is AcademicCalendarEvent => item !== null),
+    ...holidaysSnap.docs
+      .map((docSnap) => mapFirestoreCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'holiday'))
+      .filter((item): item is AcademicCalendarEvent => item !== null),
+    ...examsSnap.docs
+      .map((docSnap) => mapFirestoreCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'exam'))
+      .filter((item): item is AcademicCalendarEvent => item !== null),
+  ];
+
+  const deduped = new Map<string, AcademicCalendarEvent>();
+  for (const item of items) {
+    const key = `${item.type}|${item.date}|${item.title.toLowerCase()}`;
+    if (!deduped.has(key)) deduped.set(key, item);
+  }
+
+  return Array.from(deduped.values()).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+export const calendarService = {
+  getAll: async (): Promise<AcademicCalendarEvent[]> => {
+    try {
+      const schoolId = await authService.getStoredSchoolId();
+      if (schoolId) {
+        const remote = await fetchFirestoreCalendarEvents(schoolId);
+        if (remote.length) return remote;
+      }
+    } catch {
+      // Fall back to mock calendar data.
+    }
+    return mockApi.calendar();
   },
 };

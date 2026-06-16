@@ -11,6 +11,7 @@ import {
   notificationsService,
   profileService,
   announcementsService,
+  calendarService,
 } from '@/services/api';
 import { useAuthStore } from '@/store';
 
@@ -32,6 +33,7 @@ export const queryKeys = {
   notifications: ['notifications'] as const,
   profile: ['profile'] as const,
   announcements: ['announcements'] as const,
+  calendar: ['calendar'] as const,
 };
 
 export function useDashboard() {
@@ -119,6 +121,14 @@ export function useAnnouncements() {
   return useQuery({
     queryKey: queryKeys.announcements,
     queryFn: announcementsService.getAll,
+    refetchOnMount: 'always',
+  });
+}
+
+export function useAcademicCalendar() {
+  return useQuery({
+    queryKey: queryKeys.calendar,
+    queryFn: calendarService.getAll,
     refetchOnMount: 'always',
   });
 }

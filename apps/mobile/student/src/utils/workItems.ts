@@ -5,6 +5,46 @@ export function formatDueDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+export function startOfDay(date: Date): Date {
+  const next = new Date(date);
+  next.setHours(0, 0, 0, 0);
+  return next;
+}
+
+export function isSameCalendarDay(iso: string, date: Date): boolean {
+  const target = new Date(iso);
+  return (
+    target.getFullYear() === date.getFullYear() &&
+    target.getMonth() === date.getMonth() &&
+    target.getDate() === date.getDate()
+  );
+}
+
+export function shiftCalendarDay(date: Date, delta: number): Date {
+  const next = startOfDay(date);
+  next.setDate(next.getDate() + delta);
+  return next;
+}
+
+export function formatHomeworkNavDate(date: Date): string {
+  const today = startOfDay(new Date());
+  const target = startOfDay(date);
+  const diff = Math.round((target.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+  const formatted = target.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  if (diff === 0) return `Today · ${formatted}`;
+  if (diff === -1) return `Yesterday · ${formatted}`;
+  if (diff === 1) return `Tomorrow · ${formatted}`;
+  return formatted;
+}
+
+export function getAssignmentAssignedAt(item: Assignment): string {
+  return item.assignedAt ?? item.dueAt;
+}
+
+export function filterAssignmentsByAssignedDay(items: Assignment[], date: Date): Assignment[] {
+  return items.filter((item) => isSameCalendarDay(getAssignmentAssignedAt(item), date));
+}
+
 export function isDueToday(dueAt: string): boolean {
   const due = new Date(dueAt);
   const today = new Date();
@@ -36,6 +76,14 @@ export function groupAssignmentsBySubject(items: Assignment[]): { subject: strin
     .sort((a, b) => a.subject.localeCompare(b.subject));
 }
 
+export function filterHomeworkOverviewItems(items: Assignment[]): Assignment[] {
+  return items.filter((item) => {
+    if (item.type === 'homework' || item.type === 'classwork') return true;
+    if (item.type === 'project' && item.dueAt) return true;
+    return false;
+  });
+}
+
 export function getWorkItemsSummary(items: Assignment[]) {
   const pending = items.filter((i) => i.status === 'pending' || i.status === 'overdue').length;
   const dueToday = items.filter((i) => isDueToday(i.dueAt)).length;
@@ -45,10 +93,10 @@ export function getWorkItemsSummary(items: Assignment[]) {
 
 export function getWorkItemsOverviewSubtitle(items: Assignment[]): string {
   if (items.length === 0) {
-    return 'No homework or projects assigned';
+    return 'No homework or projects due';
   }
   const { total, pending, dueToday, subjects } = getWorkItemsSummary(items);
-  const parts = [`${total} items across ${subjects} subject${subjects === 1 ? '' : 's'}`];
+  const parts = [`${total} item${total === 1 ? '' : 's'} across ${subjects} subject${subjects === 1 ? '' : 's'}`];
   if (pending > 0) parts.push(`${pending} pending`);
   if (dueToday > 0) parts.push(`${dueToday} due today`);
   return parts.join(' • ');

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -11,7 +11,7 @@ import { ProgressBar } from '@/components/charts/ProgressChart';
 import { LoadingScreen, ErrorScreen } from '@/components/ui/ScreenHeader';
 import { formatINR } from '@/utils/currency';
 import { TAB_SCREEN_SCROLL_PADDING } from '@/constants/layout';
-import { getWorkItemsOverviewSubtitle } from '@/utils/workItems';
+import { filterHomeworkOverviewItems, getWorkItemsOverviewSubtitle } from '@/utils/workItems';
 import { appNavigate } from '@/utils/navigation';
 
 function SectionHeader({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
@@ -53,11 +53,12 @@ export default function DashboardHome() {
     }, [refetchNotifications]),
   );
 
+  const workItems = assignments ?? [];
+  const overviewWorkItems = useMemo(() => filterHomeworkOverviewItems(workItems), [workItems]);
+  const hasPendingWork = overviewWorkItems.some((item) => item.status === 'pending' || item.status === 'overdue');
+
   if (isLoading || assignmentsLoading) return <LoadingScreen />;
   if (error || !data) return <ErrorScreen message="Failed to load dashboard" onRetry={() => refetch()} />;
-
-  const workItems = assignments ?? [];
-  const hasPendingWork = workItems.some((item) => item.status === 'pending' || item.status === 'overdue');
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -78,7 +79,7 @@ export default function DashboardHome() {
           admissionNumber={user?.studentId}
           avatar={user?.avatar}
           notificationCount={unreadNotificationCount}
-          onProfilePress={() => appNavigate('/profile')}
+          onProfilePress={() => appNavigate('/(tabs)/profile')}
           onIdCardPress={() => appNavigate('/profile/id-card')}
           onHomeworksPress={() => appNavigate('/assignments')}
         />
@@ -110,9 +111,9 @@ export default function DashboardHome() {
           iconBg="rgba(217, 119, 6, 0.1)"
           accentColor="#d97706"
           title="Homework & projects"
-          subtitle={getWorkItemsOverviewSubtitle(workItems)}
+          subtitle={getWorkItemsOverviewSubtitle(overviewWorkItems)}
           badge={hasPendingWork ? 'Pending' : undefined}
-          onPress={() => appNavigate('/assignments')}
+          onPress={() => appNavigate({ pathname: '/(tabs)/learning', params: { tab: 'homework' } })}
         />
 
         <SectionHeader title="Quick stats" />
@@ -135,26 +136,21 @@ export default function DashboardHome() {
             icon="payments"
             accent={theme.colors.accent}
             onPress={() => appNavigate('/fees/payments-overview')}
-          >
-            <View style={styles.payPill}>
-              <Text style={[styles.payPillText, { color: theme.colors.primary }]}>Pay now</Text>
-              <MaterialIcons name="arrow-forward" size={14} color={theme.colors.primary} />
-            </View>
-          </StatCard>
+          />
         </View>
 
         <SectionHeader title="Tools" />
         <View style={styles.toolsGrid}>
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => appNavigate('/exams/schedule')}
+            onPress={() => appNavigate('/calendar')}
             style={[styles.toolCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
           >
             <View style={[styles.toolIcon, { backgroundColor: `${theme.colors.primary}14` }]}>
-              <MaterialIcons name="calendar-today" size={22} color={theme.colors.primary} />
+              <MaterialIcons name="event" size={22} color={theme.colors.primary} />
             </View>
-            <Text style={[styles.toolLabel, { color: theme.colors.text }]}>Exam schedule</Text>
-            <Text style={[styles.toolSub, { color: theme.colors.textSecondary }]}>Exam dates & halls</Text>
+            <Text style={[styles.toolLabel, { color: theme.colors.text }]}>Academic calendar</Text>
+            <Text style={[styles.toolSub, { color: theme.colors.textSecondary }]}>Holidays, exams & events</Text>
           </TouchableOpacity>
           <TouchableOpacity
             activeOpacity={0.8}
@@ -189,8 +185,6 @@ const styles = StyleSheet.create({
   sectionAction: { fontSize: 13, fontWeight: '600' },
   statsGrid: { flexDirection: 'row', gap: 10, marginBottom: 8 },
   progressWrap: { marginTop: 10 },
-  payPill: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10 },
-  payPillText: { fontSize: 12, fontWeight: '700' },
   toolsGrid: { flexDirection: 'row', gap: 10, marginBottom: 8 },
   toolCard: {
     flex: 1,

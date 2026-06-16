@@ -3,7 +3,7 @@ import type { MaterialIcons } from '@expo/vector-icons';
 export interface QuickAccessItem {
   icon: keyof typeof MaterialIcons.glyphMap;
   label: string;
-  route: '/assignments' | '/exams/schedule' | '/timetable' | '/(tabs)/notice-board' | '/notifications' | '/marks/performance' | '/profile' | '/settings';
+  route: '/assignments' | '/exams/schedule' | '/timetable' | '/(tabs)/notice-board' | '/notifications' | '/marks/performance' | '/(tabs)/profile' | '/settings';
 }
 
 export const QUICK_ACCESS_ITEMS: QuickAccessItem[] = [
@@ -13,6 +13,6 @@ export const QUICK_ACCESS_ITEMS: QuickAccessItem[] = [
   { icon: 'campaign', label: 'Notice board', route: '/(tabs)/notice-board' },
   { icon: 'notifications', label: 'Notifications', route: '/notifications' },
   { icon: 'insights', label: 'Performance', route: '/marks/performance' },
-  { icon: 'person', label: 'Profile', route: '/profile' },
+  { icon: 'person', label: 'Profile', route: '/(tabs)/profile' },
   { icon: 'settings', label: 'Settings', route: '/settings' },
 ];

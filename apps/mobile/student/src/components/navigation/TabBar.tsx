@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
+import { useHomeworkUnread } from '@/hooks/useHomeworkUnread';
 import { tabBarShadow } from '@/constants/shadows';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
@@ -28,6 +29,7 @@ export const TAB_ITEMS: TabItem[] = [
 export function CustomTabBar({ state, navigation }: any) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { unreadCount } = useHomeworkUnread();
 
   return (
     <View
@@ -80,6 +82,9 @@ export function CustomTabBar({ state, navigation }: any) {
                     color={focused ? theme.colors.primary : theme.colors.textMuted}
                   />
                 )}
+                {tab.name === 'learning' && unreadCount > 0 ? (
+                  <View style={[styles.navUnreadDot, { backgroundColor: theme.colors.red500, borderColor: theme.colors.tabBar }]} />
+                ) : null}
               </View>
               {focused ? (
                 <View style={[styles.activeIndicator, { backgroundColor: theme.colors.primary }]} />
@@ -116,6 +121,16 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  navUnreadDot: {
+    position: 'absolute',
+    top: 2,
+    right: 4,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    borderWidth: 1.5,
   },
   activeIndicator: {
     width: 4,

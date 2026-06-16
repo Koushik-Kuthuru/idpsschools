@@ -6,7 +6,6 @@ import { ProgressBar } from '@/components/charts/ProgressChart';
 import { LoadingScreen, ErrorScreen } from '@/components/ui/ScreenHeader';
 import { TabScreenHeader } from '@/components/ui/TabScreenHeader';
 import { SectionHeader } from '@/components/ui/SectionHeader';
-import { Button } from '@/components/ui/Button';
 import { NavLink } from '@/components/navigation/NavLink';
 import { formatINR } from '@/utils/currency';
 import { appNavigate } from '@/utils/navigation';
@@ -58,7 +57,7 @@ export default function FeesTab() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.primary} />}
       >
-        <FeesHeroCard data={data} paidPercent={paidPercent} onPay={() => appNavigate('/fees/payment-options')} />
+        <FeesHeroCard data={data} paidPercent={paidPercent} />
 
         <View style={styles.statsRow}>
           {stats.map((s) => (
@@ -175,11 +174,9 @@ export default function FeesTab() {
 function FeesHeroCard({
   data,
   paidPercent,
-  onPay,
 }: {
   data: FeesOverview;
   paidPercent: number;
-  onPay: () => void;
 }) {
   const isPaid = data.dueAmount <= 0;
 
@@ -207,16 +204,14 @@ function FeesHeroCard({
         </Text>
       </View>
 
-      <View style={styles.heroFooter}>
-        {isPaid ? (
+      {isPaid ? (
+        <View style={styles.heroFooter}>
           <View style={styles.paidBadge}>
             <Ionicons name="checkmark-circle" size={16} color="#144835" />
             <Text style={styles.paidText}>All fees cleared</Text>
           </View>
-        ) : (
-          <Button title="Pay now" onPress={onPay} style={styles.payBtn} textStyle={styles.payBtnText} />
-        )}
-      </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -250,8 +245,6 @@ const styles = StyleSheet.create({
   progressPercent: { color: '#a2c144', fontSize: 12, fontWeight: '700' },
   progressMeta: { color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: '500', marginTop: 8 },
   heroFooter: { marginTop: 16, alignItems: 'flex-start' },
-  payBtn: { minWidth: 140, paddingVertical: 12, backgroundColor: '#fff' },
-  payBtnText: { color: '#144835' },
   paidBadge: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -13,6 +13,7 @@ export const STORAGE_KEYS = {
   THEME: 'theme',
   OFFLINE_QUEUE: 'offline_queue',
   NOTIFICATIONS_READ: 'notifications_read',
+  HOMEWORK_SEEN: 'homework_seen',
   FEES_STATE: 'fees_state',
   SCHOOL_ID: 'school_id',
 } as const;

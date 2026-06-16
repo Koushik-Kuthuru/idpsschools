@@ -29,6 +29,9 @@ export interface User {
   className: string;
   schoolName: string;
   avatar?: string;
+  /** Admin-generated ID card image URL (Firebase Storage / CDN). */
+  idCardImageUrl?: string;
+  idCardAcademicYear?: string;
   phone?: string;
   address?: string;
   gender?: string;
@@ -142,6 +145,7 @@ export interface Assignment {
   description: string;
   dueDate: string;
   dueAt: string;
+  assignedAt: string;
   teacher: string;
   status: 'pending' | 'submitted' | 'overdue';
   attachments?: string[];
@@ -153,6 +157,18 @@ export interface Exam {
   date: string;
   time: string;
   hallNumber: string;
+}
+
+export type AcademicCalendarEventType = 'academic' | 'holiday' | 'exam' | 'event' | 'meeting';
+
+export interface AcademicCalendarEvent {
+  id: string;
+  title: string;
+  date: string;
+  type: AcademicCalendarEventType;
+  description?: string;
+  location?: string;
+  time?: string;
 }
 
 export interface TimetableSlot {

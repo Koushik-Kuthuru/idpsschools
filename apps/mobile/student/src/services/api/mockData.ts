@@ -20,6 +20,7 @@ import type {
   User,
   WorkItemType,
   CourseDetail,
+  AcademicCalendarEvent,
 } from '@/types';
 import { formatDueDate } from '@/utils/workItems';
 import { buildAcademicYearSchoolDays } from '@/utils/timetable';
@@ -36,17 +37,25 @@ function buildDueDate(daysFromToday: number): { dueAt: string; dueDate: string }
   return { dueAt: due.toISOString(), dueDate: formatDueDate(due.toISOString()) };
 }
 
+function buildAssignedDate(daysFromToday: number): string {
+  const assigned = new Date();
+  assigned.setHours(0, 0, 0, 0);
+  assigned.setDate(assigned.getDate() + daysFromToday);
+  return assigned.toISOString();
+}
+
 function buildWorkItem(
   id: string,
   title: string,
   subject: string,
   type: WorkItemType,
   teacher: string,
-  daysFromToday: number,
+  assignedDaysFromToday: number,
+  dueDaysFromToday: number,
   status: Assignment['status'],
   description: string,
 ): Assignment {
-  const { dueAt, dueDate } = buildDueDate(daysFromToday);
+  const { dueAt, dueDate } = buildDueDate(dueDaysFromToday);
   return {
     id,
     title,
@@ -56,6 +65,7 @@ function buildWorkItem(
     description,
     dueDate,
     dueAt,
+    assignedAt: buildAssignedDate(assignedDaysFromToday),
     teacher,
     status,
   };
@@ -70,6 +80,7 @@ const mockUser: User = {
   rollNumber: '001',
   className: '10-A',
   schoolName: 'International Delhi Public School',
+  idCardAcademicYear: '2025–26',
   avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB5LqQwITXuAYIuFaKg7yXpiIfTBObJYBvavDVW4k-r9LEK_jzacT6w6Jss23PrvU4Bewsigkluj9Nj5pLH5aoqmH0DTuo72hP1lV3_ewFZec3-DFTFsD2y7CfP7mpVanloP9BLHij3SGDU1PBfS4YAkCVA_nq0hXg-YnA76gK4Jmxpx7nthTXt2LpTVjMynIUwTVTr7wKbsR63k9M6yrt8rggiWpmCegV8XdBBNTcxBYeFtqoePowjGzWOXBPOwIUmwHqUv-EJK-4g',
   phone: '+91 98765-43210',
   address: 'Apartment 42, Green Valley Towers, New Delhi',
@@ -103,6 +114,19 @@ const tokens: AuthTokens = {
   accessToken: 'mock-access-token',
   refreshToken: 'mock-refresh-token',
 };
+
+const mockCalendarEvents: AcademicCalendarEvent[] = [
+  { id: 'cal-1', title: 'Term II begins', date: '2026-06-02', type: 'academic', description: 'Second term classes resume for all grades.' },
+  { id: 'cal-2', title: 'Mathematics Unit Test', date: '2026-06-10', type: 'exam', time: '9:00 AM - 11:00 AM', location: 'Hall A' },
+  { id: 'cal-3', title: 'Science Practical Exam', date: '2026-06-12', type: 'exam', time: '9:00 AM - 12:00 PM', location: 'Science Lab' },
+  { id: 'cal-4', title: 'Parent-Teacher Meeting', date: '2026-06-14', type: 'meeting', time: '4:00 PM', location: 'Main Auditorium' },
+  { id: 'cal-5', title: 'World Environment Day', date: '2026-06-05', type: 'event', description: 'Eco club activities and tree plantation drive.' },
+  { id: 'cal-6', title: 'Bakrid Holiday', date: '2026-06-17', type: 'holiday', description: 'School closed.' },
+  { id: 'cal-7', title: 'Annual Sports Day', date: '2026-06-20', type: 'event', time: '8:00 AM onwards', location: 'Sports Ground' },
+  { id: 'cal-8', title: 'English Literature Exam', date: '2026-06-24', type: 'exam', time: '9:00 AM - 12:00 PM', location: 'Hall B' },
+  { id: 'cal-9', title: 'Staff Development Day', date: '2026-06-28', type: 'holiday', description: 'No classes for students.' },
+  { id: 'cal-10', title: 'Library Week', date: '2026-06-08', type: 'academic', description: 'Reading sessions and book fair in the library.' },
+];
 
 export const mockApi = {
   auth: {
@@ -213,15 +237,19 @@ export const mockApi = {
   assignments: async (): Promise<Assignment[]> => {
     await delay();
     return [
-      buildWorkItem('1', 'Algebra Problem Set', 'Math', 'homework', 'Mr. Smith', 0, 'pending', 'Complete exercises 1-20 from Chapter 5. Show all working steps.'),
-      buildWorkItem('2', 'Science Lab Report', 'Science', 'assignment', 'Dr. Patel', 0, 'pending', 'Write a detailed report on the photosynthesis experiment conducted in lab.'),
-      buildWorkItem('3', 'Unit Test Revision', 'Math', 'assessment', 'Mr. Smith', 0, 'submitted', 'Review chapters 4-6 for tomorrow\'s assessment.'),
-      buildWorkItem('4', 'Group History Project', 'History', 'project', 'Mrs. Emma', 1, 'pending', 'Collaborative presentation on the Indian independence movement.'),
-      buildWorkItem('5', 'Reading Log Task', 'English', 'task', 'Mrs. Sarah', 2, 'pending', 'Submit weekly reading log with reflections.'),
-      buildWorkItem('6', 'Grammar Classwork', 'English', 'classwork', 'Mrs. Sarah', 0, 'pending', 'Complete in-class grammar exercises from today\'s lesson.'),
-      buildWorkItem('7', 'Essay on Shakespeare', 'English', 'assignment', 'Mrs. Sarah', -3, 'overdue', 'Write a 1000-word essay analyzing themes in Hamlet Act 3.'),
-      buildWorkItem('8', 'Ch 5 Exercise: Calculus', 'Math', 'homework', 'Mr. John', -2, 'overdue', 'Complete calculus exercises from Chapter 5.'),
-      buildWorkItem('9', 'History Book Report', 'History', 'assignment', 'Mrs. Emma', -5, 'submitted', 'Book report on assigned history reading.'),
+      buildWorkItem('1', 'Algebra Problem Set', 'Math', 'homework', 'Mr. Smith', 0, 1, 'pending', 'Complete exercises 1-20 from Chapter 5. Show all working steps.'),
+      buildWorkItem('2', 'Science Lab Report', 'Science', 'homework', 'Dr. Patel', 0, 1, 'pending', 'Write a detailed report on the photosynthesis experiment conducted in lab.'),
+      buildWorkItem('3', 'Unit Test Revision', 'Math', 'classwork', 'Mr. Smith', 0, 1, 'submitted', 'Review chapters 4-6 for tomorrow\'s assessment.'),
+      buildWorkItem('4', 'Group History Project', 'History', 'project', 'Mrs. Emma', 1, 5, 'pending', 'Collaborative presentation on the Indian independence movement.'),
+      buildWorkItem('5', 'Reading Log Task', 'English', 'task', 'Mrs. Sarah', 2, 7, 'pending', 'Submit weekly reading log with reflections.'),
+      buildWorkItem('6', 'Grammar Classwork', 'English', 'classwork', 'Mrs. Sarah', 0, 0, 'pending', 'Complete in-class grammar exercises from today\'s lesson.'),
+      buildWorkItem('7', 'Essay on Shakespeare', 'English', 'homework', 'Mrs. Sarah', -3, -1, 'overdue', 'Write a 1000-word essay analyzing themes in Hamlet Act 3.'),
+      buildWorkItem('8', 'Ch 5 Exercise: Calculus', 'Math', 'homework', 'Mr. John', -2, 0, 'overdue', 'Complete calculus exercises from Chapter 5.'),
+      buildWorkItem('9', 'History Book Report', 'History', 'assignment', 'Mrs. Emma', -5, -3, 'submitted', 'Book report on assigned history reading.'),
+      buildWorkItem('10', 'EIA Case Study Notes', 'Environmental Impact Assessment', 'homework', 'Dr. Rao', -1, 0, 'pending', 'Summarize municipal waste plant case study discussed in class.'),
+      buildWorkItem('11', 'HCI Wireframe Task', 'Human Computer Interaction', 'homework', 'Ms. Priya', -1, 1, 'pending', 'Submit low-fidelity wireframes for the mobile app screen.'),
+      buildWorkItem('12', 'Physics Numericals', 'Science', 'homework', 'Dr. Patel', 1, 2, 'pending', 'Solve numerical problems 1-8 from Chapter 12.'),
+      buildWorkItem('13', 'Organizational Behaviour Quiz Prep', 'Organizational Behaviour', 'classwork', 'Mr. Kumar', 1, 2, 'pending', 'Read Unit 3 and prepare short notes for quiz.'),
     ];
   },
   exams: async (): Promise<Exam[]> => {
@@ -232,6 +260,10 @@ export const mockApi = {
       { id: '3', subject: 'English', date: 'Feb 14, 2026', time: '9:00 AM - 12:00 PM', hallNumber: 'Hall A' },
       { id: '4', subject: 'History', date: 'Feb 16, 2026', time: '2:00 PM - 5:00 PM', hallNumber: 'Hall C' },
     ];
+  },
+  calendar: async (): Promise<AcademicCalendarEvent[]> => {
+    await delay();
+    return mockCalendarEvents.map((event) => ({ ...event }));
   },
   timetable: async (): Promise<TimetableDay[]> => {
     await delay();
