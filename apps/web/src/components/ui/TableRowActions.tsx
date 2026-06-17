@@ -27,6 +27,7 @@ type TableRowActionsProps = {
 };
 
 export default function TableRowActions({ items, align = "right" }: TableRowActionsProps) {
+  const SafeLink = Link as any;
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -106,10 +107,10 @@ export default function TableRowActions({ items, align = "right" }: TableRowActi
               <div key={`${item.label}-${index}`}>
                 {item.dividerBefore && index > 0 ? <div className="my-1 border-t border-gray-100" /> : null}
                 {item.href ? (
-                  <Link href={item.href} onClick={() => setOpen(false)} className={itemClass(item.destructive)}>
+                  <SafeLink href={item.href} onClick={() => setOpen(false)} className={itemClass(item.destructive)}>
                     {Icon ? <Icon size={14} className="shrink-0" /> : null}
                     <span>{item.label}</span>
-                  </Link>
+                  </SafeLink>
                 ) : (
                   <button
                     type="button"

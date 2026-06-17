@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppIcon } from '@/components';
 import { stitchImages } from '@/assets/images';
-import { colors, textStyle } from '@/theme';
+import { colors } from '@/theme';
 import { styles } from './SplashScreen.styles';
 import type { SplashScreenProps } from './SplashScreen.types';
 
@@ -33,28 +33,28 @@ export function SplashScreen({ navigation }: SplashScreenProps) {
           <Image source={{ uri: stitchImages.splashLogo }} style={styles.logo} contentFit="contain" />
         </View>
         <View style={styles.branding}>
-          <Text style={[textStyle('splashTitle'), styles.title]}>ERP SYSTEM</Text>
+          <Text style={styles.title}>ERP SYSTEM</Text>
           <View style={styles.taglineRow}>
-            <AppIcon name="school" size={20} color={colors.primaryContainer} />
-            <Text style={[textStyle('bodyLg'), styles.tagline]}>Educational Management</Text>
+            <AppIcon name="school" size={20} color={colors.primary} />
+            <Text style={styles.tagline}>Staff Portal</Text>
           </View>
-          <Text style={[textStyle('chip10'), styles.school]}>INTERNATIONAL DELHI PUBLIC SCHOOL</Text>
+          <Text style={styles.school}>INTERNATIONAL DELHI PUBLIC SCHOOL</Text>
         </View>
       </View>
       <View style={styles.progressSection}>
         <View style={styles.progressHeader}>
           <View style={styles.progressLabelRow}>
-            <AppIcon name="sync" size={18} color={colors.primaryContainer} />
-            <Text style={[textStyle('bodyMd'), styles.progressLabel]}>Initializing staff modules...</Text>
+            <AppIcon name="sync" size={18} color={colors.primary} />
+            <Text style={styles.progressLabel}>Initializing staff modules...</Text>
           </View>
-          <Text style={[textStyle('headlineSm'), styles.progressPct]}>{pct}%</Text>
+          <Text style={styles.progressPct}>{pct}%</Text>
         </View>
         <View style={styles.progressTrack}>
           <Animated.View style={[styles.progressFill, { width: fillWidth }]} />
         </View>
       </View>
       <View style={styles.footer}>
-        <Text style={[textStyle('labelSm'), styles.version]}>Version 2.1.0 • Staff Portal</Text>
+        <Text style={styles.version}>POWERED BY IDPS DIGITAL SOLUTIONS</Text>
       </View>
     </SafeAreaView>
   );

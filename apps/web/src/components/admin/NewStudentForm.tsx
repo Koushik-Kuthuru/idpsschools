@@ -103,6 +103,7 @@ const Checkbox = ({ label, checked, onChange, tooltip }: any) => (
 );
 
 export default function NewStudentForm() {
+  const SafeLink = Link as any;
   const schoolId = useSchoolId();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -215,8 +216,8 @@ export default function NewStudentForm() {
     }
     try {
       setSaving(true);
-      const username = String(formData.username || formData.registrationNo || "").toLowerCase();
-      const portalPassword = String(formData.portalPassword || "");
+      const username = `std_${formData.formNo || formData.registrationNo}`.toLowerCase();
+      const portalPassword = username;
       const payload = {
         ...formData,
         username,
@@ -309,9 +310,9 @@ export default function NewStudentForm() {
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
         <div>
-          <Link href={`/schools/${schoolId}/admin/academic/students`} className="inline-flex items-center gap-2 px-1 text-gray-500 hover:text-gray-900 transition-colors mb-2 text-xs font-bold uppercase tracking-wider">
+          <SafeLink href={`/schools/${schoolId}/admin/academic/students`} className="inline-flex items-center gap-2 px-1 text-gray-500 hover:text-gray-900 transition-colors mb-2 text-xs font-bold uppercase tracking-wider">
             <ArrowLeft size={14} /> Back to Student List
-          </Link>
+          </SafeLink>
           <h1 className="text-xl font-bold tracking-tight text-gray-900 uppercase">New Admission</h1>
           <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mt-1">Enroll a new student into the school directory</p>
         </div>
@@ -386,31 +387,7 @@ export default function NewStudentForm() {
             <Input label="Pen No" value={formData.penNo} onChange={(e: any) => handleChange('penNo', e.target.value)} tooltip="Enter the Permanent Education Number (PEN) if applicable" />
           </FormGroup>
 
-          {/* Prominent Credentials Card */}
-          <div className="mt-4 p-5 rounded-2xl border border-amber-200 bg-amber-50/20 shadow-sm flex flex-col md:grid md:grid-cols-5 gap-4">
-            <div className="col-span-full border-b border-amber-200/50 pb-2.5 mb-1 flex items-center gap-2">
-              <span className="text-lg">🔒</span>
-              <div>
-                <h3 className="text-xs font-bold text-amber-800 uppercase tracking-wide">Portal Access Credentials</h3>
-                <p className="text-xs text-amber-600 font-bold uppercase mt-0.5">Critical information required for student/parent dashboard login</p>
-              </div>
-            </div>
-            <div className="col-span-2">
-              <Input label="Portal User ID / Username" value={formData.username || ""} onChange={(e: any) => handleChange('username', e.target.value)} tooltip="Defaults to the student's Registration/Admission Number." required />
-            </div>
-            <div className="col-span-2">
-              <Input label="Portal Login Password" value={formData.portalPassword || ""} onChange={(e: any) => handleChange('portalPassword', e.target.value)} tooltip="Portal access password." required />
-            </div>
-            <div className="col-span-1 flex items-end">
-              <button 
-                type="button" 
-                onClick={() => handleChange('username', formData.registrationNo)}
-                className="w-full h-8 rounded-lg border border-amber-300 hover:bg-amber-100/50 text-xs font-bold uppercase text-amber-800 transition-all tracking-wide shadow-sm"
-              >
-                Reset to Roll No
-              </button>
-            </div>
-          </div>
+
         </div>
 
         {/* STEP 2: HEALTH & BANK */}

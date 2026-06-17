@@ -5,6 +5,8 @@ export { AppInput } from './AppInput/AppInput';
 export { AppBottomNav } from './AppBottomNav/AppBottomNav';
 export { ScreenLayout } from './ScreenLayout/ScreenLayout';
 export { DashboardCard } from './DashboardCard/DashboardCard';
+export { DashboardHeader, DashboardTopBar, DashboardWelcomeSection } from './DashboardHeader/DashboardHeader';
+export type { DashboardTopBarProps, ScreenTopBarAction } from './DashboardHeader/DashboardHeader';
 export { DashboardStatCard } from './DashboardStatCard/DashboardStatCard';
 export { AttendanceCard } from './AttendanceCard/AttendanceCard';
 export { SwipeAttendanceRow } from './SwipeAttendanceRow/SwipeAttendanceRow';

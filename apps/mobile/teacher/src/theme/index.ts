@@ -1,4 +1,5 @@
 export { colors } from './colors';
+export { teacherBrand } from './brand';
 export { typography, fontFamily, textStyle } from './typography';
 export { spacing } from './spacing';
 export { borderRadius } from './borderRadius';

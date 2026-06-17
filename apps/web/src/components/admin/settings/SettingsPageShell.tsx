@@ -26,8 +26,8 @@ function cn(...inputs: ClassValue[]) {
 }
 
 type SettingsPageShellProps = {
-  children: React.ReactNode;
-  sidebar: React.ReactNode;
+  children: any;
+  sidebar: any;
   searchQuery: string;
   onSearchChange: (value: string) => void;
   isSidebarOpen: boolean;
@@ -75,91 +75,8 @@ export default function SettingsPageShell({
   const sidebarExpanded = isSidebarOpen || mobileNavOpen;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-[#F8FAFB] font-jost">
-      <header className="z-40 flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-4 sm:gap-4 sm:px-6">
-        <button
-          type="button"
-          className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-800 lg:hidden"
-          onClick={() => setMobileNavOpen(true)}
-          aria-label="Open settings menu"
-        >
-          <Menu size={18} />
-        </button>
+    <div className="flex flex-col lg:flex-row bg-white rounded-2xl border border-gray-200 overflow-hidden font-jost" style={{ minHeight: 'calc(100vh - 8rem)' }}>
 
-        <Link href={dashboardHref} className="flex shrink-0 items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
-            <img src="/idps-logo.png" alt="IDPS" className="h-full w-full object-contain" />
-          </div>
-          <span className="text-base font-bold tracking-tight text-gray-900">Settings</span>
-        </Link>
-
-        <div className="mx-auto hidden min-w-0 max-w-xl flex-1 md:block">
-          <div className="relative">
-            <Search
-              size={15}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search settings..."
-              className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50/80 pl-9 pr-3 text-sm font-medium text-gray-900 placeholder:text-gray-400 focus:border-[#144835]/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#144835]/10"
-            />
-          </div>
-        </div>
-
-        <div className="ml-auto flex shrink-0 items-center gap-0.5 sm:gap-1">
-          {saved ? (
-            <span className="mr-2 hidden items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 sm:inline-flex">
-              <CheckCircle2 size={12} /> Saved
-            </span>
-          ) : null}
-
-          <Link
-            href={dashboardHref}
-            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#144835]"
-            title="Back to dashboard"
-          >
-            <CalendarDays size={17} />
-          </Link>
-
-          <Link
-            href={helpHref}
-            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#144835]"
-            title="Help center"
-          >
-            <CircleHelp size={17} />
-          </Link>
-
-          <button
-            type="button"
-            className="relative rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-[#144835]"
-            title="Notifications"
-          >
-            {unreadCount > 0 ? (
-              <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
-            ) : null}
-            <Bell size={17} />
-          </button>
-
-          <span className="rounded-lg bg-[#144835]/10 p-2 text-[#144835]" title="Settings">
-            <Settings size={17} />
-          </span>
-
-          <Link
-            href={profileHref}
-            className="ml-1 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#144835] text-[10px] font-bold text-white ring-2 ring-white"
-            title="Profile"
-          >
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="" className="h-full w-full object-cover" />
-            ) : (
-              userInitials
-            )}
-          </Link>
-        </div>
-      </header>
 
       <div className="relative flex min-h-0 flex-1">
         {mobileNavOpen ? (
@@ -171,7 +88,7 @@ export default function SettingsPageShell({
 
         <aside
           className={cn(
-            "fixed bottom-0 left-0 top-14 z-50 flex flex-col border-r border-gray-200 bg-[#FAFBFC] transition-all duration-300 lg:static lg:top-auto lg:z-0",
+            "fixed bottom-0 left-0 top-0 z-50 flex flex-col border-r border-gray-200 bg-[#FAFBFC] transition-all duration-300 lg:static lg:z-0",
             sidebarExpanded ? "w-[260px]" : "w-[68px]",
             mobileNavOpen ? "translate-x-0 shadow-xl" : "-translate-x-full lg:translate-x-0"
           )}
@@ -222,14 +139,32 @@ export default function SettingsPageShell({
             )}
           </div>
 
+          {sidebarExpanded && (
+            <div className="px-3 py-3 border-b border-gray-100">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input 
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Search settings..."
+                  className="w-full h-9 pl-9 pr-3 rounded-lg border border-gray-200 bg-white text-xs focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
+
           {sidebar}
 
           <div className="mt-auto border-t border-gray-100 p-3 lg:hidden" />
         </aside>
 
-        <main className="min-w-0 flex-1 overflow-y-auto bg-[#F8FAFB]">
-          <div className="border-b border-gray-100 bg-white px-4 py-3 md:hidden">
-            <div className="relative">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-gray-50/30">
+          <div className="border-b border-gray-100 bg-white px-4 py-3 lg:hidden flex items-center gap-3">
+            <button onClick={() => setMobileNavOpen(true)} className="p-2 rounded-lg border border-gray-200 text-gray-600 bg-gray-50">
+              <Menu size={18} />
+            </button>
+            <div className="relative flex-1">
               <Search
                 size={15}
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"

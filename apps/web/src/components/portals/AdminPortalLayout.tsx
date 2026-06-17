@@ -23,7 +23,8 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
   const pathname = usePathname();
   const params = useParams();
   const schoolId = useSchoolId();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const isSettingsRoute = /\/admin\/.*settings(?:\/|$)/.test(pathname || "");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isSettingsRoute);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -33,23 +34,15 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
-  }, [pathname]);
+    if (isSettingsRoute) {
+      setIsSidebarOpen(false);
+    }
+  }, [pathname, isSettingsRoute]);
 
   if (!mounted) return null;
 
-  const isStandalone = isAdminStandaloneRoute(pathname);
-
-  if (isStandalone) {
-    return (
-      <SchoolRouteGuard schoolId={schoolId}>
-        <ProtectedRoute allowedRoles={ADMIN_LAYOUT_ALLOWED_ROLES} requiredSchoolId={schoolId}>
-          <BranchProvider>
-            <AdminStandaloneShell>{children}</AdminStandaloneShell>
-          </BranchProvider>
-        </ProtectedRoute>
-      </SchoolRouteGuard>
-    );
-  }
+  // The standalone shell check has been removed as the user requested
+  // the real sidebar to be present (but default minimized) on settings pages.
 
   return (
     <SchoolRouteGuard schoolId={schoolId}>

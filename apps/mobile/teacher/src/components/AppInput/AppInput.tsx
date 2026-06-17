@@ -14,7 +14,7 @@ export function AppInput({ label, icon, error, showPasswordToggle, secureTextEnt
       <View style={styles.inputWrap}>
         {icon ? (
           <View style={styles.icon}>
-            <AppIcon name={icon} size={22} color={colors.outline} />
+            <AppIcon name={icon} size={22} color={colors.primary} />
           </View>
         ) : null}
         <TextInput

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
 import { ChevronDown, PanelLeftClose, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -68,7 +69,7 @@ export default function Sidebar({
       <div className="h-16 flex items-center justify-between px-4 border-b border-white/10 relative overflow-hidden shrink-0">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#a2c144]/20 rounded-full blur-3xl pointer-events-none"></div>
 
-        <Link
+        <SafeLink
           href="/schools/idpskalaburagi/students"
           onClick={(e) => {
             if (!sidebarExpanded) {
@@ -88,7 +89,7 @@ export default function Sidebar({
             <span className="font-bold text-sm tracking-wide leading-none text-white whitespace-nowrap">IDPS ERP</span>
             <span className="text-xs text-[#a2c144] uppercase tracking-wide mt-1 whitespace-nowrap">Branch Admin</span>
           </div>
-        </Link>
+        </SafeLink>
         {sidebarExpanded && !isHovered ? (
           <button
             onClick={() => setIsSidebarOpen(false)}
@@ -126,7 +127,7 @@ export default function Sidebar({
                 const item = group.items[0];
                 const isActive = groupActive;
                 return (
-                  <Link
+                  <SafeLink
                     key={group.id}
                     href={item.href}
                     className={cn(
@@ -150,7 +151,7 @@ export default function Sidebar({
                     >
                       {item.name}
                     </span>
-                  </Link>
+                  </SafeLink>
                 );
               }
 
@@ -204,7 +205,7 @@ export default function Sidebar({
                         const isActive =
                           pathname === item.href || (item.href !== "/schools/idpskalaburagi/students" && pathname.startsWith(item.href));
                         return (
-                            <Link
+                            <SafeLink
                               key={item.href}
                               href={item.href}
                               className={cn(
@@ -222,7 +223,7 @@ export default function Sidebar({
                               )}
                             />
                             <span className="whitespace-nowrap">{item.name}</span>
-                          </Link>
+                          </SafeLink>
                         );
                       })}
                     </div>
@@ -235,7 +236,7 @@ export default function Sidebar({
       </div>
 
       <div className="p-4 border-t border-white/10 bg-black/20 shrink-0">
-        <Link
+        <SafeLink
           href="/schools/idpskalaburagi/settings"
           className={cn(
             "flex items-center px-2 py-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group",
@@ -255,7 +256,7 @@ export default function Sidebar({
             <span className="font-bold text-xs text-white truncate group-hover:text-[#a2c144] transition-colors whitespace-nowrap">Branch Admin</span>
             <span className="text-xs text-gray-400 truncate whitespace-nowrap">admin@school.edu</span>
           </div>
-        </Link>
+        </SafeLink>
       </div>
     </aside>
   );

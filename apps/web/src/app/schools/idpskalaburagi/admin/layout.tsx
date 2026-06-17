@@ -23,7 +23,8 @@ export default function AdminLayout({
  children: React.ReactNode;
 }) {
  const pathname = usePathname();
- const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+ const isSettingsRoute = /\/admin\/.*settings(?:\/|$)/.test(pathname || "");
+ const [isSidebarOpen, setIsSidebarOpen] = useState(!isSettingsRoute);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
  const [mounted, setMounted] = useState(false);
 
@@ -36,7 +37,10 @@ export default function AdminLayout({
  // Close mobile menu on route change
  useEffect(() => {
  setIsMobileMenuOpen(false);
- }, [pathname]);
+ if (isSettingsRoute) {
+ setIsSidebarOpen(false);
+ }
+ }, [pathname, isSettingsRoute]);
 
  if (!mounted) {
  return null; // or a very minimal loading state matching the server HTML

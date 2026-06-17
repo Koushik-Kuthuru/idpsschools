@@ -4,7 +4,7 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useRouteParam } from "@/hooks/useRouteParams";
-import { ArrowLeft, Pencil, User, AlertCircle, Users, BookOpen, Heart, Building, Home, FileText, Printer, MessageSquare, IndianRupee, Award, Bus, Camera, Calendar, TrendingUp, Ticket, List, Library, Wallet, MapPin, Clock, Phone, History, UploadCloud, FileCheck, FileMinus, Eye, Trash2, Camera as CameraIcon, CheckCircle2, XCircle, AlertTriangle, Smartphone, Bell, Check, Send, BarChart3, ChevronDown, Download, ShieldCheck, ShieldAlert, UserCheck, Clock4, Activity } from "lucide-react";
+import { ArrowLeft, Pencil, User, AlertCircle, Users, BookOpen, Heart, Building, Home, FileText, Printer, MessageSquare, IndianRupee, Award, Bus, Camera, Calendar, TrendingUp, Ticket, List, Library, Wallet, MapPin, Clock, Phone, History, UploadCloud, FileCheck, FileMinus, Eye, Trash2, Camera as CameraIcon, CheckCircle2, XCircle, AlertTriangle, Smartphone, Bell, Check, Send, BarChart3, ChevronDown, Download, ShieldCheck, ShieldAlert, UserCheck, Clock4, Activity, Key, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -43,6 +43,7 @@ export default function AdminStudentProfilePage({
  const studentId = useRouteParam(params, "id");
  const searchParams = useSearchParams();
  const schoolId = useSchoolId(); // Update this per school
+ const SafeLink = Link as any;
  const [student, setStudent] = useState<any | null>(null);
  const [attendanceStats, setAttendanceStats] = useState<AttendanceStats | null>(null);
  const [feeStructure, setFeeStructure] = useState<any | null>(null);
@@ -59,11 +60,27 @@ export default function AdminStudentProfilePage({
  const [capturePhotoType, setCapturePhotoType] = useState<'student' | 'father' | 'mother' | 'guardian'>('student');
  const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
 
- const [feeCategory, setFeeCategory] = useState("GENERAL");
- const [feeTypeFilter, setFeeTypeFilter] = useState("MONTHLY");
- const [feeStatus, setFeeStatus] = useState("NEW");
- const [lastYearDue, setLastYearDue] = useState("0");
- const [discRemark, setDiscRemark] = useState("");
+  const [feeCategory, setFeeCategory] = useState("GENERAL");
+  const [feeTypeFilter, setFeeTypeFilter] = useState("MONTHLY");
+  const [feeStatus, setFeeStatus] = useState("NEW");
+  const [lastYearDue, setLastYearDue] = useState("0");
+  const [discRemark, setDiscRemark] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isGeneratingCreds, setIsGeneratingCreds] = useState(false);
+
+  useEffect(() => {
+    if (student && (!student.username || !student.portalPassword)) {
+      const generatedUsername = `std_${student.admissionNo || studentId.slice(0, 6)}`.toLowerCase();
+      
+      const docRef = doc(db, "schools", schoolId, "students", studentId);
+      updateDoc(docRef, {
+        username: generatedUsername,
+        portalPassword: generatedUsername,
+      }).catch(console.error);
+      
+      setStudent((prev: any) => ({ ...prev, username: generatedUsername, portalPassword: generatedUsername }));
+    }
+  }, [student?.username, student?.portalPassword, student?.admissionNo, studentId, schoolId]);
  const [photos, setPhotos] = useState({
  student: "",
  father: "",
@@ -473,12 +490,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <h1 className="text-xl font-bold tracking-tight text-[#1A1A1A] uppercase">Student Profile</h1>
  <p className="mt-2 text-xs font-semibold text-slate-600">Student not found: {studentId}</p>
  </div>
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/academic/students`}
  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-extrabold text-slate-700 shadow-sm hover:bg-slate-50 w-fit"
  >
  <ArrowLeft size={16} /> Back to Student List
- </Link>
+ </SafeLink>
  </div>
  );
  }
@@ -494,9 +511,9 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 relative">
  {/* Left Column: Summary Card */}
  <div className="xl:col-span-3 space-y-6 sticky top-6 h-fit max-h-[calc(100vh-3rem)] overflow-y-auto hide-scrollbar">
- <Link href={`/schools/${schoolId}/admin/academic/students`} className="inline-flex items-center gap-2 px-1 text-gray-500 hover:text-gray-900 transition-colors mb-1 text-sm font-bold">
+ <SafeLink href={`/schools/${schoolId}/admin/academic/students`} className="inline-flex items-center gap-2 px-1 text-gray-500 hover:text-gray-900 transition-colors mb-1 text-sm font-bold">
  <ArrowLeft size={16} /> Back to Students
- </Link>
+ </SafeLink>
  <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
  <div className="p-6 flex flex-col items-center border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white">
  <div className="h-24 w-24 rounded-full bg-white border-4 border-white shadow-md overflow-hidden mb-4">
@@ -567,10 +584,10 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  
  {/* Horizontal Scrollable Tabs */}
  <div className="flex overflow-x-auto hide-scrollbar gap-1 items-end px-2 sm:px-4 pt-4">
- <style jsx global>{`
+ <style dangerouslySetInnerHTML={{ __html: `
  .hide-scrollbar::-webkit-scrollbar { display: none; }
  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
- `}</style>
+ `}} />
  {PROFILE_TABS.map(tab => {
  const isActive = activeTab === tab.id;
  return (
@@ -616,12 +633,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <button className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-xs font-extrabold text-gray-700 shadow-sm hover:bg-gray-50 uppercase tracking-wide">
  <MessageSquare size={14} /> Message
  </button>
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/academic/students/${encodeURIComponent(student.id)}/edit`}
  className="inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 py-2 text-xs font-extrabold text-white shadow-sm hover:opacity-90 uppercase tracking-wide"
  >
  <Pencil size={14} /> Edit
- </Link>
+ </SafeLink>
  </div>
  {/* Identity Section */}
  <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden">
@@ -636,8 +653,47 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <InfoField label="SRN No" value={student.srnNo} />
  <InfoField label="Form No" value={student.formNo} />
  <InfoField label="Pen No" value={student.penNo} />
- <InfoField label="User ID / Username" value={student.username} />
- <InfoField label="Portal Password" value={student.portalPassword} />
+ </div>
+ </div>
+
+ {/* Login Credentials Section */}
+ <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden">
+ <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between">
+ <div className="flex items-center gap-3">
+ <div className="h-8 w-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+ <Key size={16} strokeWidth={2.5} />
+ </div>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Login Credentials</h3>
+ </div>
+ </div>
+ <div className="p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-6">
+ {student.username ? (
+ <>
+ <div>
+ <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Username / User ID</p>
+ <p className="mt-1 text-sm font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100">{String(student.username)}</p>
+ </div>
+ <div className="col-span-1 sm:col-span-2 md:col-span-3">
+ <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Portal Password</p>
+ <div className="mt-1 relative flex items-center max-w-sm">
+ <p className="text-sm font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100 w-full font-mono tracking-widest">
+ {showPassword ? String(student.portalPassword || "") : "••••••••"}
+ </p>
+ <button
+ type="button"
+ onClick={() => setShowPassword(!showPassword)}
+ className="absolute right-3 text-gray-400 hover:text-gray-600"
+ >
+ {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+ </button>
+ </div>
+ </div>
+ </>
+ ) : (
+ <div className="col-span-full text-sm text-gray-500 p-2 animate-pulse">
+ Automatically configuring login credentials...
+ </div>
+ )}
  </div>
  </div>
 
@@ -1420,12 +1476,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </div>
 
  <div className="overflow-x-auto max-h-[600px] overflow-y-auto custom-scrollbar">
- <style jsx global>{`
+ <style dangerouslySetInnerHTML={{ __html: `
  .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
  .custom-scrollbar::-webkit-scrollbar-track { background: #f9fafb; }
  .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
- `}</style>
+ `}} />
  <table className="w-full text-center border-collapse">
  <thead className="sticky top-0 z-20 shadow-[0_1px_0_0_#f3f4f6]">
  <tr className="bg-[#144835]">

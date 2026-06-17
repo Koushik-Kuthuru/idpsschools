@@ -140,6 +140,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.error("Failed to parse student session", e);
           }
         }
+
+        // Fallback: check if an employee session is stored in localStorage
+        const empSessionStr = typeof window !== "undefined" ? localStorage.getItem("employee_session") : null;
+        if (empSessionStr) {
+          try {
+            const { employee: empDoc, schoolId: userSchoolId, role: empRole } = JSON.parse(empSessionStr);
+            setUser({
+              uid: empDoc.id,
+              email: empDoc.email || `${empDoc.username}@employee.idps`,
+              displayName: empDoc.name || empDoc.firstName,
+              photoURL: empDoc.photo || null,
+              ...empDoc,
+            });
+            setRole(empRole);
+            setSchoolId(userSchoolId);
+            setLoading(false);
+            return;
+          } catch (e) {
+            console.error("Failed to parse employee session", e);
+          }
+        }
+
         setUser(null);
         setRole(null);
         setSchoolId(null);
@@ -164,6 +186,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await signInWithEmailAndPassword(auth, authEmail, password);
         if (typeof window !== "undefined") {
           localStorage.removeItem("student_session");
+          localStorage.removeItem("employee_session");
         }
         return;
       } catch (err: unknown) {
@@ -216,6 +239,68 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
+    // 3. Employee doc login (username + portalPassword on teacher/staff record)
+    let employeeDoc: Record<string, unknown> | null = null;
+    let foundEmployeeSchoolId: string | null = null;
+    let foundEmployeeRole: string | null = null;
+
+    if (!studentDoc) {
+      for (const sch of schoolsToCheck) {
+        try {
+          const usernames = Array.from(new Set([identifier.toLowerCase(), identifier]));
+          
+          // Check teachers
+          const qTeacher = query(
+            collection(db, "schools", sch, "teachers"),
+            where("username", "in", usernames),
+            where("portalPassword", "==", password)
+          );
+          const snapTeacher = await getDocs(qTeacher);
+          if (!snapTeacher.empty) {
+            employeeDoc = { id: snapTeacher.docs[0].id, ...snapTeacher.docs[0].data() };
+            foundEmployeeSchoolId = sch;
+            foundEmployeeRole = "teacher";
+            break;
+          }
+
+          // Check non-teaching staff
+          const qStaff = query(
+            collection(db, "schools", sch, "non_teaching_staff"),
+            where("username", "in", usernames),
+            where("portalPassword", "==", password)
+          );
+          const snapStaff = await getDocs(qStaff);
+          if (!snapStaff.empty) {
+            employeeDoc = { id: snapStaff.docs[0].id, ...snapStaff.docs[0].data() };
+            foundEmployeeSchoolId = sch;
+            foundEmployeeRole = "staff";
+            break;
+          }
+        } catch (err) {
+          console.error(`Error searching employee credentials in ${sch}:`, err);
+        }
+      }
+    }
+
+    if (employeeDoc && foundEmployeeSchoolId && foundEmployeeRole) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "employee_session",
+          JSON.stringify({ employee: employeeDoc, schoolId: foundEmployeeSchoolId, role: foundEmployeeRole })
+        );
+      }
+      setUser({
+        uid: String(employeeDoc.id),
+        email: String(employeeDoc.email || `${employeeDoc.username}@employee.idps`),
+        displayName: String(employeeDoc.name || employeeDoc.firstName || ""),
+        photoURL: (employeeDoc.photo as string) || null,
+        ...employeeDoc,
+      });
+      setRole(foundEmployeeRole);
+      setSchoolId(foundEmployeeSchoolId);
+      return;
+    }
+
     const error = new Error("Invalid username or password.");
     (error as { code?: string }).code = "auth/invalid-credential";
     throw error;
@@ -224,6 +309,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("student_session");
+      localStorage.removeItem("employee_session");
     }
     await signOut(auth);
   };

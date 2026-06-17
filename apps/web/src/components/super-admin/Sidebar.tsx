@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
 import { PanelLeftClose, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -57,7 +58,7 @@ export default function Sidebar({
         {/* Decorative glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#a2c144]/20 rounded-full blur-3xl pointer-events-none"></div>
 
-        <Link
+        <SafeLink
           href="/super-admin"
           onClick={(e) => {
             if (!sidebarExpanded) {
@@ -77,7 +78,7 @@ export default function Sidebar({
             <span className="font-bold text-sm tracking-wide leading-none text-white whitespace-nowrap">IDPS ERP</span>
             <span className="text-xs text-[#a2c144] uppercase tracking-wide mt-1 whitespace-nowrap">Super Admin</span>
           </div>
-        </Link>
+        </SafeLink>
         {sidebarExpanded && !isHovered ? (
           <button
             onClick={() => setIsSidebarOpen(false)}
@@ -110,7 +111,7 @@ export default function Sidebar({
             {navigation.map((item) => {
               const isActive = pathname === item.href;
               return (
-                <Link
+                <SafeLink
                   key={item.name}
                   href={item.href}
                   className={cn(
@@ -129,7 +130,7 @@ export default function Sidebar({
                   )}>
                     {item.name}
                   </span>
-                </Link>
+                </SafeLink>
               );
             })}
           </div>
@@ -138,7 +139,7 @@ export default function Sidebar({
 
       {/* Admin Profile */}
       <div className="p-3 border-t border-white/10 bg-black/20 shrink-0">
-        <Link
+        <SafeLink
           href="/super-admin/settings"
           className={cn(
             "flex items-center p-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group",
@@ -158,7 +159,7 @@ export default function Sidebar({
             <span className="font-bold text-xs text-white truncate group-hover:text-[#a2c144] transition-colors whitespace-nowrap">Super Admin</span>
             <span className="text-xs text-gray-400 truncate whitespace-nowrap">admin@dpiso.com</span>
           </div>
-        </Link>
+        </SafeLink>
       </div>
     </aside>
   );

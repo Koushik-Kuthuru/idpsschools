@@ -1,82 +1,53 @@
 import { StyleSheet } from 'react-native';
-import { borderRadius, colors, spacing } from '@/theme';
-import { STAT_CARD_HEIGHT } from '@/components/DashboardStatCard/DashboardStatCard.styles';
+import { colors, spacing } from '@/theme';
 
 export const styles = StyleSheet.create({
   content: {
-    padding: spacing.md,
-    paddingTop: spacing.lg,
-    gap: spacing.lg,
+    paddingHorizontal: spacing.md,
+    paddingTop: 4,
+    paddingBottom: spacing.md,
+    gap: spacing.md,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-  },
-  sectionLabel: {
-    color: colors.onSurfaceVariant,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  overviewStack: {
-    gap: spacing.sm,
-  },
-  bentoGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -spacing.cardGap / 2,
-  },
-  bentoCell: {
-    width: '50%',
-    paddingHorizontal: spacing.cardGap / 2,
-    marginBottom: spacing.cardGap,
-    minHeight: STAT_CARD_HEIGHT,
-  },
-  announcementsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-  },
-  seeAll: {
-    color: colors.primaryContainer,
-    fontWeight: '600',
-  },
-  announcement: {
-    backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.primary,
-    gap: spacing.xs,
-  },
-  announcementUrgent: {
-    borderLeftColor: colors.error,
-  },
-  announcementMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 6,
     gap: spacing.sm,
   },
-  categoryChip: {
-    backgroundColor: `${colors.primary}1A`,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: borderRadius.full,
+  sectionTitle: {
+    flex: 1,
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.slate900,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
-  categoryChipUrgent: {
-    backgroundColor: `${colors.error}1A`,
-  },
-  categoryText: {
+  sectionAction: {
+    fontSize: 11,
+    fontWeight: '700',
     color: colors.primary,
     textTransform: 'uppercase',
+    letterSpacing: 0.6,
   },
-  categoryTextUrgent: {
-    color: colors.error,
+  overviewStack: {
+    gap: 0,
   },
-  announcementTitle: {
-    color: colors.onSurface,
+  tasksStack: {
+    gap: 0,
   },
-  announcementTime: {
-    color: colors.outline,
+  taskCountBadge: {
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: `${colors.primary}18`,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  taskCountText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.primary,
   },
 });

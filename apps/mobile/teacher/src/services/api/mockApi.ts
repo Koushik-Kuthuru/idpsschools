@@ -7,6 +7,7 @@ import {
   mockExams,
   getUnreadNotificationCount,
   getPendingAttendanceClassCount,
+  getPendingMarksExamCount,
   getSubmittedClassAttendance,
   markClassAttendanceComplete,
   mockFacultyClasses,
@@ -31,7 +32,6 @@ import type { AttendanceStatus, StaffRole } from '@/types';
 import {
   clearCurrentUserEmail,
   getMergedProfileForSession,
-  getUserPassword,
   saveUserProfile,
   setCurrentUserEmail,
   updateUserAvatar,
@@ -47,10 +47,9 @@ export const mockApi = {
       await delay(800);
       const normalizedEmail = email.trim().toLowerCase();
       const normalizedPassword = password.trim();
-      const account = getMockAccountByEmail(normalizedEmail);
-      if (!account) throw new Error('Invalid credentials');
-      const expectedPassword = await getUserPassword(normalizedEmail);
-      if (normalizedPassword !== expectedPassword) throw new Error('Invalid credentials');
+      if (!normalizedEmail || !normalizedPassword) {
+        throw new Error('Invalid credentials');
+      }
       await AsyncStorage.setItem('auth_token', 'mock-jwt-token');
       await setCurrentUserEmail(normalizedEmail);
       return { token: 'mock-jwt-token', requiresOtp: true };
@@ -407,35 +406,34 @@ export const mockApi = {
         ];
       }
 
-      const tasks = [
-        {
+      const tasks = [];
+
+      if (pendingAttendance > 0) {
+        tasks.push({
           id: 't1',
           icon: 'fact_check',
           title: 'Mark Attendance',
           subtitle: `${pendingAttendance} class${pendingAttendance === 1 ? '' : 'es'} pending`,
           action: 'AttendanceClasses' as const,
-        },
-        {
+        });
+      }
+
+      const pendingMarks = getPendingMarksExamCount();
+      if (pendingMarks > 0) {
+        tasks.push({
           id: 't2',
           icon: 'grade',
           title: 'Enter Marks',
-          subtitle: `${user.className ?? '10-A'} Final Exam`,
+          subtitle: `${pendingMarks} exam${pendingMarks === 1 ? '' : 's'} pending`,
           action: 'MarksClasses' as const,
-        },
-        {
-          id: 't3',
-          icon: 'event_busy',
-          title: 'Leave Requests',
-          subtitle: 'View your leave status',
-          action: 'LeaveManagement' as const,
-        },
-      ];
-
-      if (designation === 'coordinator') {
-        return tasks.filter((t) => t.id !== 't3');
+        });
       }
 
-      return pendingAttendance > 0 ? tasks : tasks.filter((t) => t.id !== 't1');
+      if (designation === 'coordinator') {
+        return tasks;
+      }
+
+      return tasks;
     },
   },
 };

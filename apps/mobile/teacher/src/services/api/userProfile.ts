@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getMockAccountByEmail, getMockUserByEmail } from './mockData';
+import { getMockAccountByEmail, getMockUserByEmail, mockTeacher } from './mockData';
 import type { StaffUser } from '@/types';
 
 export const CURRENT_USER_EMAIL_KEY = 'current_user_email';
@@ -20,8 +20,14 @@ export async function clearCurrentUserEmail(): Promise<void> {
 }
 
 export async function getMergedUserProfile(email: string): Promise<StaffUser> {
-  const base = getMockUserByEmail(email);
-  if (!base) throw new Error('User not found');
+  const normalizedEmail = email.trim().toLowerCase();
+  const base =
+    getMockUserByEmail(normalizedEmail) ??
+    ({
+      ...mockTeacher,
+      email: normalizedEmail,
+      employeeId: normalizedEmail.includes('@') ? normalizedEmail.split('@')[0].toUpperCase() : normalizedEmail.toUpperCase(),
+    } satisfies StaffUser);
 
   const raw = await AsyncStorage.getItem(userProfileKey(email));
   if (!raw) return { ...base };

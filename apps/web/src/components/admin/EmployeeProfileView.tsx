@@ -19,11 +19,14 @@ import {
   Building,
   HeartPulse,
   BookOpen,
+  Key,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, getDoc, onSnapshot, orderBy, query } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, orderBy, query, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import StaffAttendanceLogTab from "@/components/admin/hr/attendance/StaffAttendanceLogTab";
 import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
@@ -98,11 +101,14 @@ export default function EmployeeProfileView({
   backLabel?: string;
   variant?: "teaching" | "nonTeaching";
 }) {
+  const SafeLink = Link as any;
   const [staff, setStaff] = useState<StaffDisplayRecord | null>(null);
   const [rawEmployee, setRawEmployee] = useState<Record<string, unknown> | null>(null);
   const [leaves, setLeaves] = useState<LeaveRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Profile Overview");
+  const [showPassword, setShowPassword] = useState(false);
+
 
   useEffect(() => {
     if (!employeeId || !schoolId) return;
@@ -121,9 +127,20 @@ export default function EmployeeProfileView({
     let cancelled = false;
     (async () => {
       for (const col of collections) {
-        const snap = await getDoc(doc(db, "schools", schoolId, col, employeeId));
+        const docRef = doc(db, "schools", schoolId, col, employeeId);
+        const snap = await getDoc(docRef);
         if (!cancelled && snap.exists()) {
-          setRawEmployee(snap.data() as Record<string, unknown>);
+          const data = snap.data() as Record<string, unknown>;
+          if (!data.username || !data.portalPassword) {
+            const empId = String(data.employeeId || snap.id).toLowerCase();
+            await updateDoc(docRef, {
+              username: empId,
+              portalPassword: empId,
+            });
+            data.username = empId;
+            data.portalPassword = empId;
+          }
+          setRawEmployee(data);
           break;
         }
       }
@@ -185,9 +202,9 @@ export default function EmployeeProfileView({
     return (
       <div className="text-center py-10">
         <h2 className="text-xl font-bold text-gray-700">Staff member not found</h2>
-        <Link href={backHref} className="text-[#144835] font-semibold mt-4 inline-block hover:underline">
+        <SafeLink href={backHref} className="text-[#144835] font-semibold mt-4 inline-block hover:underline">
           Return to Directory
-        </Link>
+        </SafeLink>
       </div>
     );
   }
@@ -211,9 +228,9 @@ export default function EmployeeProfileView({
     <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-          <Link href={backHref} className="hover:text-gray-900 transition-colors flex items-center gap-1">
+          <SafeLink href={backHref} className="hover:text-gray-900 transition-colors flex items-center gap-1">
             <ChevronLeft size={14} /> {backLabel}
-          </Link>
+          </SafeLink>
           <span className="text-gray-300">/</span>
           <span className="font-bold text-gray-900">{staff.name}</span>
         </div>
@@ -225,12 +242,12 @@ export default function EmployeeProfileView({
           >
             <Download size={14} /> Export Data
           </button>
-          <Link
+          <SafeLink
             href={editHref}
             className="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-5 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
           >
             <Pencil size={14} /> Edit Profile
-          </Link>
+          </SafeLink>
         </div>
       </div>
 
@@ -390,6 +407,48 @@ export default function EmployeeProfileView({
                       <p className="text-sm text-gray-500">No emergency contact provided.</p>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Login Credentials Section */}
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
+                      <Key size={20} />
+                    </div>
+                    <h2 className="text-base font-bold text-gray-900">Login Credentials</h2>
+                  </div>
+
+                </div>
+                <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {rawEmployee?.username ? (
+                    <>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Username / User ID</p>
+                        <p className="mt-1 text-sm font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100">{String(rawEmployee.username)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Portal Password</p>
+                        <div className="mt-1 relative flex items-center">
+                          <p className="text-sm font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100 w-full font-mono tracking-widest">
+                            {showPassword ? String(rawEmployee.portalPassword || "") : "••••••••"}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 text-gray-400 hover:text-gray-600"
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="col-span-2 text-sm text-gray-500 p-2">
+                      Generating login credentials...
+                    </div>
+                  )}
                 </div>
               </div>
 

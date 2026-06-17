@@ -7,5 +7,6 @@ export interface DashboardStatCardProps {
   footerTextColor?: string;
   icon?: string;
   iconColor?: string;
+  accentColor?: string;
   onPress?: () => void;
 }

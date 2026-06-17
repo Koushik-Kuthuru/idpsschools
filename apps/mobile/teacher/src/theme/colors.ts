@@ -1,4 +1,6 @@
-/** Extracted from stitch_idps_teacher_erp_portal/teacher_portal_design_system/DESIGN.md */
+import { teacherBrand } from './brand';
+
+/** IDPS palette — aligned with student app (#144835 green, #a2c144 accent) */
 export const colors = {
   surface: '#f8f9ff',
   surfaceDim: '#cbdbf5',
@@ -15,11 +17,11 @@ export const colors = {
   outline: '#6c7a71',
   outlineVariant: '#bbcabf',
   surfaceTint: '#006c49',
-  primary: '#144835',
+  primary: teacherBrand.navy,
   onPrimary: '#ffffff',
-  primaryContainer: '#a2c144',
-  onPrimaryContainer: '#144835',
-  inversePrimary: '#a2c144',
+  primaryContainer: teacherBrand.amber,
+  onPrimaryContainer: teacherBrand.navy,
+  inversePrimary: teacherBrand.amber,
   secondary: '#0058be',
   onSecondary: '#ffffff',
   secondaryContainer: '#2170e4',
@@ -44,12 +46,13 @@ export const colors = {
   tertiaryFixedDim: '#ffb3ad',
   onTertiaryFixed: '#410004',
   onTertiaryFixedVariant: '#930013',
-  background: '#f8f9ff',
+  background: teacherBrand.canvas,
   onBackground: '#0b1c30',
   surfaceVariant: '#d3e4fe',
-  /** Screen canvas from Stitch HTML */
-  canvas: '#f6f8f7',
-  /** Inline functional colors from Stitch screens */
+  canvas: teacherBrand.canvas,
+  accent: teacherBrand.amber,
+  accentLight: teacherBrand.amberLight,
+  primaryLight: teacherBrand.navyLight,
   absent: '#ef4444',
   late: '#f97316',
   presentBg: '#f0fdf4',
@@ -57,6 +60,7 @@ export const colors = {
   lateBg: '#fff7ed',
   slate100: '#f1f5f9',
   slate200: '#e2e8f0',
+  slate400: '#94a3b8',
   slate500: '#64748b',
   slate900: '#0f172a',
   green500: '#22c55e',

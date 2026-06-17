@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, FlatList } from 'react-native';
-import { AppHeader, NotificationCard, ScreenLayout } from '@/components';
+import { View, Text } from 'react-native';
+import { AppIcon, DashboardTopBar, NotificationCard, ScreenLayout } from '@/components';
 import { mockApi } from '@/services/api';
+import { useAuthStore } from '@/store';
 import type { NotificationItem } from '@/types';
-import { colors, textStyle } from '@/theme';
+import { colors } from '@/theme';
 import { styles } from './NotificationsAlertsScreen.styles';
 import type { NotificationsAlertsScreenProps } from './NotificationsAlertsScreen.types';
 
 export function NotificationsAlertsScreen(_props: NotificationsAlertsScreenProps) {
+  const teacher = useAuthStore((s) => s.user);
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [markingAll, setMarkingAll] = useState(false);
 
@@ -20,6 +22,7 @@ export function NotificationsAlertsScreen(_props: NotificationsAlertsScreenProps
   }, [loadNotifications]);
 
   const unreadCount = items.filter((n) => !n.read).length;
+  const displayName = teacher?.name ?? 'Staff';
 
   const handleMarkAsRead = async (id: string) => {
     await mockApi.notifications.markAsRead(id);
@@ -27,7 +30,7 @@ export function NotificationsAlertsScreen(_props: NotificationsAlertsScreenProps
   };
 
   const handleMarkAllAsRead = async () => {
-    if (unreadCount === 0) return;
+    if (unreadCount === 0 || markingAll) return;
     setMarkingAll(true);
     try {
       await mockApi.notifications.markAllAsRead();
@@ -41,43 +44,68 @@ export function NotificationsAlertsScreen(_props: NotificationsAlertsScreenProps
     <ScreenLayout
       scroll
       header={
-        <AppHeader
-          variant="back"
+        <DashboardTopBar
           title="Notifications"
-          rightAction={
+          name={displayName}
+          showBack
+          showNotifications={false}
+          showProfile={false}
+          headerAction={
             unreadCount > 0
               ? {
-                  label: markingAll ? '…' : 'Mark all read',
+                  label: markingAll ? 'Updating…' : 'Mark all read',
                   onPress: handleMarkAllAsRead,
+                  disabled: markingAll,
                 }
               : undefined
           }
         />
       }
     >
-      <View style={styles.content}>
-        {unreadCount > 0 ? (
-          <Text style={[textStyle('labelSm'), styles.unreadBanner]}>
-            {unreadCount} unread notification{unreadCount === 1 ? '' : 's'}
+      <View style={styles.summaryBand}>
+        <View style={[styles.summaryChip, unreadCount > 0 ? styles.summaryChipUnread : styles.summaryChipClear]}>
+          <AppIcon
+            name={unreadCount > 0 ? 'notifications_active' : 'check_circle'}
+            size={16}
+            color={unreadCount > 0 ? colors.primary : colors.secondary}
+          />
+          <Text style={[styles.summaryText, unreadCount > 0 ? styles.summaryTextUnread : styles.summaryTextClear]}>
+            {unreadCount > 0
+              ? `${unreadCount} unread alert${unreadCount === 1 ? '' : 's'}`
+              : 'All caught up'}
           </Text>
+        </View>
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recent</Text>
+          <Text style={styles.sectionMeta}>{items.length} total</Text>
+        </View>
+
+        {items.length === 0 ? (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconBox}>
+              <AppIcon name="notifications_off" size={28} color={colors.slate400} />
+            </View>
+            <Text style={styles.emptyTitle}>No notifications yet</Text>
+            <Text style={styles.emptySubtitle}>Alerts about classes, attendance, and school updates will appear here.</Text>
+          </View>
         ) : (
-          <Text style={[textStyle('labelSm'), styles.allReadBanner]}>All caught up</Text>
+          <View style={styles.list}>
+            {items.map((item) => (
+              <NotificationCard
+                key={item.id}
+                title={item.title}
+                body={item.body}
+                type={item.type}
+                timestamp={item.timestamp}
+                read={item.read}
+                onMarkAsRead={!item.read ? () => handleMarkAsRead(item.id) : undefined}
+              />
+            ))}
+          </View>
         )}
-        <FlatList
-          data={items}
-          keyExtractor={(n) => n.id}
-          scrollEnabled={false}
-          renderItem={({ item }) => (
-            <NotificationCard
-              title={item.title}
-              body={item.body}
-              type={item.type}
-              timestamp={item.timestamp}
-              read={item.read}
-              onMarkAsRead={!item.read ? () => handleMarkAsRead(item.id) : undefined}
-            />
-          )}
-        />
       </View>
     </ScreenLayout>
   );

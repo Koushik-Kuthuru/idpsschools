@@ -245,6 +245,10 @@ export function getPendingAttendanceClassCount(): number {
   return mockFacultyClasses.filter((c) => c.attendanceStatus === 'pending').length;
 }
 
+export function getPendingMarksExamCount(): number {
+  return mockMarksExams.filter((e) => e.status === 'pending').length;
+}
+
 export function markClassAttendanceComplete(classId: string): FacultyClass | undefined {
   const cls = mockFacultyClasses.find((c) => c.id === classId);
   if (cls) cls.attendanceStatus = 'completed';

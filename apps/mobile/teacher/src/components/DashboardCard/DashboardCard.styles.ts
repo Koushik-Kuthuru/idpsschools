@@ -1,49 +1,59 @@
 import { StyleSheet } from 'react-native';
-import { borderRadius, colors, shadows, spacing } from '@/theme';
+import { borderRadius, colors, spacing } from '@/theme';
 
 export const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surfaceContainerLowest,
-    padding: spacing.md,
-    borderRadius: borderRadius.xl,
+    padding: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
+    borderColor: '#f3f4f6',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: spacing.sm,
     width: '100%',
-    ...shadows.sm,
+    marginBottom: 10,
   },
   textBlock: {
     flex: 1,
-    marginRight: spacing.sm,
+    marginRight: spacing.xs,
   },
-  left: {
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    flex: 1,
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: 4,
   },
   iconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.lg,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
-    color: colors.onSurface,
+    color: colors.slate900,
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
   },
   subtitle: {
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
+    color: colors.slate500,
+    fontSize: 12,
+    lineHeight: 17,
   },
   highlight: {
-    fontWeight: '500',
-    color: colors.onSurface,
+    fontWeight: '600',
+    color: colors.slate900,
   },
-  errorText: {
-    color: colors.error,
-    fontWeight: '500',
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: borderRadius.full,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

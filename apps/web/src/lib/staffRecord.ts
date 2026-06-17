@@ -25,6 +25,8 @@ export type StaffDisplayRecord = {
   qualifications: string[];
   reportsTo: string;
   baseSalaryMonthlyInr: number;
+  username?: string;
+  portalPassword?: string;
 };
 
 export function parseClassLoads(data: Record<string, unknown>): ClassLoad[] {
@@ -122,5 +124,7 @@ export function mapStaffDoc(docId: string, data: Record<string, unknown>): Staff
     qualifications,
     reportsTo: String(data.reportsTo ?? data.reportingManager ?? "—"),
     baseSalaryMonthlyInr: Number(data.baseSalaryMonthlyInr ?? data.baseSalary ?? 0),
+    username: String(data.username || ""),
+    portalPassword: String(data.portalPassword || ""),
   };
 }

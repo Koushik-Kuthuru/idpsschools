@@ -5,6 +5,9 @@ import QRCode from 'react-qr-code';
 import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
+const SafeWebcam = Webcam as any;
+const SafeQRCode = QRCode as any;
+
 interface CapturePhotoModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -183,7 +186,7 @@ export default function CapturePhotoModal({ isOpen, onClose, onCapture, schoolId
                     )}
                   </div>
                   <div className="relative rounded-xl overflow-hidden bg-black aspect-video w-full max-w-lg">
-                    <Webcam
+                    <SafeWebcam
                       audio={false}
                       ref={webcamRef}
                       screenshotFormat="image/jpeg"
@@ -223,7 +226,7 @@ export default function CapturePhotoModal({ isOpen, onClose, onCapture, schoolId
               {mobileStatus === 'waiting' ? (
                 <>
                   <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 inline-block">
-                    <QRCode value={getCaptureUrl()} size={200} />
+                    <SafeQRCode value={getCaptureUrl()} size={200} />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 mb-2">Scan to Capture</h3>

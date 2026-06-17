@@ -2,22 +2,56 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AppHeader, AppIcon, DashboardCard, DashboardStatCard, FacultyStatusBanner, ScreenLayout } from '@/components';
+import { DashboardCard, DashboardTopBar, DashboardWelcomeSection, FacultyStatusBanner, ScreenLayout } from '@/components';
 import { mockApi } from '@/services/api';
 import { useAuthStore } from '@/store';
-import type { Announcement, RootStackParamList } from '@/types';
-import { colors, textStyle } from '@/theme';
+import type { RootStackParamList } from '@/types';
+import { colors } from '@/theme';
 import { getRoleConfig } from '@/config/roleConfig';
-import { getGreeting } from '@/utils/greeting';
 import { handleBottomNavPress } from '@/utils/navigationHelpers';
 import { styles } from './TeacherDashboardScreen.styles';
+
+const TASK_PALETTES: Record<string, { iconColor: string; iconBgColor: string; accentColor: string }> = {
+  fact_check: { iconColor: colors.primary, iconBgColor: `${colors.primary}14`, accentColor: colors.primary },
+  grade: { iconColor: '#d97706', iconBgColor: '#fef3c7', accentColor: '#d97706' },
+  event_busy: { iconColor: '#2563eb', iconBgColor: '#dbeafe', accentColor: '#2563eb' },
+  campaign: { iconColor: '#db2777', iconBgColor: '#fce7f3', accentColor: '#db2777' },
+  sync: { iconColor: colors.secondary, iconBgColor: colors.secondaryContainer, accentColor: colors.secondary },
+};
+
+const DEFAULT_TASK_PALETTE = {
+  iconColor: colors.primary,
+  iconBgColor: `${colors.primary}14`,
+  accentColor: colors.primary,
+};
+
+function SectionHeader({
+  title,
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {actionLabel && onAction ? (
+        <TouchableOpacity onPress={onAction} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Text style={styles.sectionAction}>{actionLabel}</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
+}
 
 export function TeacherDashboardScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const teacher = useAuthStore((s) => s.user);
   const [overview, setOverview] = useState<Awaited<ReturnType<typeof mockApi.dashboard.getOverview>> | null>(null);
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [tasks, setTasks] = useState<Awaited<ReturnType<typeof mockApi.faculty.getPendingTasks>>>([]);
+  const [tasksLoaded, setTasksLoaded] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   const refreshDashboard = useCallback(() => {
@@ -25,12 +59,14 @@ export function TeacherDashboardScreen() {
     mockApi.notifications.list().then((items) => {
       setUnreadNotifications(items.filter((n) => !n.read).length);
     });
-    mockApi.faculty.getPendingTasks().then(setTasks);
+    mockApi.faculty.getPendingTasks().then((items) => {
+      setTasks(items);
+      setTasksLoaded(true);
+    });
   }, []);
 
   useEffect(() => {
     refreshDashboard();
-    mockApi.announcements.list().then(setAnnouncements);
   }, [refreshDashboard]);
 
   useFocusEffect(
@@ -59,21 +95,18 @@ export function TeacherDashboardScreen() {
     : 'Staff';
 
   const nextClass = overview?.nextClass ?? 'Mathematics (9:00 AM) — Room 102';
+  const displayName = teacher?.name ?? 'Staff';
 
   return (
     <ScreenLayout
       scroll
       header={
-        <AppHeader
-          variant="identity"
-          greeting={getGreeting()}
-          name={`${teacher?.name ?? 'Staff'}! 👋`}
-          subtitle={subtitle}
+        <DashboardTopBar
+          name={displayName}
           avatarUrl={teacher?.avatarUrl}
-          showNotification
           notificationCount={unreadNotifications}
+          onProfilePress={() => navigation.navigate('TeacherProfile')}
           onNotificationPress={() => navigation.navigate('NotificationsAlerts')}
-          rightAction={{ label: 'Menu', onPress: () => navigation.navigate('FacultyMenu') }}
         />
       }
       bottomNav={{
@@ -81,125 +114,61 @@ export function TeacherDashboardScreen() {
         onTabPress: (tab) => handleBottomNavPress(navigation, tab),
       }}
     >
+      <DashboardWelcomeSection name={displayName} subtitle={subtitle} />
       <View style={styles.content}>
-        <FacultyStatusBanner
-          onViewQueue={() => navigation.navigate('SyncQueue')}
-          pendingCount={3}
-        />
-        <View style={styles.sectionHeader}>
-          <AppIcon name="calendar_today" size={20} color={colors.primaryContainer} />
-          <Text style={[textStyle('labelLg'), styles.sectionLabel]}>Today&apos;s Overview</Text>
-        </View>
+        <FacultyStatusBanner onViewQueue={() => navigation.navigate('SyncQueue')} pendingCount={3} />
+
+        <SectionHeader title="Today's overview" />
         <View style={styles.overviewStack}>
           <DashboardCard
             icon="menu_book"
-            iconColor={colors.primaryContainer}
-            iconBgColor={`${colors.primaryContainer}1A`}
-            title={`${overview?.classesToday ?? 6} Classes Today`}
-            subtitle={`Next: ${nextClass}`}
-            subtitleHighlight={nextClass.split(' — ')[0]}
+            iconColor={colors.primary}
+            iconBgColor={`${colors.primary}14`}
+            accentColor={colors.primary}
+            title={`${overview?.classesToday ?? 6} classes today`}
+            subtitle={`Next up · ${nextClass}`}
+            badge="Active"
             onPress={() => navigation.navigate('ClassTimetable')}
           />
           <DashboardCard
             icon="person_check"
             iconColor={colors.secondary}
-            iconBgColor={`${colors.secondary}1A`}
-            title={`Class ${teacher?.className ?? '10-A'} Attendance`}
+            iconBgColor={colors.secondaryContainer}
+            accentColor={colors.secondary}
+            title={`Class ${teacher?.className ?? '10-A'} attendance`}
             subtitle={`${overview?.absentToday ?? 3} students absent today`}
             onPress={() => navigation.navigate('AttendanceClasses')}
           />
         </View>
 
-        <Text style={[textStyle('labelLg'), styles.sectionLabel]}>Pending Tasks</Text>
-        {tasks.map((t) => (
-          <TouchableOpacity
-            key={t.id}
-            style={styles.announcement}
-            onPress={() => openTask(t.action)}
-          >
-            <Text style={[textStyle('labelLg'), styles.announcementTitle]}>{t.title}</Text>
-            <Text style={[textStyle('bodyMd'), { color: colors.onSurfaceVariant }]}>{t.subtitle}</Text>
-            <Text style={[textStyle('labelSm'), styles.seeAll]}>Mark Now →</Text>
-          </TouchableOpacity>
-        ))}
-
-        <Text style={[textStyle('labelLg'), styles.sectionLabel]}>Quick Stats</Text>
-        <View style={styles.bentoGrid}>
-          <View style={styles.bentoCell}>
-            <DashboardStatCard
-              value={String(overview?.assignmentsToReview ?? 12)}
-              label="to review"
-              progressPercent={65}
-              onPress={() => navigation.navigate('AssignmentsList')}
-            />
-          </View>
-          <View style={styles.bentoCell}>
-            <DashboardStatCard
-              value={`${overview?.avgClassScore ?? 74}%`}
-              label="Avg Class Score"
-              valueColor={colors.primaryContainer}
-              footerText="This term"
-              onPress={() => navigation.navigate('MarksClasses')}
-            />
-          </View>
-          <View style={styles.bentoCell}>
-            <DashboardStatCard
-              value={String(unreadNotifications)}
-              label="Unread Alerts"
-              valueColor={unreadNotifications > 0 ? colors.error : colors.onSurfaceVariant}
-              icon="campaign"
-              iconColor={unreadNotifications > 0 ? colors.error : colors.onSurfaceVariant}
-              onPress={() => navigation.navigate('NotificationsAlerts')}
-            />
-          </View>
-          <View style={styles.bentoCell}>
-            <DashboardStatCard
-              value={String(overview?.upcomingExams ?? 2)}
-              label="Upcoming Exams"
-              footerText="This week"
-              footerTextColor={colors.secondary}
-              onPress={() => navigation.navigate('ExamDuties')}
-            />
-          </View>
-        </View>
-
-        <View style={styles.announcementsHeader}>
-          <View style={styles.sectionHeader}>
-            <AppIcon name="campaign" size={20} color={colors.primaryContainer} />
-            <Text style={[textStyle('labelLg'), styles.sectionLabel]}>Announcements</Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('AnnouncementsManagement')}>
-            <Text style={[textStyle('labelSm'), styles.seeAll]}>See All</Text>
-          </TouchableOpacity>
-        </View>
-        {(announcements.length ? announcements : overview?.announcements ?? []).map((a) => (
-          <TouchableOpacity
-            key={a.id}
-            style={[styles.announcement, a.borderColor === 'error' && styles.announcementUrgent]}
-            onPress={() => navigation.navigate('AnnouncementsManagement')}
-          >
-            <View style={styles.announcementMeta}>
-              <View
-                style={[
-                  styles.categoryChip,
-                  a.category === 'urgent' && styles.categoryChipUrgent,
-                ]}
-              >
-                <Text
-                  style={[
-                    textStyle('chip10'),
-                    styles.categoryText,
-                    a.category === 'urgent' && styles.categoryTextUrgent,
-                  ]}
-                >
-                  {a.category === 'urgent' ? 'Urgent' : 'Academic'}
-                </Text>
+        {tasksLoaded && tasks.length > 0 ? (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Pending tasks</Text>
+              <View style={styles.taskCountBadge}>
+                <Text style={styles.taskCountText}>{tasks.length}</Text>
               </View>
-              <Text style={[textStyle('timestamp11'), styles.announcementTime]}>{a.timestamp}</Text>
             </View>
-            <Text style={[textStyle('labelLg'), styles.announcementTitle]}>{a.title}</Text>
-          </TouchableOpacity>
-        ))}
+            <View style={styles.tasksStack}>
+              {tasks.map((t) => {
+                const palette = TASK_PALETTES[t.icon] ?? DEFAULT_TASK_PALETTE;
+                return (
+                  <DashboardCard
+                    key={t.id}
+                    icon={t.icon}
+                    iconColor={palette.iconColor}
+                    iconBgColor={palette.iconBgColor}
+                    accentColor={palette.accentColor}
+                    title={t.title}
+                    subtitle={t.subtitle}
+                    badge="Pending"
+                    onPress={() => openTask(t.action)}
+                  />
+                );
+              })}
+            </View>
+          </>
+        ) : null}
       </View>
     </ScreenLayout>
   );

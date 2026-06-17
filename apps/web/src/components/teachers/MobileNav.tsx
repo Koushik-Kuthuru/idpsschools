@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
 import { ChevronDown, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -13,6 +14,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const SafeLink = Link as any;
   const pathname = usePathname();
   const [openGroupId, setOpenGroupId] = useState<string | null>(null);
 
@@ -58,7 +60,7 @@ export default function MobileNav({ open, onClose }: { open: boolean; onClose: (
                 const item = group.items[0];
                 const active = groupActive;
                 return (
-                  <Link
+                  <SafeLink
                     key={group.id}
                     href={item.href}
                     onClick={onClose}
@@ -69,7 +71,7 @@ export default function MobileNav({ open, onClose }: { open: boolean; onClose: (
                   >
                     <item.icon size={18} className={cn(active ? "text-[#144835]" : "text-slate-500")} />
                     <span>{item.name}</span>
-                  </Link>
+                  </SafeLink>
                 );
               }
 
@@ -94,7 +96,7 @@ export default function MobileNav({ open, onClose }: { open: boolean; onClose: (
                         const active =
                           pathname === item.href || (item.href !== "/schools/idpskalaburagi/teachers" && pathname.startsWith(item.href));
                         return (
-                          <Link
+                          <SafeLink
                             key={item.href}
                             href={item.href}
                             onClick={onClose}
@@ -105,7 +107,7 @@ export default function MobileNav({ open, onClose }: { open: boolean; onClose: (
                           >
                             <item.icon size={14} className={cn(active ? "text-[#144835]" : "text-slate-500")} />
                             <span>{item.name}</span>
-                          </Link>
+                          </SafeLink>
                         );
                       })}
                     </div>

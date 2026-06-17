@@ -43,6 +43,8 @@ export interface AdminStudent {
  admissionNo: string;
  status: "Active" | "Inactive";
  attendance: number;
+ username: string;
+ portalPassword: string;
 }
 
 function cn(...inputs: ClassValue[]) {
@@ -72,6 +74,7 @@ function getAvatarColor(name: string) {
 }
 
 export default function AdminStudentsPage() {
+ const SafeLink = Link as any;
  const schoolId = useSchoolId();
  const allClassesKey = "all";
  const allSectionsKey = "all";
@@ -116,7 +119,9 @@ export default function AdminStudentsPage() {
  roll: data.rollNumber || '-',
  admissionNo: data.admissionNo || data.registrationNo || data.formNo || '-',
  status: data.status === "Inactive" ? "Inactive" : "Active",
- attendance: stats.percentage
+ attendance: stats.percentage,
+ username: data.username || '-',
+ portalPassword: data.portalPassword || '-'
  };
  });
  setStudents(studentData);
@@ -249,17 +254,19 @@ export default function AdminStudentsPage() {
  { header: "Section", key: "section" },
  { header: "Roll", key: "roll" },
  { header: "Status", key: "status" },
+ { header: "Username", key: "username" },
+ { header: "Password", key: "portalPassword" },
  { header: "Attendance %", key: "attendance" },
  ]}
  className="h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors"
  iconSize={14}
  />
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/academic/students/new`}
  className="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all"
  >
  <UserPlus size={14} /> Add Student
- </Link>
+ </SafeLink>
    </>
   }
  />
@@ -501,6 +508,7 @@ export default function AdminStudentsPage() {
  <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-20">Roll</th>
  <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Student</th>
  <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Class</th>
+ <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Credentials</th>
  <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
  <th className="px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider w-36">Attendance</th>
  <th className="w-12 px-2 py-3 text-right" aria-label="Row actions"></th>
@@ -535,12 +543,12 @@ export default function AdminStudentsPage() {
  {initials}
  </div>
  <div className="min-w-0">
- <Link
+ <SafeLink
  href={profileHref}
  className="text-xs font-bold text-gray-900 hover:text-[#144835] transition-colors truncate block"
  >
  {s.name}
- </Link>
+ </SafeLink>
  <p className="text-xs font-medium text-gray-500 mt-0.5 truncate">
  {s.admissionNo !== "-" ? `Adm. ${s.admissionNo}` : "No admission no."}
  </p>
@@ -553,6 +561,12 @@ export default function AdminStudentsPage() {
  <span className="text-gray-300">·</span>
  <span className="text-gray-500">{s.section}</span>
  </span>
+ </td>
+ <td className="px-5 py-3 min-w-[120px]">
+  <div className="flex flex-col gap-0.5">
+   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">ID: <span className="text-gray-900 normal-case tracking-normal">{s.username}</span></span>
+   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pwd: <span className="text-gray-900 normal-case tracking-normal">{s.portalPassword}</span></span>
+  </div>
  </td>
  <td className="px-5 py-3">
  <span className={cn(
@@ -598,7 +612,7 @@ export default function AdminStudentsPage() {
  })
  ) : (
  <tr>
- <td colSpan={7} className="px-5 py-8 text-center">
+ <td colSpan={8} className="px-5 py-8 text-center">
  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 mb-2">
  <Search size={20} className="text-gray-400" />
  </div>

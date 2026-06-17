@@ -1,50 +1,58 @@
 import { StyleSheet } from 'react-native';
-import { borderRadius, colors, shadows, spacing } from '@/theme';
+import { borderRadius, colors } from '@/theme';
 
-export const STAT_CARD_HEIGHT = 120;
+export const STAT_CARD_HEIGHT = 118;
 
 export const styles = StyleSheet.create({
   card: {
-    height: STAT_CARD_HEIGHT,
+    minHeight: STAT_CARD_HEIGHT,
     backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: borderRadius.xl,
-    padding: spacing.md,
+    borderRadius: 16,
+    padding: 14,
     borderWidth: 1,
-    borderColor: colors.outlineVariant,
-    justifyContent: 'space-between',
-    ...shadows.sm,
+    borderColor: '#f3f4f6',
+    justifyContent: 'flex-start',
+  },
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  label: {
+    color: colors.slate400,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 4,
+    marginTop: 4,
   },
   value: {
     color: colors.onSurface,
   },
-  label: {
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
+  footerInline: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.slate400,
   },
   progressTrack: {
     width: '100%',
-    height: 6,
+    height: 5,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.outlineVariant}4D`,
+    backgroundColor: '#f3f4f6',
     overflow: 'hidden',
+    marginTop: 10,
   },
   progressFill: {
     height: '100%',
     borderRadius: borderRadius.full,
-    backgroundColor: colors.primaryContainer,
-  },
-  footerChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.surfaceContainerLow,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: borderRadius.full,
-  },
-  footerText: {
-    color: colors.onSurfaceVariant,
-  },
-  iconEnd: {
-    alignSelf: 'flex-end',
-    opacity: 0.4,
+    backgroundColor: colors.primary,
   },
 });

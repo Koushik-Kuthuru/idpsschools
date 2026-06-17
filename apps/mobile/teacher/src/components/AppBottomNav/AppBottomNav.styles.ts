@@ -1,40 +1,44 @@
 import { StyleSheet } from 'react-native';
-import { colors, shadows, spacing } from '@/theme';
+import { colors, shadows } from '@/theme';
+
+export const activePillBg = colors.primaryLight;
+export const activeColor = colors.primary;
+export const inactiveColor = colors.slate500;
+export const activeIndicatorColor = colors.primary;
 
 export const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: spacing.bottomNavHeight,
-    paddingTop: spacing.xs,
-    paddingHorizontal: spacing.xs,
+    paddingTop: 6,
+    paddingHorizontal: 4,
     backgroundColor: colors.surfaceContainerLowest,
-    borderTopWidth: 1,
-    borderTopColor: colors.outlineVariant,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.slate100,
     ...shadows.tabBar,
   },
   tab: {
     flex: 1,
-    minWidth: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.xs,
+    minHeight: 44,
     paddingHorizontal: 2,
-    gap: 2,
   },
-  label: {
-    fontSize: 9,
-    lineHeight: 11,
-    textAlign: 'center',
-    width: '100%',
+  iconPill: {
+    width: 44,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  labelActive: {
-    color: colors.primaryContainer,
-    fontWeight: '700',
+  activeIndicator: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 6,
   },
-  labelInactive: {
-    color: colors.onSurfaceVariant,
-    fontWeight: '500',
+  activeIndicatorPlaceholder: {
+    width: 4,
+    height: 4,
+    marginTop: 6,
   },
 });

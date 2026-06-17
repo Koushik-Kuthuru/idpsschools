@@ -1,11 +1,16 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppIcon } from '../AppIcon';
 import { getBottomTabsForRole } from '@/config/roleConfig';
 import { useAuthStore } from '@/store';
-import { colors } from '@/theme';
-import { styles } from './AppBottomNav.styles';
+import {
+  activeColor,
+  activeIndicatorColor,
+  activePillBg,
+  inactiveColor,
+  styles,
+} from './AppBottomNav.styles';
 import type { AppBottomNavProps, BottomNavTab } from './AppBottomNav.types';
 
 export const FACULTY_BOTTOM_TABS: { key: BottomNavTab; label: string; icon: string }[] = [
@@ -26,7 +31,7 @@ export function AppBottomNav({ activeTab, onTabPress }: AppBottomNavProps) {
   const visibleTabs = FACULTY_BOTTOM_TABS.filter((tab) => allowedTabs.includes(tab.key));
 
   return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]}>
       {visibleTabs.map((tab) => {
         const active = activeTab === tab.key;
         return (
@@ -35,21 +40,23 @@ export function AppBottomNav({ activeTab, onTabPress }: AppBottomNavProps) {
             style={styles.tab}
             onPress={() => onTabPress(tab.key)}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={tab.label}
           >
-            <AppIcon
-              name={tab.icon}
-              size={22}
-              color={active ? colors.primaryContainer : colors.onSurfaceVariant}
-              filled={active}
-            />
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.85}
-              style={[styles.label, active ? styles.labelActive : styles.labelInactive]}
-            >
-              {tab.label}
-            </Text>
+            <View style={[styles.iconPill, active && { backgroundColor: activePillBg }]}>
+              <AppIcon
+                name={tab.icon}
+                size={active ? 24 : 22}
+                color={active ? activeColor : inactiveColor}
+                filled={active}
+              />
+            </View>
+            {active ? (
+              <View style={[styles.activeIndicator, { backgroundColor: activeIndicatorColor }]} />
+            ) : (
+              <View style={styles.activeIndicatorPlaceholder} />
+            )}
           </TouchableOpacity>
         );
       })}

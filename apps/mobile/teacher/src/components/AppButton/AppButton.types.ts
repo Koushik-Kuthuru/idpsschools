@@ -8,4 +8,5 @@ export interface AppButtonProps {
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
+  flat?: boolean;
 }

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, X, LogOut } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -99,7 +100,7 @@ export default function Sidebar({
         {/* Mobile menu header */}
         {isMobileMenuOpen ? (
           <div className="relative z-10 flex h-16 items-center justify-between gap-2 w-full">
-            <Link href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
+            <SafeLink href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/20 bg-white p-1">
                 <img src="/idps-logo.png" alt="IDPS Logo" className="h-full w-full object-contain" />
               </div>
@@ -107,7 +108,7 @@ export default function Sidebar({
                 <span className="text-sm font-bold leading-none tracking-wide text-white">IDPS ERP</span>
                 <span className="mt-1 text-xs font-bold uppercase tracking-wide text-[#a2c144]">Teacher Portal</span>
               </div>
-            </Link>
+            </SafeLink>
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -122,7 +123,7 @@ export default function Sidebar({
         {/* Desktop expanded */}
         {isSidebarOpen && !isMobileMenuOpen ? (
           <div className="relative z-10 hidden h-16 items-center justify-between gap-2 w-full lg:flex">
-            <Link href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
+            <SafeLink href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
               <div
                 className={cn(
                   "flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-white/20 bg-white p-1 transition-transform duration-200",
@@ -137,7 +138,7 @@ export default function Sidebar({
                   Teacher Portal
                 </span>
               </div>
-            </Link>
+            </SafeLink>
             <button
               type="button"
               onClick={() => setIsSidebarOpen(false)}
@@ -153,7 +154,7 @@ export default function Sidebar({
         {!isSidebarOpen && !isMobileMenuOpen ? (
           <div className="relative z-10 hidden h-16 items-center justify-center w-full lg:flex">
             <div className="relative h-8 w-8">
-              <Link
+              <SafeLink
                 href={dashboardHref}
                 className={cn(
                   "block transition-opacity duration-200",
@@ -164,7 +165,7 @@ export default function Sidebar({
                 <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg border border-white/20 bg-white p-1">
                   <img src="/idps-logo.png" alt="IDPS Logo" className="h-full w-full object-contain" />
                 </div>
-              </Link>
+              </SafeLink>
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
@@ -201,7 +202,7 @@ export default function Sidebar({
                 const item = group.items[0];
                 const isActive = groupActive;
                 return (
-                  <Link
+                  <SafeLink
                     key={group.id}
                     href={item.href}
                     className={cn(
@@ -225,7 +226,7 @@ export default function Sidebar({
                     >
                       {item.name}
                     </span>
-                  </Link>
+                  </SafeLink>
                 );
               }
 
@@ -278,7 +279,7 @@ export default function Sidebar({
                       {group.items.map((item) => {
                         const isActive = pathname === item.href || (item.href !== dashboardHref && pathname.startsWith(item.href));
                         return (
-                          <Link
+                          <SafeLink
                             key={item.href}
                             href={item.href}
                             className={cn(
@@ -296,7 +297,7 @@ export default function Sidebar({
                               )}
                             />
                             <span className="whitespace-nowrap">{item.name}</span>
-                          </Link>
+                          </SafeLink>
                         );
                       })}
                     </div>
@@ -310,7 +311,7 @@ export default function Sidebar({
 
       {/* Profile & Logout */}
       <div className="p-4 border-t border-white/10 bg-black/20 shrink-0 flex flex-col gap-2">
-        <Link
+        <SafeLink
           href={`/schools/${schoolId}/teachers/settings`}
           className={cn(
             "flex items-center px-2 py-2 hover:bg-white/5 rounded-lg transition-colors group",
@@ -335,7 +336,7 @@ export default function Sidebar({
             <span className="font-bold text-xs text-white truncate whitespace-nowrap group-hover:text-[#a2c144] transition-colors">{user?.displayName || user?.studentName || "Teacher"}</span>
             <span className="text-xs text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap">{role === "teacher" ? "Teacher" : "Staff"}</span>
           </div>
-        </Link>
+        </SafeLink>
 
         {/* Logout Button */}
         <button

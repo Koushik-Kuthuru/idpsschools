@@ -202,6 +202,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  toolLabel: { fontSize: 15, fontWeight: '700' },
+  toolLabel: { fontSize: 15, fontWeight: '700', textAlign: 'center' },
   toolSub: { fontSize: 12, marginTop: 4, textAlign: 'center' },
 });

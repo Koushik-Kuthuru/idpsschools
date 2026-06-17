@@ -32,7 +32,7 @@ const useMock = false;
 
 export const authService = {
   login: async (email: string, password: string): Promise<LoginResponse> => {
-    return mockApi.auth.login(email, password);
+    if (useMock) return mockApi.auth.login(email, password);
     
     const identifier = email.trim();
     const SCHOOL_BRANCHES = ['idpscherukupalli', 'idpskalaburagi'];

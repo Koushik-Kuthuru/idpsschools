@@ -24,8 +24,8 @@ const navTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    background: colors.background,
-    card: colors.surfaceContainerLowest,
+    background: colors.canvas,
+    card: colors.canvas,
     text: colors.onSurface,
     border: colors.outlineVariant,
     primary: colors.primaryContainer,

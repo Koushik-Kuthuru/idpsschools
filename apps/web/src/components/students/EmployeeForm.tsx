@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -242,12 +243,12 @@ export default function EmployeeForm({
           <p className="mt-2 text-xs font-medium text-gray-500">{formSubtitle}</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <Link
+          <SafeLink
             href={directoryHref}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 h-10 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
           >
             <Users size={14} /> {directoryLabel}
-          </Link>
+          </SafeLink>
         </div>
       </div>
 
@@ -541,12 +542,12 @@ export default function EmployeeForm({
       </div>
 
       <div className="border-t border-gray-100 pt-6 flex items-center justify-end gap-3">
-        <Link
+        <SafeLink
           href={directoryHref}
           className="h-9 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white px-6 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
         >
           Cancel
-        </Link>
+        </SafeLink>
         <button
           type="submit"
           disabled={saving || loading}

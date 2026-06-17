@@ -1,117 +1,156 @@
 import { StyleSheet } from 'react-native';
-import { borderRadius, colors, shadows, spacing } from '@/theme';
+import { borderRadius, colors, spacing } from '@/theme';
+import { teacherBrand } from '@/theme/brand';
+import { cardShadow } from '@/utils/cardShadow';
 
 export const styles = StyleSheet.create({
   card: {
     width: '100%',
-    minHeight: 320,
-    flex: 1,
+    minHeight: 220,
     backgroundColor: colors.surfaceContainerLowest,
-    borderRadius: borderRadius.xxl,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.slate100,
-    padding: spacing.lg,
-    alignItems: 'center',
-    ...shadows.md,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
+    ...cardShadow,
   },
   cardPresent: {
-    borderColor: colors.primaryContainer,
+    borderColor: `${colors.primary}55`,
   },
   cardAbsent: {
-    borderColor: colors.absent,
+    borderColor: `${colors.error}55`,
   },
   cardLate: {
-    borderColor: colors.late,
+    borderColor: '#fcd34d',
   },
-  avatar: {
-    width: 160,
-    height: 160,
-    borderRadius: borderRadius.full,
-    borderWidth: 4,
-    borderColor: `${colors.primaryContainer}33`,
-    marginBottom: spacing.lg,
-    backgroundColor: colors.surfaceContainer,
-  },
-  name: {
-    color: colors.onSurface,
-    textAlign: 'center',
-  },
-  chips: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: teacherBrand.navy,
   },
-  rollChip: {
-    backgroundColor: `${colors.primaryContainer}1A`,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+  headerLeft: {
+    flex: 1,
+    minWidth: 0,
   },
-  rollText: {
-    color: colors.primaryContainer,
-    fontWeight: '700',
+  schoolName: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.3,
   },
-  classText: {
-    color: colors.slate500,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-    marginTop: spacing.md,
-  },
-  stat: {
-    alignItems: 'center',
-  },
-  statValue: {
-    color: colors.primaryContainer,
-    fontWeight: '700',
-  },
-  statLabel: {
-    color: colors.outline,
+  schoolTag: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.75)',
     marginTop: 2,
+    letterSpacing: 0.4,
   },
-  spacer: {
-    flexGrow: 1,
-    minHeight: spacing.sm,
+  idBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: teacherBrand.amber,
   },
-  note: {
-    paddingTop: spacing.lg,
-    color: colors.outline,
+  idBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: teacherBrand.navyDark,
+    letterSpacing: 0.8,
+  },
+  body: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 12,
+  },
+  photoFrame: {
+    width: 96,
+    height: 118,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: teacherBrand.navy,
+    overflow: 'hidden',
+    backgroundColor: colors.slate100,
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
+  },
+  photoPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: `${colors.primary}14`,
+  },
+  photoInitials: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  details: {
+    flex: 1,
+    minWidth: 0,
+    gap: 8,
+  },
+  studentName: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.slate900,
+    letterSpacing: -0.3,
+    lineHeight: 22,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: colors.canvas,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+  },
+  detailLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.slate500,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  detailValue: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.slate900,
+  },
+  attendanceValue: {
+    color: colors.primary,
+  },
+  footer: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#e5e7eb',
+    paddingTop: 8,
+    paddingBottom: 10,
+    paddingHorizontal: 14,
+    gap: 6,
+  },
+  footerAccent: {
+    height: 3,
+    borderRadius: borderRadius.full,
+    backgroundColor: teacherBrand.amber,
+  },
+  footerText: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.slate400,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
     textAlign: 'center',
-    fontStyle: 'italic',
-    opacity: 0.75,
-    paddingHorizontal: spacing.sm,
-  },
-  indicator: {
-    position: 'absolute',
-    top: 24,
-    borderWidth: 4,
-    borderRadius: borderRadius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    zIndex: 10,
-  },
-  indicatorPresent: {
-    right: 20,
-    borderColor: colors.primaryContainer,
-    transform: [{ rotate: '10deg' }],
-  },
-  indicatorAbsent: {
-    left: 20,
-    borderColor: colors.absent,
-    transform: [{ rotate: '-10deg' }],
-  },
-  indicatorTextPresent: {
-    color: colors.primaryContainer,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  indicatorTextAbsent: {
-    color: colors.absent,
-    fontWeight: '800',
-    letterSpacing: 1,
   },
 });

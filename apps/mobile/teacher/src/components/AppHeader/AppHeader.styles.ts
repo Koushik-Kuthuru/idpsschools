@@ -1,16 +1,13 @@
 import { StyleSheet } from 'react-native';
-import { borderRadius, colors, shadows, spacing } from '@/theme';
+import { borderRadius, colors, spacing } from '@/theme';
 
 export const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    height: spacing.headerHeightLarge,
-    backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.outlineVariant,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.canvas,
   },
   containerIdentity: {
     minHeight: spacing.headerHeightLarge,
@@ -19,7 +16,10 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   containerCompact: {
-    height: spacing.headerHeight,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.slate200,
   },
   left: {
     flexDirection: 'row',
@@ -30,33 +30,43 @@ export const styles = StyleSheet.create({
     marginRight: spacing.xs,
   },
   backBtn: {
-    padding: spacing.xs,
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.slate100,
   },
   titleBlock: {
     flex: 1,
   },
   title: {
     color: colors.onSurface,
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   subtitle: {
-    color: colors.onSurfaceVariant,
+    color: colors.slate500,
     marginTop: 2,
   },
   greetingLabel: {
-    color: colors.onSurfaceVariant,
+    color: colors.slate500,
   },
   chip: {
     alignSelf: 'flex-start',
     marginTop: spacing.xs,
-    paddingHorizontal: spacing.xs,
+    paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: borderRadius.full,
-    backgroundColor: `${colors.primaryContainer}1A`,
+    backgroundColor: colors.primaryLight,
   },
   chipText: {
     color: colors.primary,
     textTransform: 'uppercase',
     letterSpacing: 1,
+    fontSize: 10,
+    fontWeight: '700',
   },
   avatarWrap: {
     position: 'relative',
@@ -68,22 +78,12 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.primaryContainer,
   },
-  onlineDot: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 12,
-    height: 12,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.green500,
-    borderWidth: 2,
-    borderColor: colors.surfaceContainerLowest,
-  },
   notifyBtn: {
     padding: spacing.sm,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.lg,
     flexShrink: 0,
     marginTop: spacing.xs,
+    backgroundColor: colors.slate100,
   },
   notifyDot: {
     position: 'absolute',
@@ -95,7 +95,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.error,
   },
   rightAction: {
-    color: colors.primaryContainer,
+    color: colors.primary,
     fontWeight: '700',
   },
   identityCol: {
@@ -104,5 +104,3 @@ export const styles = StyleSheet.create({
     flexShrink: 1,
   },
 });
-
-export const notifyShadow = shadows.sm;

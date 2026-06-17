@@ -208,7 +208,7 @@ export const AttendanceCardStack = forwardRef<AttendanceCardStackRef, Attendance
     if (index >= students.length) {
       return (
         <View style={styles.empty}>
-          <AppIcon name="check_circle" size={48} color={colors.primaryContainer} />
+          <AppIcon name="check_circle" size={48} color={colors.primary} />
           <Text style={[textStyle('headlineSm'), styles.emptyText, { marginTop: 12 }]}>
             All students marked
           </Text>
@@ -272,7 +272,7 @@ export function AttendanceStackActions({
         onPress={() => stackRef.current?.markAbsent()}
         activeOpacity={0.85}
       >
-        <AppIcon name="close" size={32} color={colors.absent} />
+        <AppIcon name="close" size={32} color={colors.error} />
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionBtn, styles.actionLate]}
@@ -286,7 +286,7 @@ export function AttendanceStackActions({
         onPress={() => stackRef.current?.markPresent()}
         activeOpacity={0.85}
       >
-        <AppIcon name="check" size={32} color={colors.primaryContainer} />
+        <AppIcon name="check" size={32} color={colors.primary} />
       </TouchableOpacity>
     </View>
   );

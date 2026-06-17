@@ -19,7 +19,7 @@ export interface TabItem {
 
 export const TAB_ITEMS: TabItem[] = [
   { name: 'index', title: 'Home', icon: 'home-outline', iconFocused: 'home' },
-  { name: 'notice-board', title: 'Notice board', icon: 'megaphone-outline', iconFocused: 'megaphone', materialIcon: 'campaign' },
+  { name: 'notice-board', title: 'Notice board', icon: 'clipboard-outline', iconFocused: 'clipboard', materialIcon: 'assignment' },
   { name: 'learning', title: 'Learning Management', icon: 'library-outline', iconFocused: 'library', materialIcon: 'menu-book' },
   { name: 'fees', title: 'Fees', icon: 'wallet-outline', iconFocused: 'wallet' },
   { name: 'profile', title: 'Profile', icon: 'person-outline', iconFocused: 'person' },

@@ -12,9 +12,9 @@ const TYPE_ICON: Record<NotificationCardProps['type'], string> = {
 };
 
 const TYPE_ICON_COLOR: Record<NotificationCardProps['type'], string> = {
-  academic: colors.primaryContainer,
+  academic: colors.primary,
   urgent: colors.error,
-  system: colors.secondaryContainer,
+  system: '#d97706',
 };
 
 export function NotificationCard({

@@ -1,7 +1,8 @@
 import { StyleSheet } from 'react-native';
-import { borderRadius, colors, shadows, spacing } from '@/theme';
+import { borderRadius, colors, spacing } from '@/theme';
+import { cardShadow } from '@/utils/cardShadow';
 
-export const DECK_HEIGHT = 360;
+export const DECK_HEIGHT = 280;
 export const DECK_HEIGHT_EMPTY = 148;
 export const SWIPE_THRESHOLD = 100;
 export const FLY_DISTANCE = 420;
@@ -45,21 +46,21 @@ export const styles = StyleSheet.create({
   },
   indicatorPresent: {
     right: 20,
-    borderColor: colors.primaryContainer,
+    borderColor: colors.primary,
     transform: [{ rotate: '10deg' }],
   },
   indicatorAbsent: {
     left: 20,
-    borderColor: colors.absent,
+    borderColor: colors.error,
     transform: [{ rotate: '-10deg' }],
   },
   indicatorTextPresent: {
-    color: colors.primaryContainer,
+    color: colors.primary,
     fontWeight: '800',
     letterSpacing: 1,
   },
   indicatorTextAbsent: {
-    color: colors.absent,
+    color: colors.error,
     fontWeight: '800',
     letterSpacing: 1,
   },
@@ -68,6 +69,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.md,
+    backgroundColor: `${colors.secondary}14`,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: `${colors.secondary}44`,
   },
   emptyText: {
     color: colors.onSurfaceVariant,
@@ -88,8 +93,8 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.slate100,
-    ...shadows.sm,
+    borderColor: '#f3f4f6',
+    ...cardShadow,
   },
   actionUndo: {
     width: 48,
@@ -101,20 +106,23 @@ export const styles = StyleSheet.create({
     height: 64,
     borderRadius: borderRadius.full,
     borderWidth: 2,
-    borderColor: `${colors.absent}33`,
+    borderColor: `${colors.error}33`,
+    backgroundColor: '#fef2f2',
   },
   actionLate: {
     width: 56,
     height: 56,
     borderRadius: borderRadius.full,
     borderWidth: 2,
-    borderColor: `${colors.late}33`,
+    borderColor: '#fcd34d',
+    backgroundColor: '#fef3c7',
   },
   actionPresent: {
     width: 64,
     height: 64,
     borderRadius: borderRadius.full,
     borderWidth: 2,
-    borderColor: `${colors.primaryContainer}33`,
+    borderColor: `${colors.primary}33`,
+    backgroundColor: `${colors.primary}10`,
   },
 });

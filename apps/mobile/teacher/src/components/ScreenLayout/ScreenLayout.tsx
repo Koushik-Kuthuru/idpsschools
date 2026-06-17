@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing } from '@/theme';
+import { colors } from '@/theme';
 import { AppBottomNav } from '../AppBottomNav/AppBottomNav';
 import type { AppBottomNavProps } from '../AppBottomNav/AppBottomNav.types';
 
@@ -16,7 +16,7 @@ interface ScreenLayoutProps {
 export function ScreenLayout({ children, scroll, bottomNav, paddingBottom = 96, header }: ScreenLayoutProps) {
   const content = scroll ? (
     <ScrollView contentContainerStyle={{ paddingBottom }} showsVerticalScrollIndicator={false}>
-      {children}
+      <View style={layoutStyles.scrollContent}>{children}</View>
     </ScrollView>
   ) : (
     <View style={{ flex: 1, paddingBottom }}>{children}</View>
@@ -34,12 +34,14 @@ export function ScreenLayout({ children, scroll, bottomNav, paddingBottom = 96, 
 const layoutStyles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: spacing.maxWidth,
     width: '100%',
-    alignSelf: 'center',
+    backgroundColor: colors.canvas,
   },
   body: {
     flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    width: '100%',
   },
 });

@@ -124,6 +124,9 @@ export default function AdminTeachingStaffPage() {
  });
  }, [searchQuery, deptFilter, statusFilter, employees]);
 
+ const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
+ const togglePassword = (id: string) => setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }));
+
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
  <AdminPageHeader
@@ -240,6 +243,8 @@ export default function AdminTeachingStaffPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Department</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Designation</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Username</th>
+ <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Password</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Mobile</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Classes</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Subjects</th>
@@ -260,6 +265,23 @@ export default function AdminTeachingStaffPage() {
  </td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{departmentNameById[e.department] || e.department}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{e.designation}</td>
+ <td className="px-4 py-2.5 text-xs font-bold text-gray-900 bg-gray-50/50 rounded-md border border-gray-100 px-2 my-1.5 inline-block">{e.username || "—"}</td>
+ <td className="px-4 py-2.5">
+    <div className="flex items-center gap-2">
+      <span className="text-xs font-mono font-bold text-gray-900 bg-gray-50/50 rounded-md border border-gray-100 px-2 py-0.5 min-w-[70px] inline-block tracking-wider">
+        {e.portalPassword ? (showPasswords[e.id] ? e.portalPassword : "••••••••") : "—"}
+      </span>
+      {e.portalPassword && (
+        <button
+          type="button"
+          onClick={() => togglePassword(e.id)}
+          className="text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
+          {showPasswords[e.id] ? <EyeOff size={14} /> : <Eye size={14} />}
+        </button>
+      )}
+    </div>
+  </td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 whitespace-nowrap">{e.mobile}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 max-w-[180px] truncate" title={e.classes}>{e.classes}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 max-w-[180px] truncate" title={e.subjects}>{e.subjects}</td>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
 import {
   Badge,
   Briefcase,
@@ -71,9 +72,9 @@ export default function EmployeeProfileView({
       {/* Top Breadcrumb & Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-          <Link href={backHref} className="hover:text-gray-900 transition-colors flex items-center gap-1">
+          <SafeLink href={backHref} className="hover:text-gray-900 transition-colors flex items-center gap-1">
             <ChevronLeft size={14} /> {backLabel}
-          </Link>
+          </SafeLink>
           <span className="text-gray-300">/</span>
           <span className="font-bold text-gray-900">{employee.name}</span>
         </div>
@@ -85,12 +86,12 @@ export default function EmployeeProfileView({
           >
             <Download size={14} /> Export CV
           </button>
-          <Link
+          <SafeLink
             href={editHref}
             className="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-5 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
           >
             <Pencil size={14} /> Edit Profile
-          </Link>
+          </SafeLink>
         </div>
       </div>
 
