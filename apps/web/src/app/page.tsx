@@ -2,6 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { ArrowRight, GraduationCap, Users, BookOpen, BarChart3 } from "lucide-react";
 
 export default function LandingPage() {
@@ -18,12 +20,12 @@ export default function LandingPage() {
  <span className="text-xl font-bold text-[#1A1A1A] tracking-tight">IDPS ERP</span>
  </div>
  <div className="flex items-center space-x-4">
- <Link
+ <SafeLink
  href="/login"
  className="px-5 py-2.5 bg-[#004D40] text-white rounded-lg font-semibold text-sm hover:bg-[#003d33] transition-all flex items-center gap-2 shadow-lg shadow-[#004D40]/20"
  >
  Login Portal <ArrowRight size={16} />
- </Link>
+ </SafeLink>
  </div>
  </div>
  </div>
@@ -44,12 +46,12 @@ export default function LandingPage() {
  Streamline operations, enhance learning, and foster collaboration with the most advanced ERP system designed for International Delhi Public School.
  </p>
  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-16 duration-1000">
- <Link
+ <SafeLink
  href="/login"
  className="px-8 py-4 bg-[#004D40] text-white rounded-xl font-bold text-lg hover:bg-[#003d33] transition-all shadow-xl shadow-[#004D40]/20 hover:shadow-2xl hover:-translate-y-1 flex items-center gap-2"
  >
  Access Portal <ArrowRight size={20} />
- </Link>
+ </SafeLink>
  <button className="px-8 py-4 bg-white text-[#004D40] border-2 border-[#004D40]/10 rounded-xl font-bold text-lg hover:bg-[#F1F8F6] transition-all hover:-translate-y-1">
  Learn More
  </button>

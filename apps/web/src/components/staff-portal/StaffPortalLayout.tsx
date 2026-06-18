@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -48,7 +49,7 @@ export default function StaffPortalLayout({
             {nav.map((item) => {
               const active = pathname === item.href;
               return (
-                <Link
+                <SafeLink
                   key={item.href}
                   href={item.href}
                   className={cn(
@@ -58,7 +59,7 @@ export default function StaffPortalLayout({
                 >
                   <item.icon size={16} />
                   {item.name}
-                </Link>
+                </SafeLink>
               );
             })}
           </nav>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import {
   Home,
   ChevronRight,
@@ -129,9 +131,9 @@ export default function AuditLogsPage() {
     <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-12">
       {/* Breadcrumb */}
       <nav className="flex items-center text-xs font-medium text-gray-500 mb-4">
-        <Link href="/super-admin" className="hover:text-[#144835] transition-colors flex items-center gap-1">
+        <SafeLink href="/super-admin" className="hover:text-[#144835] transition-colors flex items-center gap-1">
           <Home size={14} /> Dashboard
-        </Link>
+        </SafeLink>
         <ChevronRight size={14} className="mx-2" />
         <span className="text-[#144835] font-semibold">Audit Logs</span>
       </nav>

@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+const SafeLink = Link as any;
+import { usePathname, useRouter } from "next/navigation";
 import { PanelLeftClose, X, LogOut } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -57,9 +58,9 @@ export default function Sidebar({
         {/* Decorative glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#a2c144]/20 rounded-full blur-3xl pointer-events-none"></div>
 
-        <Link 
+        <SafeLink 
           href="/schools/idpscherukupalli/admin" 
-          onClick={(e) => {
+          onClick={(e: any) => {
             if (!sidebarExpanded) {
               e.preventDefault();
               setIsSidebarOpen(true);
@@ -77,7 +78,7 @@ export default function Sidebar({
             <span className="font-bold text-sm tracking-wide leading-none text-white whitespace-nowrap">IDPS ERP</span>
             <span className="text-xs text-[#a2c144] uppercase tracking-wide mt-1 whitespace-nowrap">School Admin</span>
           </div>
-        </Link>
+        </SafeLink>
         {sidebarExpanded && !isHovered ? (
           <button
             onClick={() => setIsSidebarOpen(false)}
@@ -110,7 +111,7 @@ export default function Sidebar({
             {navigation.map((item) => {
               const isActive = pathname === item.href || (item.href !== "/schools/idpscherukupalli/admin" && pathname.startsWith(item.href));
               return (
-                <Link
+                <SafeLink
                   key={item.name}
                   href={item.href}
                   className={cn(
@@ -129,7 +130,7 @@ export default function Sidebar({
                   )}>
                     {item.name}
                   </span>
-                </Link>
+                </SafeLink>
               );
             })}
           </div>
@@ -138,7 +139,7 @@ export default function Sidebar({
 
       {/* Admin Profile */}
       <div className="p-4 border-t border-white/10 bg-black/20 shrink-0">
-        <Link 
+        <SafeLink 
           href="/schools/idpscherukupalli/admin/settings" 
           className={cn(
             "flex items-center px-2 py-2 hover:bg-white/5 rounded-lg transition-colors cursor-pointer group",
@@ -158,7 +159,7 @@ export default function Sidebar({
             <span className="font-bold text-xs text-white truncate group-hover:text-[#a2c144] transition-colors whitespace-nowrap">School Admin</span>
             <span className="text-xs text-gray-400 truncate whitespace-nowrap">admin@idps.edu</span>
           </div>
-        </Link>
+        </SafeLink>
       </div>
     </aside>
   );

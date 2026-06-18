@@ -5,6 +5,8 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { Plus, Search, Filter, Download, Eye, FileText, CheckCircle2, Clock, AlertCircle, ChevronRight, Users, Briefcase, Settings , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -150,12 +152,12 @@ export default function AdminInvoiceManagementPage() {
 
  <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
  <ExportButton data={filteredInvoices} filename="Export" className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors" iconSize={14} />
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/finance/invoices/new`}
  className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all"
  >
  <Plus size={14} /> New Invoice
- </Link>
+ </SafeLink>
  </div>
  </div>
 

@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { 
  Search, 
  Filter, 
@@ -171,13 +173,13 @@ export default function BranchesPage() {
  <h1 className="text-xl font-bold text-[#1A1A1A]">Manage Branches</h1>
  <p className="text-gray-500 text-xs mt-1">Oversee and manage all school branches across regions.</p>
  </div>
- <Link 
+ <SafeLink 
  href="/super-admin/branches/new"
  className="px-5 py-2.5 bg-[#144835] text-white rounded-lg text-xs font-bold hover:bg-[#144835]/90 flex items-center gap-2 shadow-lg shadow-[#144835]/20 transition-all transform hover:-translate-y-0.5"
  >
  <Plus size={18} />
  Add New Branch
- </Link>
+ </SafeLink>
  </div>
 
  {/* Stats Grid - Matching Dashboard Style */}
@@ -276,7 +278,7 @@ export default function BranchesPage() {
  paginatedBranches.map((branch) => (
  <tr key={branch.id} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5">
- <Link href={`/super-admin/branches/${encodeURIComponent(branch.id)}`} className="flex items-center gap-3 group-hover:translate-x-1 transition-transform">
+ <SafeLink href={`/super-admin/branches/${encodeURIComponent(branch.id)}`} className="flex items-center gap-3 group-hover:translate-x-1 transition-transform">
  <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-[#144835]/10 group-hover:text-[#144835] transition-colors">
  <Building2 size={20} />
  </div>
@@ -284,7 +286,7 @@ export default function BranchesPage() {
  <p className="text-xs font-bold text-[#1A1A1A] group-hover:text-[#144835] transition-colors">{branch.name}</p>
  <p className="text-xs text-gray-500">{branch.id}</p>
  </div>
- </Link>
+ </SafeLink>
  </td>
  <td className="px-4 py-2.5">
  <div className="flex flex-col">
@@ -338,13 +340,13 @@ export default function BranchesPage() {
  </td>
  <td className="px-4 py-2.5 text-right relative">
  <div className="flex items-center justify-end gap-2">
- <Link 
+ <SafeLink 
  href={`/super-admin/branches/${encodeURIComponent(branch.id)}`} 
  className="p-2 text-gray-400 hover:text-[#144835] hover:bg-[#144835]/10 rounded-lg transition-colors"
  title="View Details"
  >
  <Eye size={18} />
- </Link>
+ </SafeLink>
  
  <button 
  onClick={() => setEditingBranch(branch)}
@@ -376,12 +378,12 @@ export default function BranchesPage() {
  className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
  >
  <div className="py-1">
- <Link 
+ <SafeLink 
  href={`/super-admin/branches/${encodeURIComponent(branch.id)}`}
  className="flex items-center gap-3 px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 hover:text-[#144835]"
  >
  <Eye size={14} /> View Details
- </Link>
+ </SafeLink>
  <button 
  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-gray-700 hover:bg-gray-50 hover:text-[#144835] text-left"
  >

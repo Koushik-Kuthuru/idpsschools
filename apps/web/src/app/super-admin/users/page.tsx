@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { 
  Search, 
  UserPlus, 
@@ -235,13 +237,13 @@ export default function UsersPage() {
  </div>
  <div className="flex gap-3">
  <ExportButton data={filteredUsers} filename="Export" className="px-4 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-bold hover:bg-gray-50 flex items-center gap-2 transition-colors shadow-sm" iconSize={18} />
- <Link 
+ <SafeLink 
  href="/super-admin/users/new"
  className="px-5 py-2.5 bg-[#144835] text-white rounded-lg text-xs font-bold hover:bg-[#144835]/90 flex items-center gap-2 shadow-lg shadow-[#144835]/20 transition-all transform hover:-translate-y-0.5"
  >
  <UserPlus size={18} />
  Add New User
- </Link>
+ </SafeLink>
  </div>
  </div>
  </div>

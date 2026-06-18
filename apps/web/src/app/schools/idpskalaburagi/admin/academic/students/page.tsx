@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
 import { useEffect, useMemo, useState } from "react";
 import {
  CalendarCheck2,
@@ -74,8 +75,7 @@ function getAvatarColor(name: string) {
 }
 
 export default function AdminStudentsPage() {
- const SafeLink = Link as any;
- const schoolId = useSchoolId();
+  const schoolId = useSchoolId();
  const allClassesKey = "all";
  const allSectionsKey = "all";
  const [students, setStudents] = useState<AdminStudent[]>([]);

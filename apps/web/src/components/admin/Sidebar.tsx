@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -123,7 +124,7 @@ export default function Sidebar({
     const isActive = isItemActive(pathname, item.href, dashboardHref);
 
     return (
-      <Link
+      <SafeLink
         key={group.id}
         href={item.href}
         onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
@@ -146,7 +147,7 @@ export default function Sidebar({
         >
           {item.name}
         </span>
-      </Link>
+      </SafeLink>
     );
   };
 
@@ -196,7 +197,7 @@ export default function Sidebar({
               {group.items.map((item) => {
                 const isActive = isItemActive(pathname, item.href, dashboardHref);
                 return (
-                  <Link
+                  <SafeLink
                     key={item.href}
                     href={item.href}
                     onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
@@ -208,7 +209,7 @@ export default function Sidebar({
                     )}
                   >
                     <span className="truncate">{item.name}</span>
-                  </Link>
+                  </SafeLink>
                 );
               })}
             </div>
@@ -235,7 +236,7 @@ export default function Sidebar({
 
         {isMobileMenuOpen ? (
           <div className="relative z-10 flex h-16 items-center justify-between gap-2 px-4">
-            <Link href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
+            <SafeLink href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white p-1 shadow-sm">
                 <img src="/idps-logo.png" alt="IDPS Logo" className="h-full w-full object-contain" />
               </div>
@@ -243,7 +244,7 @@ export default function Sidebar({
                 <span className="text-sm font-bold leading-none tracking-wide text-white">IDPS ERP</span>
                 <span className="mt-1 text-[10px] font-bold uppercase tracking-widest text-[#a2c144]">Branch Admin</span>
               </div>
-            </Link>
+            </SafeLink>
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(false)}
@@ -257,7 +258,7 @@ export default function Sidebar({
 
         {isSidebarOpen && !isMobileMenuOpen ? (
           <div className="relative z-10 hidden h-16 items-center justify-between gap-2 px-4 lg:flex">
-            <Link href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
+            <SafeLink href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
               <div
                 className={cn(
                   "flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white p-1 shadow-sm transition-transform duration-200",
@@ -272,7 +273,7 @@ export default function Sidebar({
                   Branch Admin
                 </span>
               </div>
-            </Link>
+            </SafeLink>
             <button
               type="button"
               onClick={() => setIsSidebarOpen(false)}
@@ -287,7 +288,7 @@ export default function Sidebar({
         {!isSidebarOpen && !isMobileMenuOpen ? (
           <div className="relative z-10 hidden h-16 items-center justify-center lg:flex">
             <div className="relative h-9 w-9">
-              <Link
+              <SafeLink
                 href={dashboardHref}
                 className={cn(
                   "block transition-opacity duration-200",
@@ -298,7 +299,7 @@ export default function Sidebar({
                 <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white p-1 shadow-sm">
                   <img src="/idps-logo.png" alt="IDPS Logo" className="h-full w-full object-contain" />
                 </div>
-              </Link>
+              </SafeLink>
               <button
                 type="button"
                 onClick={() => setIsSidebarOpen(true)}
@@ -327,7 +328,7 @@ export default function Sidebar({
       </nav>
 
       <div className="shrink-0 border-t border-white/10 bg-black/15 p-3">
-        <Link
+        <SafeLink
           href={`/schools/${schoolId}/admin/profile/settings`}
           className={cn(
             "group flex cursor-pointer items-center rounded-xl px-2 py-2 transition-colors hover:bg-white/5",
@@ -361,7 +362,7 @@ export default function Sidebar({
               </span>
             ) : null}
           </div>
-        </Link>
+        </SafeLink>
       </div>
     </aside>
   );

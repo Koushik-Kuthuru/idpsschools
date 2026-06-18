@@ -9,6 +9,8 @@ import { db } from "@/lib/firebase";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { Download, Plus, Search, Filter, ChevronRight, FileText, IndianRupee, Clock , Trash2, Eye} from "lucide-react";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
@@ -219,12 +221,12 @@ export default function AdminPurchaseOrdersPage() {
  </div>
  <div className="flex items-center gap-2 w-full xl:w-auto">
  <ExportButton data={filteredPos} filename="Purchase_Orders" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/inventory/purchase-orders/new`}
  className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
  >
  <Plus size={14} /> New PO
- </Link>
+ </SafeLink>
  </div>
  </div>
 

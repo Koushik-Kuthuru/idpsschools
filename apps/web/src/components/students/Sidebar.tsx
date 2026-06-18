@@ -71,7 +71,7 @@ export default function Sidebar({
 
         <SafeLink
           href="/schools/idpskalaburagi/students"
-          onClick={(e) => {
+          onClick={(e: any) => {
             if (!sidebarExpanded) {
               e.preventDefault();
               setIsSidebarOpen(true);

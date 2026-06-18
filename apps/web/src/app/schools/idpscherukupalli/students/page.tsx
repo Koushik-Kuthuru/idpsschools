@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useAuth } from "@/contexts/AuthContext";
 import ExportButton from "@/components/ui/ExportButton";
 import { 
@@ -165,7 +167,7 @@ export default function StudentOrAdminDashboard() {
       {/* Breadcrumbs */}
       <nav className="mb-4 flex items-center text-xs font-medium text-slate-500">
         <Home size={14} className="mr-1" />
-        <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+        <SafeLink href="/" className="hover:text-primary transition-colors">Home</SafeLink>
         <ChevronRight size={14} className="mx-2" />
         <span className="text-primary font-bold">Dashboard</span>
       </nav>

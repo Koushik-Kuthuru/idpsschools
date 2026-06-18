@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import {
   BookOpen,
   ChevronRight,
@@ -84,7 +86,7 @@ export default function AdminHelpCenterView() {
               {quickLinks.map((link) => {
                 const Icon = link.icon;
                 return (
-                  <Link
+                  <SafeLink
                     key={link.href}
                     href={link.href}
                     className="flex items-center gap-3 rounded-lg border border-gray-200 px-3 py-2.5 text-xs font-bold text-gray-700 hover:border-[#144835]/30 hover:bg-[#144835]/[0.03] hover:text-[#144835] transition-colors"
@@ -94,7 +96,7 @@ export default function AdminHelpCenterView() {
                     </span>
                     {link.label}
                     <ChevronRight size={14} className="ml-auto text-gray-400" />
-                  </Link>
+                  </SafeLink>
                 );
               })}
             </div>

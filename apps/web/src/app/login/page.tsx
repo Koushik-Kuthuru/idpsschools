@@ -2,6 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getRoleHomePath } from "@/lib/auth/roles";
@@ -235,12 +237,12 @@ export default function LoginPage() {
  <span className="text-sm text-gray-600 font-medium group-hover:text-gray-900 transition-colors">Remember me</span>
  </label>
 
- <Link
+ <SafeLink
  href="/forgot-password"
  className="text-sm font-bold text-[#144835] hover:text-[#0d2e21] hover:underline transition-all"
  >
  Forgot Password?
- </Link>
+ </SafeLink>
  </div>
 
  {/* Login Button */}

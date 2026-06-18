@@ -5,6 +5,8 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, ChevronRight, Plus, Search , Trash2, Eye, Pencil} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -142,9 +144,9 @@ export default function AdminSubjectsPage() {
   title="Subjects"
   description="Different subjects for each class and section with portion planning"
   actions={
-   <Link href={`/schools/${schoolId}/admin/academic/subjects/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
+   <SafeLink href={`/schools/${schoolId}/admin/academic/subjects/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
  <Plus size={14} /> Add Subject
- </Link>
+ </SafeLink>
   }
  />
  <div className="flex flex-wrap items-center gap-2">

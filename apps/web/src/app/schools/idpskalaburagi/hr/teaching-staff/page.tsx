@@ -4,8 +4,10 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarX2, ChevronRight, Download, Eye, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
+import { Building2, CalendarX2, ChevronRight, Download, Eye, EyeOff, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
@@ -135,9 +137,9 @@ export default function AdminTeachingStaffPage() {
   actions={
    <>
  <ExportButton data={filtered} filename="Export" className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors" iconSize={14} />
- <Link href={`${staffBase(schoolId)}/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
+ <SafeLink href={`${staffBase(schoolId)}/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
  <UserPlus size={14} /> Add Teaching Staff
- </Link>
+ </SafeLink>
    </>
   }
  />

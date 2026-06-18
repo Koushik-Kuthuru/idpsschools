@@ -9,6 +9,8 @@ import { db } from "@/lib/firebase";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { Download, Pencil, Plus, Search, Trash2, ChevronRight, Package, AlertTriangle, Ban, Filter } from "lucide-react";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
@@ -230,12 +232,12 @@ export default function AdminStockPage() {
  </div>
  <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
  <ExportButton data={filteredStock} filename="Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/inventory/stock/new`}
  className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
  >
  <Plus size={14} /> Add Stock
- </Link>
+ </SafeLink>
  </div>
  </div>
 

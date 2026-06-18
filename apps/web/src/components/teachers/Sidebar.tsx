@@ -72,7 +72,7 @@ export default function Sidebar({
   }, [activeGroupId]);
 
   const userInitials = useMemo(() => {
-    const name = user?.displayName || user?.studentName || "Teacher";
+    const name = user?.displayName || "Teacher";
     return name
       .split(" ")
       .map((n: string) => n[0])
@@ -320,8 +320,8 @@ export default function Sidebar({
           title={!sidebarExpanded ? "Profile Settings" : undefined}
         >
           <div className="relative shrink-0">
-            {user?.photoURL || user?.photo ? (
-              <img src={user.photoURL || user.photo} alt={user?.displayName || user?.studentName} className="h-10 w-10 rounded-full object-cover border-2 border-white/20 shadow-lg group-hover:border-[#a2c144] transition-colors" />
+            {user?.photoURL ? (
+             <img src={user.photoURL} alt={user?.displayName || "Teacher"} className="h-10 w-10 rounded-full object-cover border-2 border-white/20 shadow-lg group-hover:border-[#a2c144] transition-colors" />
             ) : (
               <div className="h-10 w-10 rounded-full bg-[#144835] border-2 border-white/20 shadow-lg group-hover:border-[#a2c144] transition-colors flex items-center justify-center text-white font-bold">
                 {userInitials}
@@ -333,7 +333,7 @@ export default function Sidebar({
             "flex flex-col transition-opacity duration-300 min-w-0",
             sidebarExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
           )}>
-            <span className="font-bold text-xs text-white truncate whitespace-nowrap group-hover:text-[#a2c144] transition-colors">{user?.displayName || user?.studentName || "Teacher"}</span>
+            <span className="font-bold text-xs text-white truncate whitespace-nowrap group-hover:text-[#a2c144] transition-colors">{user?.displayName || "Teacher"}</span>
             <span className="text-xs text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap">{role === "teacher" ? "Teacher" : "Staff"}</span>
           </div>
         </SafeLink>

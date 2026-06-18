@@ -5,6 +5,8 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { CalendarDays, Check, ChevronRight, Clock, Download, Filter, Mail, PieChart, Plus, Search, X, CheckCircle2, AlertCircle , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -259,12 +261,12 @@ export default function AdminLeavesPage() {
 
  <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-end">
  <ExportButton data={employees} filename="Export" className="h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors" iconSize={14} />
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/hr/leaves/new`}
  className="h-9 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all"
  >
  <Plus size={14} /> New Request
- </Link>
+ </SafeLink>
  </div>
  </div>
 

@@ -1,7 +1,9 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { 
  MapPin, 
@@ -33,7 +35,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function BranchDetailsPage({ params }: { params: Promise<{ id: string }> }) {
- const unwrappedParams = use(params);
+ const unwrappedParams = (React as any).use(params);
  const branchId = decodeURIComponent(unwrappedParams.id);
  const router = useRouter();
  
@@ -206,9 +208,9 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  </div>
  <h2 className="text-xl font-bold text-gray-800">Branch Not Found</h2>
  <p className="text-sm text-gray-500">The branch ID "{branchId}" does not exist.</p>
- <Link href="/super-admin/branches" className="px-6 py-2 bg-[#144835] text-white rounded-lg font-medium hover:bg-[#0f3628] transition-colors mt-4">
+ <SafeLink href="/super-admin/branches" className="px-6 py-2 bg-[#144835] text-white rounded-lg font-medium hover:bg-[#0f3628] transition-colors mt-4">
  Back to Branches
- </Link>
+ </SafeLink>
  </div>
  );
  }
@@ -259,13 +261,13 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  
  {/* Breadcrumb */}
  <nav className="flex items-center text-xs font-medium text-gray-500 mb-4">
- <Link href="/super-admin" className="hover:text-[#144835] transition-colors flex items-center gap-1">
+ <SafeLink href="/super-admin" className="hover:text-[#144835] transition-colors flex items-center gap-1">
  <Home size={14} /> Dashboard
- </Link>
+ </SafeLink>
  <BreadcrumbSeparator size={14} className="mx-2" />
- <Link href="/super-admin/branches" className="hover:text-[#144835] transition-colors">
+ <SafeLink href="/super-admin/branches" className="hover:text-[#144835] transition-colors">
  Branches
- </Link>
+ </SafeLink>
  <BreadcrumbSeparator size={14} className="mx-2" />
  <span className="text-[#144835] font-semibold">{branch.name}</span>
  </nav>
@@ -309,12 +311,12 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  </div>
  
  <div className="flex gap-3 w-full md:w-auto mt-4 md:mt-0">
- <Link 
+ <SafeLink 
  href={`/super-admin/branches/${encodeURIComponent(branchId)}/edit`}
  className="flex-1 md:flex-none px-5 py-2.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors shadow-sm"
  >
  <Edit2 size={14} /> Edit Details
- </Link>
+ </SafeLink>
  <button 
  onClick={handleDownloadReport}
  disabled={isDownloading}

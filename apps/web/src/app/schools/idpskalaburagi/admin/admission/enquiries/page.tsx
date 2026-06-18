@@ -10,6 +10,8 @@ import { db } from "@/lib/firebase";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import {
   CalendarDays,
   ChevronRight,

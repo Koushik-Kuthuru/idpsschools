@@ -8,6 +8,8 @@ import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Download, Search, Filter, Plus, FileText, ChevronRight, CheckCircle2, AlertCircle, Laptop, Projector, BookOpen, Sofa, CalendarDays, ShieldCheck , Trash2, Eye} from "lucide-react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import ExportButton from "@/components/ui/ExportButton";
@@ -275,12 +277,12 @@ export default function AdminAssetsPage() {
  </div>
  <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto justify-end">
  <ExportButton data={filteredAssets} filename="Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/inventory/assets/new`}
  className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
  >
  <Plus size={14} /> Add Asset
- </Link>
+ </SafeLink>
  </div>
  </div>
 

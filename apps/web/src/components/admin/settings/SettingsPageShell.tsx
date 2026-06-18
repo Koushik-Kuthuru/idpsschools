@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import {

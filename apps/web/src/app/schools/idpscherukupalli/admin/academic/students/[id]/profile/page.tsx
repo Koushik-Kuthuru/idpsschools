@@ -2,6 +2,7 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { useSearchParams } from "next/navigation";
 import { useRouteParam } from "@/hooks/useRouteParams";
 import { ArrowLeft, Pencil, User, AlertCircle, Users, BookOpen, Heart, Building, Home, FileText, Printer, MessageSquare, IndianRupee, Award, Bus, Camera, Calendar, TrendingUp, Ticket, List, Library, Wallet, MapPin, Clock, Phone, History, UploadCloud, FileCheck, FileMinus, Eye, Trash2, Camera as CameraIcon, CheckCircle2, XCircle, AlertTriangle, Smartphone, Bell, Check, Send, BarChart3, ChevronDown, Download, ShieldCheck, ShieldAlert, UserCheck, Clock4, Activity, Key, EyeOff } from "lucide-react";
@@ -43,8 +44,7 @@ export default function AdminStudentProfilePage({
  const studentId = useRouteParam(params, "id");
  const searchParams = useSearchParams();
  const schoolId = useSchoolId(); // Update this per school
- const SafeLink = Link as any;
- const [student, setStudent] = useState<any | null>(null);
+  const [student, setStudent] = useState<any | null>(null);
  const [attendanceStats, setAttendanceStats] = useState<AttendanceStats | null>(null);
  const [feeStructure, setFeeStructure] = useState<any | null>(null);
  const [loading, setLoading] = useState(true);

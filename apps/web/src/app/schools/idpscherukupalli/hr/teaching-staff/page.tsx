@@ -4,22 +4,32 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import Link from "next/link";
+const SafeLink = Link as any;
+
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarX2, ChevronRight, Download, Eye, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
+import { Building2, CalendarX2, ChevronRight, Eye, EyeOff, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
-import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
-import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
+import { supabase, getSchoolUuidFromSlug } from "@/lib/supabase/client";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
 }
 
-type EmployeeRow = StaffDisplayRecord;
+// Temporary interface mapped from Supabase schema
+interface EmployeeRow {
+  id: string;
+  employeeId: string;
+  name: string;
+  department: string;
+  designation: string;
+  mobile: string;
+  status: string;
+  classes: string;
+  subjects: string;
+}
 
 function staffBase(schoolId: string) {
  return `/schools/${schoolId}/admin/hr/teaching-staff`;
@@ -36,96 +46,104 @@ export default function AdminTeachingStaffPage() {
  const [loadError, setLoadError] = useState<string | null>(null);
 
  useEffect(() => {
- const qRef = query(collection(db, "schools", schoolId, "departments"), orderBy("name", "asc"));
- const unsubscribe = onSnapshot(
- qRef,
- (snapshot) => {
- const list = snapshot.docs.map((d) => {
- const data = d.data() as any;
- return { id: d.id, name: String(data.name || "").trim() || d.id };
- });
- setDepartments(list);
- },
- () => setDepartments([])
- );
- return () => unsubscribe();
+   async function loadData() {
+     setLoading(true);
+     setLoadError(null);
+     try {
+       const uuid = await getSchoolUuidFromSlug(schoolId);
+       if (!uuid) throw new Error("Invalid school configuration");
+
+       // Fetch staff profiles and join with users table
+       const { data: staffData, error: staffError } = await supabase
+         .from("staff_profiles")
+         .select(`
+           id,
+           employee_id,
+           designation,
+           department,
+           status,
+           users (
+             full_name,
+             phone
+           )
+         `)
+         .eq("school_id", uuid);
+
+       if (staffError) throw staffError;
+
+       const mapped: EmployeeRow[] = (staffData || []).map((staff: any) => ({
+         id: staff.id,
+         employeeId: staff.employee_id,
+         name: staff.users?.full_name || "Unnamed",
+         department: staff.department || "General",
+         designation: staff.designation || "Staff",
+         mobile: staff.users?.phone || "—",
+         status: staff.status === "active" ? "Active" : "Inactive",
+         classes: "—", // Requires querying teacher_subject_assignments
+         subjects: "—", // Requires querying teacher_subject_assignments
+       }));
+
+       setEmployees(mapped);
+
+       // Extract unique departments for the filter dropdown
+       const depts = new Set(mapped.map(m => m.department).filter(Boolean));
+       setDepartments(Array.from(depts).map(d => ({ id: d, name: d })));
+       
+     } catch (err: any) {
+       console.error("Error loading teaching staff:", err);
+       setLoadError(err.message || "Failed to load teaching staff");
+     } finally {
+       setLoading(false);
+     }
+   }
+   
+   loadData();
  }, [schoolId]);
-
- useEffect(() => {
- setLoading(true);
- setLoadError(null);
- 
- // We filter for role === "teacher" directly in the query
- const qRef = query(
- collection(db, "schools", schoolId, "teachers"),
- orderBy("firstName", "asc")
- );
-
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const list: EmployeeRow[] = snapshot.docs.map((doc) =>
-  mapStaffDoc(doc.id, doc.data() as Record<string, unknown>)
- );
- setEmployees(list);
- setLoading(false);
- }, (err) => {
- console.error("Error loading teachers:", err);
- setLoadError("Failed to load teaching staff. Check permissions.");
- setLoading(false);
- });
-
- return () => unsubscribe();
- }, [schoolId]);
-
- const departmentNameById = useMemo(() => {
- const map: Record<string, string> = {};
- departments.forEach((d) => {
- map[d.id] = d.name;
- });
- return map;
- }, [departments]);
 
  const departmentOptions = useMemo(() => {
- const base = [{ id: "General", name: "General" }, ...departments];
- const seen = new Set<string>();
- return base.filter((d) => {
- if (seen.has(d.id)) return false;
- seen.add(d.id);
- return true;
- });
+   const base = [{ id: "General", name: "General" }, ...departments];
+   const seen = new Set<string>();
+   return base.filter((d) => {
+     if (seen.has(d.id)) return false;
+     seen.add(d.id);
+     return true;
+   });
  }, [departments]);
 
  useEffect(() => {
- if (deptFilter === "all") return;
- if (deptFilter === "General") return;
- if (!departmentOptions.some((d) => d.id === deptFilter)) setDeptFilter("all");
+   if (deptFilter === "all" || deptFilter === "General") return;
+   if (!departmentOptions.some((d) => d.id === deptFilter)) setDeptFilter("all");
  }, [departmentOptions, deptFilter]);
 
  const stats = useMemo(() => {
- const totalStaff = employees.length;
- const onLeave = employees.filter((e) => e.status === "On Leave").length;
- const active = employees.filter((e) => e.status === "Active").length;
- return { totalStaff, onLeave, active };
+   const totalStaff = employees.length;
+   const onLeave = employees.filter((e) => e.status === "On Leave").length;
+   const active = employees.filter((e) => e.status === "Active").length;
+   return { totalStaff, onLeave, active };
  }, [employees]);
 
  const filtered = useMemo(() => {
- const q = searchQuery.toLowerCase();
- return employees.filter((e) => {
- const matchQ =
-  !q ||
-  e.name.toLowerCase().includes(q) ||
-  e.employeeId.toLowerCase().includes(q) ||
-  e.designation.toLowerCase().includes(q) ||
-  e.mobile.toLowerCase().includes(q) ||
-  e.classes.toLowerCase().includes(q) ||
-  e.subjects.toLowerCase().includes(q);
- const matchDept = deptFilter === "all" || e.department === deptFilter;
- const matchStatus = statusFilter === "All Status" || e.status === statusFilter;
- return matchQ && matchDept && matchStatus;
- });
+   const q = searchQuery.toLowerCase();
+   return employees.filter((e) => {
+     const matchQ =
+       !q ||
+       e.name.toLowerCase().includes(q) ||
+       e.employeeId.toLowerCase().includes(q) ||
+       e.designation.toLowerCase().includes(q) ||
+       e.mobile.toLowerCase().includes(q);
+     const matchDept = deptFilter === "all" || e.department === deptFilter;
+     const matchStatus = statusFilter === "All Status" || e.status === statusFilter;
+     return matchQ && matchDept && matchStatus;
+   });
  }, [searchQuery, deptFilter, statusFilter, employees]);
 
- const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
- const togglePassword = (id: string) => setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }));
+ const handleDelete = async (id: string) => {
+   if (confirm("Delete this staff member?")) {
+     const { error } = await supabase.from('staff_profiles').delete().eq('id', id);
+     if (error) alert("Failed to delete");
+     else setEmployees(employees.filter(e => e.id !== id));
+   }
+ };
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
@@ -135,9 +153,9 @@ export default function AdminTeachingStaffPage() {
   actions={
    <>
  <ExportButton data={filtered} filename="Export" className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors" iconSize={14} />
- <Link href={`${staffBase(schoolId)}/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
+ <SafeLink href={`${staffBase(schoolId)}/new`} className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
  <UserPlus size={14} /> Add Teaching Staff
- </Link>
+ </SafeLink>
    </>
   }
  />
@@ -243,8 +261,6 @@ export default function AdminTeachingStaffPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Department</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Designation</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Username</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Password</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Mobile</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Classes</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Subjects</th>
@@ -263,25 +279,8 @@ export default function AdminTeachingStaffPage() {
  <p className="text-xs font-bold text-gray-900">{e.name}</p>
  </div>
  </td>
- <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{departmentNameById[e.department] || e.department}</td>
+ <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{e.department}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{e.designation}</td>
- <td className="px-4 py-2.5 text-xs font-bold text-gray-900 bg-gray-50/50 rounded-md border border-gray-100 px-2 my-1.5 inline-block">{e.username || "—"}</td>
- <td className="px-4 py-2.5">
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-mono font-bold text-gray-900 bg-gray-50/50 rounded-md border border-gray-100 px-2 py-0.5 min-w-[70px] inline-block tracking-wider">
-        {e.portalPassword ? (showPasswords[e.id] ? e.portalPassword : "••••••••") : "—"}
-      </span>
-      {e.portalPassword && (
-        <button
-          type="button"
-          onClick={() => togglePassword(e.id)}
-          className="text-gray-400 hover:text-gray-600 focus:outline-none"
-        >
-          {showPasswords[e.id] ? <EyeOff size={14} /> : <Eye size={14} />}
-        </button>
-      )}
-    </div>
-  </td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 whitespace-nowrap">{e.mobile}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 max-w-[180px] truncate" title={e.classes}>{e.classes}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 max-w-[180px] truncate" title={e.subjects}>{e.subjects}</td>
@@ -296,7 +295,7 @@ export default function AdminTeachingStaffPage() {
  destructive: true,
  dividerBefore: true,
  confirmMessage: `Delete ${e.name}? This cannot be undone.`,
- onClick: () => deleteSchoolDocument(schoolId, "teachers", e.id),
+ onClick: () => handleDelete(e.id),
  },
  ]}
  />

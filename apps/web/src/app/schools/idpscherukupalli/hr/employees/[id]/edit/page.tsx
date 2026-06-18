@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import path from "path";
-import { promises as fs } from "fs";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 type AdminEmployee = { id: string; roleTitle: string; department: string };
 
@@ -11,11 +10,14 @@ function isTeachingEmployee(e: AdminEmployee) {
 }
 
 async function getEmployee(id: string) {
- const filePath = path.join(process.cwd(), "src", "data", "seed.json");
- const raw = await fs.readFile(filePath, "utf8");
- const data = JSON.parse(raw) as any;
- const employees = Array.isArray(data.adminEmployees) ? (data.adminEmployees as AdminEmployee[]) : [];
- return employees.find((e) => String(e.id) === String(id)) || null;
+  const { data, error } = await supabaseAdmin
+    .from("staff_profiles")
+    .select("id, role, department")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+  return { id: data.id, roleTitle: data.role, department: data.department };
 }
 
 export default async function AdminEmployeesLegacyEditRedirectPage({

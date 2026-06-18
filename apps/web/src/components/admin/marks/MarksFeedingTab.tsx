@@ -27,6 +27,8 @@ import { db } from "@/lib/firebase";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import ExportButton from "@/components/ui/ExportButton";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -669,13 +671,13 @@ export default function MarksFeedingTab() {
  </span>
  </td>
  <td className="px-4 py-3 text-right">
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/academic/students/${r.studentId}/profile?tab=Performance`}
  className="inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-400 hover:bg-gray-100 hover:text-[#144835] transition-colors shadow-sm border border-transparent hover:border-gray-200"
  title="View History"
  >
  <BarChart3 size={14} />
- </Link>
+ </SafeLink>
  </td>
  </tr>
  );

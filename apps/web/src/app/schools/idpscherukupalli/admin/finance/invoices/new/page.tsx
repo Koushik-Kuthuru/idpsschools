@@ -3,6 +3,8 @@
 import { useSchoolId } from "@/hooks/useSchoolId";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, Trash2, FileText, User, Calendar, CreditCard } from "lucide-react";
 import { collection, doc, getDocs, query, setDoc, serverTimestamp } from "firebase/firestore";
@@ -102,18 +104,18 @@ export default function AdminGenerateInvoicePage() {
  {/* Header */}
  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
  <div className="flex items-center gap-3">
- <Link href={`/schools/${schoolId}/admin/finance/invoices`} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
+ <SafeLink href={`/schools/${schoolId}/admin/finance/invoices`} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors">
  <ArrowLeft size={20} />
- </Link>
+ </SafeLink>
  <div>
  <h1 className="text-xl sm:text-xl font-bold text-slate-900 tracking-tight">Generate Invoice</h1>
  <p className="text-xs text-slate-500 mt-1">Create a new fee invoice for a student</p>
  </div>
  </div>
  <div className="flex items-center gap-3 w-full sm:w-auto">
- <Link href={`/schools/${schoolId}/admin/finance/invoices`} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg font-medium hover:bg-slate-50 transition-colors">
+ <SafeLink href={`/schools/${schoolId}/admin/finance/invoices`} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-lg font-medium hover:bg-slate-50 transition-colors">
  Cancel
- </Link>
+ </SafeLink>
  <button onClick={submit} disabled={saving} className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#144835] hover:bg-[#144835]/90 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-sm shadow-[#144835]/20 disabled:opacity-70">
  <Save size={18} />
  <span>{saving ? "Saving..." : "Generate & Send"}</span>

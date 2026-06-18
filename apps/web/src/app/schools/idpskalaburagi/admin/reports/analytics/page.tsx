@@ -3,6 +3,8 @@
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useMemo } from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -167,9 +169,9 @@ export default function AdminAnalyticsPage() {
  </div>
  <p className="text-xs font-extrabold text-[#1A1A1A] uppercase tracking-wider">Class-wise Performance</p>
  </div>
- <Link href="#" className="text-xs font-extrabold text-[#144835] hover:underline">
+ <SafeLink href="#" className="text-xs font-extrabold text-[#144835] hover:underline">
  View Detailed Report
- </Link>
+ </SafeLink>
  </div>
 
  <div className="overflow-x-auto">

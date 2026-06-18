@@ -3,6 +3,7 @@
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
 import { 
   Star, 
@@ -161,12 +162,12 @@ export default function DashboardView() {
             </div>
 
             <div className="mt-6 pt-4 border-t border-gray-100 text-right">
-              <Link 
+              <SafeLink 
                 href={`/schools/${schoolId}/students/marks`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#144835] uppercase tracking-wider hover:underline"
               >
                 View Details <ArrowRight size={13} strokeWidth={2.5} />
-              </Link>
+              </SafeLink>
             </div>
           </div>
 
@@ -175,7 +176,7 @@ export default function DashboardView() {
             <h4 className="text-xs font-bold text-[#144835] uppercase tracking-wider mb-4 border-l-4 border-[#144835] pl-2">Quick Actions</h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {quickActions.map((action, idx) => (
-                <Link
+                <SafeLink
                   key={idx}
                   href={action.href}
                   className={`flex flex-col items-center justify-center p-4 rounded-lg border text-center transition-all ${
@@ -186,7 +187,7 @@ export default function DashboardView() {
                 >
                   <action.icon size={20} className={action.primary ? "text-[#a2c144] mb-2" : "text-gray-400 mb-2"} />
                   <span className="text-xs font-bold uppercase tracking-wider mt-1">{action.label}</span>
-                </Link>
+                </SafeLink>
               ))}
             </div>
           </div>
@@ -206,12 +207,12 @@ export default function DashboardView() {
                 <span className="text-xs font-bold text-gray-900 block mt-0.5">Today: 2 classes</span>
                 <span className="text-xs text-gray-500 font-bold block mt-0.5">Next Class: Mathematics</span>
               </div>
-              <Link 
+              <SafeLink 
                 href={`/schools/${schoolId}/students/timetable`}
                 className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
               >
                 View
-              </Link>
+              </SafeLink>
             </div>
 
             {/* Assignments card */}
@@ -224,12 +225,12 @@ export default function DashboardView() {
                 <span className="text-xs font-bold text-gray-900 block mt-0.5">Pending: 3 Tasks</span>
                 <span className="text-xs text-red-600 font-bold block mt-0.5 uppercase tracking-wider">Overdue: 1</span>
               </div>
-              <Link 
+              <SafeLink 
                 href={`/schools/${schoolId}/students/timetable`}
                 className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
               >
                 View
-              </Link>
+              </SafeLink>
             </div>
 
             {/* Announcements card */}
@@ -242,12 +243,12 @@ export default function DashboardView() {
                 <span className="text-xs font-bold text-gray-900 block mt-0.5">New notifications</span>
                 <span className="text-xs text-gray-500 font-bold block mt-0.5">5 Unread notices</span>
               </div>
-              <Link 
+              <SafeLink 
                 href={`/schools/${schoolId}/students/messages`}
                 className="bg-[#144835] text-white hover:bg-[#144835]/90 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md shadow-[#144835]/20 shrink-0"
               >
                 View All
-              </Link>
+              </SafeLink>
             </div>
           </div>
 

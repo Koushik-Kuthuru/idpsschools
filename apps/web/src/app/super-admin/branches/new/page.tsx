@@ -2,6 +2,8 @@
 
 import React, { useState, useRef } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { 
  Save, 
  MapPin, 
@@ -130,9 +132,9 @@ export default function AddBranchPage() {
  {/* Breadcrumb & Header */}
  <div className="space-y-4">
  <nav className="flex items-center text-xs font-medium text-gray-500">
- <Link href="/super-admin" className="hover:text-[#144835] transition-colors">Dashboard</Link>
+ <SafeLink href="/super-admin" className="hover:text-[#144835] transition-colors">Dashboard</SafeLink>
  <ChevronRight size={14} className="mx-2" />
- <Link href="/super-admin/branches" className="hover:text-[#144835] transition-colors">Branches</Link>
+ <SafeLink href="/super-admin/branches" className="hover:text-[#144835] transition-colors">Branches</SafeLink>
  <ChevronRight size={14} className="mx-2" />
  <span className="text-[#144835] font-semibold">Create New Branch</span>
  </nav>
@@ -545,12 +547,12 @@ export default function AddBranchPage() {
  {/* Footer Buttons */}
  <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-40 md:pl-64">
  <div className="max-w-7xl mx-auto flex justify-end gap-4">
- <Link 
+ <SafeLink 
  href="/super-admin/branches"
  className="px-8 py-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all shadow-sm uppercase tracking-wide"
  >
  Cancel
- </Link>
+ </SafeLink>
  <button 
  onClick={handleSubmit}
  className="px-8 py-3 bg-[#144835] text-white rounded-lg text-xs font-bold hover:bg-[#144835]/90 flex items-center gap-2 shadow-lg shadow-[#144835]/20 transition-all transform active:scale-95 uppercase tracking-wide"

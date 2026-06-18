@@ -2,6 +2,8 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouteParam } from "@/hooks/useRouteParams";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Edit3, ListChecks } from "lucide-react";
@@ -105,9 +107,9 @@ export default function AdminSubjectDetailPage({
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
  <div className="bg-white rounded-xl border border-gray-200 p-4">
  <p className="text-xs font-bold text-rose-700">{error || "Subject not found"}</p>
- <Link href={`/schools/${schoolId}/admin/academic/subjects`} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 h-10 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50">
+ <SafeLink href={`/schools/${schoolId}/admin/academic/subjects`} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 h-10 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50">
  <ArrowLeft size={14} /> Back
- </Link>
+ </SafeLink>
  </div>
  </div>
  );
@@ -117,9 +119,9 @@ export default function AdminSubjectDetailPage({
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
  <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
  <div className="flex items-center gap-3">
- <Link href={`/schools/${schoolId}/admin/academic/subjects`} className="p-2 rounded-lg hover:bg-gray-50 text-gray-600">
+ <SafeLink href={`/schools/${schoolId}/admin/academic/subjects`} className="p-2 rounded-lg hover:bg-gray-50 text-gray-600">
  <ArrowLeft size={18} />
- </Link>
+ </SafeLink>
  <div className="min-w-0">
  <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
  {subject.grade}-{String(subject.section).toUpperCase()} • {subject.code || "—"}
@@ -130,9 +132,9 @@ export default function AdminSubjectDetailPage({
  </div>
 
  <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-end">
- <Link href={`/schools/${schoolId}/admin/academic/subjects/${encodeURIComponent(subject.id)}/edit`} className="h-9 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-5 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
+ <SafeLink href={`/schools/${schoolId}/admin/academic/subjects/${encodeURIComponent(subject.id)}/edit`} className="h-9 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-5 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all">
  <Edit3 size={14} /> Edit
- </Link>
+ </SafeLink>
  </div>
  </div>
 

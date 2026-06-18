@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { ArrowLeft, Save, User, Heart, Building, Users, Home, BookOpen, HelpCircle, Upload, CheckCircle2 } from "lucide-react";
 import { collection, addDoc, getDocs, query, doc, updateDoc } from "firebase/firestore";
@@ -103,8 +104,7 @@ const Checkbox = ({ label, checked, onChange, tooltip }: any) => (
 );
 
 export default function NewStudentForm() {
-  const SafeLink = Link as any;
-  const schoolId = useSchoolId();
+    const schoolId = useSchoolId();
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);

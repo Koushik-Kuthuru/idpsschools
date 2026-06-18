@@ -92,6 +92,16 @@ service cloud.firestore {
         allow write: if isSuperAdmin() || isSchoolAdmin(schoolId);
       }
 
+      match /teachers/{teacherId} {
+        allow read: if true;
+        allow write: if isSuperAdmin() || isSchoolAdmin(schoolId);
+      }
+
+      match /non_teaching_staff/{staffId} {
+        allow read: if true;
+        allow write: if isSuperAdmin() || isSchoolAdmin(schoolId);
+      }
+
       match /{subcollection}/{document=**} {
         allow read, write: if isSuperAdmin();
         allow read, write: if isSchoolMember(schoolId);

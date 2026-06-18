@@ -14,8 +14,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function MobileNav({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const SafeLink = Link as any;
-  const pathname = usePathname();
+    const pathname = usePathname();
   const [openGroupId, setOpenGroupId] = useState<string | null>(null);
 
   const activeGroupId = useMemo(() => {

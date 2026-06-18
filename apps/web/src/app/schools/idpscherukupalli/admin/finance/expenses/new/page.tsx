@@ -4,6 +4,8 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { ArrowLeft, Save, Receipt, IndianRupee } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -68,12 +70,12 @@ export default function NewExpensePage() {
  return (
  <div className="max-w-[1200px] mx-auto animate-in fade-in duration-500 pb-10 font-jost">
  <div className="flex items-center gap-4 mb-6">
- <Link 
+ <SafeLink 
  href={`/schools/${schoolId}/admin/finance/expenses`}
  className="h-10 w-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm"
  >
  <ArrowLeft size={18} />
- </Link>
+ </SafeLink>
  <div>
  <h1 className="text-xl font-extrabold text-gray-900">Add New Expense</h1>
  <p className="text-xs font-bold text-gray-500 mt-1">Record an outgoing payment or expense</p>
@@ -181,12 +183,12 @@ export default function NewExpensePage() {
  </div>
 
  <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/finance/expenses`}
  className="h-9 px-6 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 flex items-center transition-colors shadow-sm"
  >
  Cancel
- </Link>
+ </SafeLink>
  <button
  type="submit"
  disabled={loading}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
 import { useAuth } from "@/contexts/AuthContext";
 import { getRoleLabel } from "@/lib/auth/roles";
 import { Calendar, FileText, Megaphone, User } from "lucide-react";
@@ -48,7 +49,7 @@ export default function StaffDashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {cards.map((card) => (
-          <Link
+          <SafeLink
             key={card.title}
             href={card.href}
             className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-md hover:border-[#144835]/20 transition-all"
@@ -58,7 +59,7 @@ export default function StaffDashboard() {
             </div>
             <h2 className="mt-4 text-sm font-extrabold text-gray-900">{card.title}</h2>
             <p className="mt-1 text-xs font-medium text-gray-500">{card.desc}</p>
-          </Link>
+          </SafeLink>
         ))}
       </div>
     </div>

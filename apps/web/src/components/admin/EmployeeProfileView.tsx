@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
 import {
   Badge,
   Briefcase,
@@ -101,8 +102,7 @@ export default function EmployeeProfileView({
   backLabel?: string;
   variant?: "teaching" | "nonTeaching";
 }) {
-  const SafeLink = Link as any;
-  const [staff, setStaff] = useState<StaffDisplayRecord | null>(null);
+    const [staff, setStaff] = useState<StaffDisplayRecord | null>(null);
   const [rawEmployee, setRawEmployee] = useState<Record<string, unknown> | null>(null);
   const [leaves, setLeaves] = useState<LeaveRow[]>([]);
   const [loading, setLoading] = useState(true);

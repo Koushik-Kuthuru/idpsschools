@@ -3,6 +3,8 @@
 import { useSchoolId } from "@/hooks/useSchoolId";
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { useRouteParam } from "@/hooks/useRouteParams";
 import { ArrowLeft, Save, User, Heart, Building, Users, Home, BookOpen, FileText, CheckCircle2, GraduationCap, Sparkles, HelpCircle, Upload, X } from "lucide-react";
@@ -319,9 +321,9 @@ export default function AdminEditStudentPage({
  {/* Top Header - Glassmorphism */}
  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white/80 backdrop-blur-xl p-3 sm:px-4 sm:py-3 rounded-xl border border-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] mx-auto">
  <div className="flex items-center gap-3">
- <Link href={`/schools/${schoolId}/admin/academic/students`} className="p-2 bg-white rounded-lg border border-gray-100 shadow-sm hover:bg-gray-50 text-gray-500 hover:text-gray-900 transition-all group">
+ <SafeLink href={`/schools/${schoolId}/admin/academic/students`} className="p-2 bg-white rounded-lg border border-gray-100 shadow-sm hover:bg-gray-50 text-gray-500 hover:text-gray-900 transition-all group">
  <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
- </Link>
+ </SafeLink>
  <div>
  <div className="flex items-center gap-2">
  <div className="bg-emerald-100/50 p-1 rounded text-emerald-600 hidden sm:block">

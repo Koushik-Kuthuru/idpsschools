@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Clock, GraduationCap, Shield, Lock } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -137,13 +139,13 @@ export default function VerifyOtpPage() {
  </div>
 
  <div className="text-center lg:text-left">
- <Link
+ <SafeLink
  href="/forgot-password"
  className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-[#144835] transition-colors mb-6 group"
  >
  <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" />
  Back to Email
- </Link>
+ </SafeLink>
  <div className="flex items-center justify-center lg:justify-start gap-2 mb-2">
  <span className="px-2 py-1 rounded bg-[#144835]/10 text-[#144835] text-xs font-bold uppercase tracking-wider">Step 2 of 3</span>
  </div>

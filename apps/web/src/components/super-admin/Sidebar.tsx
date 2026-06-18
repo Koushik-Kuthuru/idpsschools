@@ -60,7 +60,7 @@ export default function Sidebar({
 
         <SafeLink
           href="/super-admin"
-          onClick={(e) => {
+          onClick={(e: any) => {
             if (!sidebarExpanded) {
               e.preventDefault();
               setIsSidebarOpen(true);

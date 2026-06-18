@@ -42,14 +42,24 @@ export const authService = {
     
     for (const sch of SCHOOL_BRANCHES) {
       try {
-        const usernames = Array.from(new Set([identifier.toLowerCase(), identifier]));
+        const usernames = Array.from(new Set([identifier.toLowerCase(), identifier, identifier.toUpperCase()]));
         const studentColl = collection(db, 'schools', sch, 'students');
         const q = query(
           studentColl,
           where('username', 'in', usernames),
           where('portalPassword', '==', password)
         );
-        const snap = await getDocs(q);
+        let snap = await getDocs(q);
+
+        if (snap.empty && identifier === password) {
+          let qFallback = query(studentColl, where("studentId", "in", usernames));
+          snap = await getDocs(qFallback);
+          
+          if (snap.empty) {
+            qFallback = query(studentColl, where("admissionNumber", "in", usernames));
+            snap = await getDocs(qFallback);
+          }
+        }
           
         if (!snap.empty) {
           studentDoc = { id: snap.docs[0].id, ...snap.docs[0].data() };

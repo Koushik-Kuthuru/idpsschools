@@ -4,6 +4,8 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useMemo, useState, useEffect } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -209,12 +211,12 @@ export default function AdminMessagesPage() {
  >
  <Filter size={14} />
  </button>
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/communication/messages/new`}
  className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all"
  >
  <Mail size={14} /> Compose
- </Link>
+ </SafeLink>
  </div>
  </div>
 

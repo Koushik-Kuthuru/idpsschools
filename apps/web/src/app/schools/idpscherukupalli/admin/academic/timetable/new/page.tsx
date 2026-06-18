@@ -3,6 +3,8 @@
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, ChevronRight } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -253,9 +255,9 @@ export default function AdminCreateTimetableSchedulePage() {
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-4 rounded-[16px] border border-gray-100 shadow-sm">
  <div className="flex items-center gap-3">
- <Link href={`/schools/${schoolId}/admin/academic/timetable`} className="p-2 rounded-lg hover:bg-gray-50 text-gray-500 transition-colors">
+ <SafeLink href={`/schools/${schoolId}/admin/academic/timetable`} className="p-2 rounded-lg hover:bg-gray-50 text-gray-500 transition-colors">
  <ArrowLeft size={20} />
- </Link>
+ </SafeLink>
  <div>
  <h1 className="text-xl sm:text-xl font-bold text-gray-900 tracking-tight">Create Schedule</h1>
  <p className="text-xs text-gray-500 mt-1">Build a timetable and save it by term, month, or date</p>

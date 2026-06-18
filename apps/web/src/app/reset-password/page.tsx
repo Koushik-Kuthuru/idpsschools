@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Lock, Eye, EyeOff, CheckCircle2, XCircle, Shield, GraduationCap } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";

@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Mail, GraduationCap, Shield, Lock } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -94,13 +96,13 @@ export default function ForgotPasswordPage() {
  </div>
 
  <div className="text-center lg:text-left">
- <Link
+ <SafeLink
  href="/login"
  className="inline-flex items-center text-sm font-bold text-gray-500 hover:text-[#144835] transition-colors mb-6 group"
  >
  <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" />
  Back to Login
- </Link>
+ </SafeLink>
  <h2 className="text-3xl font-extrabold text-[#1A1A1A] tracking-tight mb-2">Forgot Password?</h2>
  <p className="text-gray-500">Enter your email address and we'll send you a code to reset your password.</p>
  </div>

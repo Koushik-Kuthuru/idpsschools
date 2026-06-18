@@ -9,6 +9,8 @@ import { db } from "@/lib/firebase";
 
 import { clsx, type ClassValue } from "clsx";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { twMerge } from "tailwind-merge";
 import { Download, Eye, Pencil, Search, UserCheck, UserMinus, UserPlus, UserX, Phone, Mail, Users, ChevronRight, CalendarCheck2 , Trash2} from "lucide-react";
 import ExportButton from "@/components/ui/ExportButton";
@@ -148,12 +150,12 @@ export default function AdminAdmissionLeadsPage() {
   description="Manage prospective student leads through the admissions pipeline"
   actions={
    <>
- <Link
+ <SafeLink
  href={`/schools/${schoolId}/admin/admission/leads/new`}
  className="h-9 inline-flex items-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-all"
  >
  <UserPlus size={14} /> New Lead
- </Link>
+ </SafeLink>
  <ExportButton data={filteredLeads} filename="Export" className="h-9 inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
    </>
   }

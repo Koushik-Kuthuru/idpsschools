@@ -2,6 +2,8 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useRouter } from "next/navigation";
 import { useRouteParam } from "@/hooks/useRouteParams";
 import { useEffect, useMemo, useState } from "react";
@@ -191,9 +193,9 @@ export default function AdminEditSubjectPage({
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
  <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
  <div className="flex items-center gap-3">
- <Link href={`/schools/${schoolId}/admin/academic/subjects/${encodeURIComponent(id)}`} className="p-2 rounded-lg hover:bg-gray-50 text-gray-600">
+ <SafeLink href={`/schools/${schoolId}/admin/academic/subjects/${encodeURIComponent(id)}`} className="p-2 rounded-lg hover:bg-gray-50 text-gray-600">
  <ArrowLeft size={18} />
- </Link>
+ </SafeLink>
  <div>
  <h1 className="text-xl sm:text-xl font-bold text-gray-900 tracking-tight">Edit Subject</h1>
  <p className="text-xs text-gray-500 mt-1">Update details and portion planning</p>

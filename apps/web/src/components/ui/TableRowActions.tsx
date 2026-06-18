@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
 import { MoreHorizontal, Trash2, type LucideIcon } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -27,8 +28,7 @@ type TableRowActionsProps = {
 };
 
 export default function TableRowActions({ items, align = "right" }: TableRowActionsProps) {
-  const SafeLink = Link as any;
-  const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

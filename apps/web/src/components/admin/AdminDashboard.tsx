@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import {
   Users,
   GraduationCap,
@@ -727,7 +729,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
       {/* Mobile / narrow: at-a-glance chips */}
       <div className="flex gap-2 overflow-x-auto pb-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:hidden -mx-0.5 px-0.5">
         {mobileHighlights.map((chip) => (
-          <Link
+          <SafeLink
             key={chip.label}
             href={chip.href}
             className={cn(
@@ -737,7 +739,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
           >
             <span className="text-xs uppercase tracking-wider opacity-80">{chip.label}</span>
             <span className="erp-metric text-base mt-0.5">{chip.value}</span>
-          </Link>
+          </SafeLink>
         ))}
       </div>
 
@@ -753,7 +755,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               : kpis.map((stat) => {
                   const a = accentMap[stat.accent];
                   return (
-                    <Link
+                    <SafeLink
                       key={stat.label}
                       href={stat.href}
                       className={cn(
@@ -771,7 +773,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-wide truncate">{stat.short}</p>
                         <p className="erp-metric text-base truncate">{stat.value}</p>
                       </div>
-                    </Link>
+                    </SafeLink>
                   );
                 })}
           </div>
@@ -786,7 +788,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
             : kpis.map((stat) => {
                 const a = accentMap[stat.accent];
                 return (
-                  <Link
+                  <SafeLink
                     key={stat.label}
                     href={stat.href}
                     className={cn("group rounded-2xl p-4 border bg-white transition-colors", a.border, cardHover)}
@@ -799,7 +801,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                     </div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{stat.label}</p>
                     <p className="erp-metric text-xl mt-0.5">{stat.value}</p>
-                  </Link>
+                  </SafeLink>
                 );
               })}
         </div>
@@ -809,7 +811,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
       <section>
         <SectionHeading title="Today's overview" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 items-start">
-          <Link href={`${base}/academic/attendance`} className={cn(cardBase, cardHover, "block self-start")}>
+          <SafeLink href={`${base}/academic/attendance`} className={cn(cardBase, cardHover, "block self-start")}>
             <div className="p-4">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -840,9 +842,9 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                 ))}
               </div>
             </div>
-          </Link>
+          </SafeLink>
 
-          <Link href={`${base}/finance/payments`} className={cn(cardBase, cardHover, "block self-start")}>
+          <SafeLink href={`${base}/finance/payments`} className={cn(cardBase, cardHover, "block self-start")}>
             <div className="p-4">
               <div className="flex items-center justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -873,7 +875,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                 </div>
               </div>
             </div>
-          </Link>
+          </SafeLink>
         </div>
       </section>
 
@@ -890,7 +892,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                   </div>
                   <h3 className="erp-section-title text-gray-900">Transport Management</h3>
                 </div>
-                <Link href={`${base}/transport`} className="text-xs font-semibold text-[#144835] hover:underline">Manage</Link>
+                <SafeLink href={`${base}/transport`} className="text-xs font-semibold text-[#144835] hover:underline">Manage</SafeLink>
               </div>
               <div className="p-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
@@ -981,7 +983,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               <ul className="relative">
                 {activities.slice(0, 5).map((activity) => (
                   <li key={activity.id} className="relative">
-                    <Link
+                    <SafeLink
                       href={activity.href}
                       className="flex items-start sm:items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
                     >
@@ -995,7 +997,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                       </div>
                       <span className="text-xs font-medium text-gray-500 shrink-0 hidden sm:block bg-white px-2.5 py-1 rounded-full border border-gray-100">{activity.time}</span>
                       <ChevronRight size={14} className="text-gray-300 group-hover:text-[#144835] shrink-0 hidden sm:block ml-2" />
-                    </Link>
+                    </SafeLink>
                   </li>
                 ))}
               </ul>
@@ -1011,7 +1013,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
             </div>
             <div className="p-3 grid grid-cols-2 gap-3">
               {quickLinks.map((link) => (
-                <Link
+                <SafeLink
                   key={link.href}
                   href={link.href}
                   className="flex flex-col items-center justify-center text-center p-3 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-[#144835]/5 hover:border-[#144835]/30 transition-all group gap-2"
@@ -1020,7 +1022,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                     <link.icon size={18} />
                   </div>
                   <span className="text-xs font-semibold text-gray-700 group-hover:text-[#144835] transition-colors leading-tight">{link.label}</span>
-                </Link>
+                </SafeLink>
               ))}
             </div>
           </div>
@@ -1103,37 +1105,37 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               </ul>
             )}
             <div className="flex border-t border-gray-100 divide-x divide-gray-100">
-              <Link
+              <SafeLink
                 href={`${base}/hr/leaves`}
                 className="flex-1 py-2.5 text-center text-xs font-semibold text-gray-600 hover:text-[#144835] hover:bg-gray-50"
               >
                 Leaves
-              </Link>
-              <Link
+              </SafeLink>
+              <SafeLink
                 href={`${base}/finance/expenses`}
                 className="flex-1 py-2.5 text-center text-xs font-semibold text-gray-600 hover:text-[#144835] hover:bg-gray-50"
               >
                 Expenses
-              </Link>
-              <Link
+              </SafeLink>
+              <SafeLink
                 href={`${base}/admission/applications`}
                 className="flex-1 py-2.5 text-center text-xs font-semibold text-gray-600 hover:text-[#144835] hover:bg-gray-50"
               >
                 Admissions
-              </Link>
+              </SafeLink>
             </div>
           </div>
 
           <div className={cardBase}>
             <div className={cn(cardHeader, "flex items-center justify-between")}>
               <h3 className="erp-section-title text-gray-900">Events</h3>
-              <Link
+              <SafeLink
                 href={`${base}/academic/calendar/new`}
                 className="h-7 w-7 rounded-full bg-[#144835] text-white flex items-center justify-center border-2 border-[#0f3628]"
                 aria-label="Add event"
               >
                 <Plus size={14} />
-              </Link>
+              </SafeLink>
             </div>
             <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
               {events.length === 0 ? (
@@ -1169,12 +1171,12 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                   );
                 })
               )}
-              <Link
+              <SafeLink
                 href={`${base}/academic/calendar`}
                 className="h-9 sm:h-10 inline-flex items-center justify-center w-full rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50"
               >
                 Full calendar
-              </Link>
+              </SafeLink>
             </div>
           </div>
         </div>
@@ -1208,14 +1210,14 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               ) : (
                 activities.map((item) => (
                   <li key={item.id}>
-                    <Link
+                    <SafeLink
                       href={item.href}
                       className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
                       onClick={() => setLogOpen(false)}
                     >
                       <span className="flex-1 min-w-0 text-sm text-gray-800">{item.text}</span>
                       <span className="text-xs text-gray-400 shrink-0">{item.time}</span>
-                    </Link>
+                    </SafeLink>
                   </li>
                 ))
               )}

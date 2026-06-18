@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, use, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { 
  Save, 
  MapPin, 
@@ -36,7 +38,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function EditBranchPage({ params }: { params: Promise<{ id: string }> }) {
- const resolvedParams = use(params);
+ const resolvedParams = (React as any).use(params);
  const branchId = decodeURIComponent(resolvedParams.id);
  
  const [showPassword, setShowPassword] = useState(false);
@@ -201,9 +203,9 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  <>
  <div className="space-y-4">
  <nav className="flex items-center text-xs font-medium text-gray-500">
- <Link href="/super-admin" className="hover:text-[#144835] transition-colors">Dashboard</Link>
+ <SafeLink href="/super-admin" className="hover:text-[#144835] transition-colors">Dashboard</SafeLink>
  <ChevronRight size={14} className="mx-2" />
- <Link href="/super-admin/branches" className="hover:text-[#144835] transition-colors">Branches</Link>
+ <SafeLink href="/super-admin/branches" className="hover:text-[#144835] transition-colors">Branches</SafeLink>
  <ChevronRight size={14} className="mx-2" />
  <span className="text-[#144835] font-semibold">Edit Branch</span>
  </nav>
@@ -213,12 +215,12 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  <h1 className="text-xl font-extrabold text-[#1A1A1A] uppercase tracking-tight">Edit Branch Details</h1>
  <p className="text-gray-500 mt-1">Update information for {formData.branchName || "branch"}.</p>
  </div>
- <Link 
+ <SafeLink 
  href={`/super-admin/branches/${encodeURIComponent(branchId)}`}
  className="px-4 py-2 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
  >
  <ArrowLeft size={14} /> Back to Details
- </Link>
+ </SafeLink>
  </div>
  </div>
 
@@ -623,12 +625,12 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  {/* Footer Buttons */}
  <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-40 md:pl-64">
  <div className="max-w-7xl mx-auto flex justify-end gap-4">
- <Link 
+ <SafeLink 
  href={`/super-admin/branches/${encodeURIComponent(branchId)}`}
  className="px-8 py-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-all shadow-sm uppercase tracking-wide"
  >
  Cancel
- </Link>
+ </SafeLink>
  <button 
  onClick={handleSubmit}
  disabled={saving}

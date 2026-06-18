@@ -3,6 +3,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { Bell, CheckCheck, ChevronDown, ChevronRight, CircleHelp, LogOut, Menu, Settings, User, X } from "lucide-react";
 import AdminGlobalSearch from "@/components/admin/AdminGlobalSearch";
 import { notificationIcon, notificationIconStyles } from "@/components/admin/notificationStyles";
@@ -170,7 +172,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
               </button>
             </div>
 
-            <Link
+            <SafeLink
               href={helpHref}
               aria-label="Help center"
               title="Help center"
@@ -185,9 +187,9 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
               }`}
             >
               <CircleHelp size={18} />
-            </Link>
+            </SafeLink>
 
-            <Link
+            <SafeLink
               href={settingsHref}
               aria-label="Settings"
               title="Settings"
@@ -202,7 +204,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
               }`}
             >
               <Settings size={18} />
-            </Link>
+            </SafeLink>
 
             <div className="h-6 w-px bg-gray-200 hidden sm:block" />
 

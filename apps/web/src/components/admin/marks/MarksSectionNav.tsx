@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { ClipboardList, FileText, BarChart3 } from "lucide-react";
@@ -31,18 +32,18 @@ export default function MarksSectionNav() {
 
   return (
     <>
-      <Link href={base} className={linkCls(isMarks)}>
+      <SafeLink href={base} className={linkCls(isMarks)}>
         <BarChart3 size={14} />
         Marks
-      </Link>
-      <Link href={`${base}/tests`} className={linkCls(isTests)}>
+      </SafeLink>
+      <SafeLink href={`${base}/tests`} className={linkCls(isTests)}>
         <ClipboardList size={14} />
         Tests
-      </Link>
-      <Link href={`${base}/report-cards`} className={linkCls(isReportCards, true)}>
+      </SafeLink>
+      <SafeLink href={`${base}/report-cards`} className={linkCls(isReportCards, true)}>
         <FileText size={14} />
         Report Cards
-      </Link>
+      </SafeLink>
     </>
   );
 }

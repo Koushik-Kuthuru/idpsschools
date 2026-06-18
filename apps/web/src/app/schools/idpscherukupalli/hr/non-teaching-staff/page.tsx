@@ -3,6 +3,8 @@
 import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useEffect, useMemo, useState } from "react";
 import {
   Building2,
@@ -182,12 +184,12 @@ export default function AdminNonTeachingStaffPage() {
               className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors"
               iconSize={14}
             />
-            <Link
+            <SafeLink
               href={`${staffBase(schoolId)}/new`}
               className="h-9 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all"
             >
               <UserPlus size={14} /> Add Non-Teaching Staff
-            </Link>
+            </SafeLink>
           </>
         }
       />

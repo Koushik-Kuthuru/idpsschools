@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { 
   Building2, 
   Users, 
@@ -239,12 +241,12 @@ export default function SuperAdminDashboard() {
               : <>Here&apos;s what&apos;s happening with your franchise network today.</>}
           </p>
           <div className="mt-6 flex gap-3">
-            <Link href="/super-admin/branches" className="px-5 py-2.5 bg-[#a2c144] text-[#144835] font-bold rounded-lg shadow-lg shadow-[#a2c144]/20 hover:bg-white hover:text-[#144835] transition-all transform hover:-translate-y-0.5 text-xs inline-flex items-center gap-2">
+            <SafeLink href="/super-admin/branches" className="px-5 py-2.5 bg-[#a2c144] text-[#144835] font-bold rounded-lg shadow-lg shadow-[#a2c144]/20 hover:bg-white hover:text-[#144835] transition-all transform hover:-translate-y-0.5 text-xs inline-flex items-center gap-2">
               View Branches <ArrowUpRight size={14} />
-            </Link>
-            <Link href="/super-admin/users" className="px-5 py-2.5 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition-all text-xs backdrop-blur-sm inline-flex items-center gap-2">
+            </SafeLink>
+            <SafeLink href="/super-admin/users" className="px-5 py-2.5 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition-all text-xs backdrop-blur-sm inline-flex items-center gap-2">
               Manage Users
-            </Link>
+            </SafeLink>
           </div>
         </div>
       </div>
@@ -287,9 +289,9 @@ export default function SuperAdminDashboard() {
                 <h2 className="text-lg font-bold text-[#1A1A1A]">Branch Performance</h2>
                 <p className="text-xs text-gray-500 mt-1">Key metrics across top performing campuses</p>
               </div>
-              <Link href="/super-admin/branches" className="text-xs font-medium text-[#004D40] hover:bg-[#004D40]/5 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+              <SafeLink href="/super-admin/branches" className="text-xs font-medium text-[#004D40] hover:bg-[#004D40]/5 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
                 View All <ChevronRight size={14} />
-              </Link>
+              </SafeLink>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -305,7 +307,7 @@ export default function SuperAdminDashboard() {
                   {schools.slice(0, 4).map((branch, idx) => (
                     <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-4 py-2.5">
-                        <Link href={`/super-admin/branches/${encodeURIComponent(branch.id)}`} className="flex items-center gap-3 group-hover:translate-x-1 transition-transform">
+                        <SafeLink href={`/super-admin/branches/${encodeURIComponent(branch.id)}`} className="flex items-center gap-3 group-hover:translate-x-1 transition-transform">
                           <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 group-hover:bg-[#144835]/10 group-hover:text-[#144835] transition-colors">
                             <Building2 size={20} />
                           </div>
@@ -313,7 +315,7 @@ export default function SuperAdminDashboard() {
                             <p className="text-xs font-bold text-[#1A1A1A] group-hover:text-[#144835] transition-colors">{branch.name}</p>
                             <p className="text-xs text-gray-500">{branch.city}, {branch.state}</p>
                           </div>
-                        </Link>
+                        </SafeLink>
                       </td>
                       <td className="px-4 py-2.5">
                         <div className="flex items-center gap-3">
@@ -333,9 +335,9 @@ export default function SuperAdminDashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <Link href={`/super-admin/branches/${encodeURIComponent(branch.id)}`} className="p-2 text-gray-400 hover:text-[#004D40] hover:bg-[#004D40]/5 rounded-lg transition-colors inline-block" title="View Details">
+                        <SafeLink href={`/super-admin/branches/${encodeURIComponent(branch.id)}`} className="p-2 text-gray-400 hover:text-[#004D40] hover:bg-[#004D40]/5 rounded-lg transition-colors inline-block" title="View Details">
                           <ExternalLink size={18} />
-                        </Link>
+                        </SafeLink>
                       </td>
                     </tr>
                   ))}
@@ -384,9 +386,9 @@ export default function SuperAdminDashboard() {
                   </div>
                 )}
               </div>
-              <Link href="/super-admin/audit-logs" className="w-full mt-6 py-3 bg-[#a2c144] text-[#144835] font-bold rounded-lg text-xs hover:bg-white transition-colors shadow-lg shadow-black/10 block text-center">
+              <SafeLink href="/super-admin/audit-logs" className="w-full mt-6 py-3 bg-[#a2c144] text-[#144835] font-bold rounded-lg text-xs hover:bg-white transition-colors shadow-lg shadow-black/10 block text-center">
                 View All Notifications
-              </Link>
+              </SafeLink>
             </div>
           </div>
 
@@ -430,9 +432,9 @@ export default function SuperAdminDashboard() {
                               {activity.branch}
                             </span>
                           </div>
-                          <Link href={activity.href} className="text-xs font-bold text-[#144835] uppercase tracking-wider hover:underline flex items-center gap-0.5 shrink-0">
+                          <SafeLink href={activity.href} className="text-xs font-bold text-[#144835] uppercase tracking-wider hover:underline flex items-center gap-0.5 shrink-0">
                             View <ArrowUpRight size={9} />
-                          </Link>
+                          </SafeLink>
                         </div>
                       </div>
                     </div>
@@ -441,9 +443,9 @@ export default function SuperAdminDashboard() {
               )}
             </div>
             <div className="px-4 pb-4">
-              <Link href="/super-admin/audit-logs" className="w-full py-2.5 text-xs font-medium text-gray-600 hover:text-[#004D40] hover:bg-gray-50 rounded-lg transition-all border border-gray-200 border-dashed block text-center">
+              <SafeLink href="/super-admin/audit-logs" className="w-full py-2.5 text-xs font-medium text-gray-600 hover:text-[#004D40] hover:bg-gray-50 rounded-lg transition-all border border-gray-200 border-dashed block text-center">
                 View Full Activity Log
-              </Link>
+              </SafeLink>
             </div>
           </div>
 
@@ -482,9 +484,9 @@ export default function SuperAdminDashboard() {
                           </span>
                         </div>
                       </div>
-                      <Link href={item.href} className="text-xs font-bold text-[#144835] hover:text-[#144835]/80 inline-flex items-center gap-1 shrink-0 mt-0.5">
+                      <SafeLink href={item.href} className="text-xs font-bold text-[#144835] hover:text-[#144835]/80 inline-flex items-center gap-1 shrink-0 mt-0.5">
                         View <ChevronRight size={13} />
-                      </Link>
+                      </SafeLink>
                     </div>
                   </div>
                 ))

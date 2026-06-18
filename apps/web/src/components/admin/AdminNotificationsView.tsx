@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { useMemo, useState } from "react";
 import { CheckCircle2, ChevronRight, Search, Settings2, XCircle } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
@@ -83,13 +85,13 @@ export default function AdminNotificationsView() {
               <CheckCircle2 size={14} /> <span className="hidden sm:inline">Mark all read</span>
             </button>
             <span className="h-5 w-px bg-gray-200 hidden sm:block mx-1" />
-            <Link
+            <SafeLink
               href={`/schools/${schoolId}/admin/profile/settings`}
               className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-[#144835] transition-colors"
               title="Notification settings"
             >
               <Settings2 size={16} />
-            </Link>
+            </SafeLink>
           </>
         }
       />

@@ -2,6 +2,8 @@
 
 import React, { useMemo } from "react";
 import Link from "next/link";
+const SafeLink = Link as any;
+;
 import { usePathname } from "next/navigation";
 import ExportButton from "@/components/ui/ExportButton";
 import { 
@@ -217,7 +219,7 @@ export default function AdminDashboard() {
               <FileText className="text-[#144835]" size={20} />
               <h3 className="font-bold text-gray-900 tracking-wide uppercase text-xs">PENDING APPROVALS</h3>
             </div>
-            <Link href={`/schools/${schoolId}/admin/approvals`} className="text-xs font-bold text-[#144835] hover:underline uppercase tracking-wider">View All</Link>
+            <SafeLink href={`/schools/${schoolId}/admin/approvals`} className="text-xs font-bold text-[#144835] hover:underline uppercase tracking-wider">View All</SafeLink>
           </div>
           <div className="p-4 flex-1">
             <div className="space-y-4">
