@@ -29,8 +29,8 @@ export const ADMIN_PORTAL_ROLES: UserRole[] = [
 
 /** Nav group IDs each role can see in the admin portal. */
 export const ROLE_NAV_GROUPS: Record<UserRole, string[]> = {
-  super_admin: ["dashboard", "academic", "staff_hr", "finance", "inventory", "admission", "communication"],
-  admin: ["dashboard", "academic", "staff_hr", "finance", "inventory", "admission", "communication"],
+  super_admin: ["dashboard", "academic", "transport", "staff_hr", "finance", "inventory", "admission", "communication"],
+  admin: ["dashboard", "academic", "transport", "staff_hr", "finance", "inventory", "admission", "communication"],
   accountant: ["dashboard", "finance"],
   hr_manager: ["dashboard", "staff_hr"],
   inventory_manager: ["dashboard", "inventory"],

@@ -20,10 +20,12 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { provisionPortalUser } from "@/lib/auth/provision-client";
 import { generatePortalPassword, inferRoleFromStaff } from "@/lib/auth/roles";
+import { buildPath, subscribeData, sortBy, buildQuery, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -146,11 +148,11 @@ export default function EmployeeForm({
   const schoolId = useMemo(() => inferSchoolIdFromHref(directoryHref), [directoryHref]);
 
   useEffect(() => {
-    const qRef = query(collection(db, "schools", schoolId, "departments"), orderBy("name", "asc"));
-    const unsub = onSnapshot(
+    const qRef = buildQuery(buildPath(db, "schools", schoolId, "departments"), sortBy("name", "asc"));
+    const unsub = subscribeData(
       qRef,
-      (snap) => {
-        const next = snap.docs.map((d) => {
+      (snap: any) => {
+        const next = snap.docs.map((d: any) => {
           const data = d.data() as any;
           return { id: d.id, name: String(data.name || "").trim() || d.id };
         });
@@ -284,7 +286,7 @@ export default function EmployeeForm({
                 setProvisionInfo(credMsg.replace("\n", " — "));
                 if (typeof window !== "undefined") window.alert(credMsg);
               } else if (provision.configured === false) {
-                console.warn("Firebase Admin not configured — employee saved without Auth account.");
+                console.warn("Supabase Admin not configured — employee saved without Auth account.");
               } else if (provision.error) {
                 console.warn("Provision failed:", provision.error);
               }
@@ -511,7 +513,7 @@ export default function EmployeeForm({
                   >
                     <option value="">Select Department</option>
                     {departmentOptions.length ? (
-                      departmentOptions.map((d) => (
+                      departmentOptions.map((d: any) => (
                         <option key={d.id} value={d.id}>
                           {d.name}
                         </option>

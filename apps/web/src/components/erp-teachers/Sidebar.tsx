@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 const SafeLink = Link as any;
-import { usePathname, useRouter } from "next/navigation";
-import { PanelLeftClose, PanelLeftOpen, X, LogOut, ChevronDown } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { navigation } from "./navigation";
+import { getTeacherNavigation, type TeacherNavItem } from "./navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { getRoleLabel } from "@/lib/auth/roles";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -22,6 +23,27 @@ interface SidebarProps {
   setIsHoveredProps?: (hovered: boolean) => void;
 }
 
+function NavIconBox({
+  icon: Icon,
+  active,
+  size = 16,
+}: {
+  icon: TeacherNavItem["icon"];
+  active: boolean;
+  size?: number;
+}) {
+  return (
+    <span
+      className={cn(
+        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+        active ? "bg-[#a2c144]/25 text-[#d4e887]" : "bg-white/5 text-white/50 group-hover:bg-white/10 group-hover:text-white/90"
+      )}
+    >
+      <Icon size={size} strokeWidth={2.25} />
+    </span>
+  );
+}
+
 export default function Sidebar({
   isSidebarOpen,
   setIsSidebarOpen,
@@ -31,25 +53,41 @@ export default function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const [headerHovered, setHeaderHovered] = useState(false);
-  const { user, role, logout } = useAuth();
+  const { user, role } = useAuth();
 
   const schoolId = useMemo(() => {
     const match = pathname.match(/^\/schools\/([^/]+)/);
     return match ? match[1] : "idpscherukupalli";
   }, [pathname]);
 
+  const navigation = useMemo(() => getTeacherNavigation(schoolId), [schoolId]);
   const dashboardHref = `/schools/${schoolId}/teachers`;
   const sidebarExpanded = isSidebarOpen || isMobileMenuOpen;
 
   const userInitials = useMemo(() => {
-    const name = user?.displayName || "Teacher";
+    const name = user?.displayName || user?.email || "Teacher";
     return name
       .split(" ")
-      .map((n: string) => n[0])
+      .map((w) => w[0])
       .join("")
       .slice(0, 2)
       .toUpperCase();
   }, [user]);
+
+  useEffect(() => {
+    setIsHoveredProps?.(false);
+  }, [isSidebarOpen, isMobileMenuOpen, setIsHoveredProps]);
+
+  useEffect(() => {
+    const handleCollapse = () => {
+      setIsSidebarOpen(false);
+      setIsMobileMenuOpen(false);
+    };
+    window.addEventListener("collapse-sidebar", handleCollapse);
+    return () => window.removeEventListener("collapse-sidebar", handleCollapse);
+  }, [setIsSidebarOpen, setIsMobileMenuOpen]);
+
+  const roleLabel = role ? getRoleLabel(role) : "Teacher";
 
   return (
     <aside
@@ -59,16 +97,13 @@ export default function Sidebar({
         isMobileMenuOpen ? "translate-x-0 w-72" : "-translate-x-full lg:translate-x-0"
       )}
     >
-      {/* Sidebar Header */}
-      <div 
+      <div
         className="h-16 flex items-center justify-between px-4 border-b border-white/10 relative overflow-hidden shrink-0"
         onMouseEnter={() => setHeaderHovered(true)}
         onMouseLeave={() => setHeaderHovered(false)}
       >
-        {/* Decorative glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#a2c144]/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-[#a2c144]/20 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Mobile menu header */}
         {isMobileMenuOpen ? (
           <div className="relative z-10 flex h-16 items-center justify-between gap-2 w-full">
             <SafeLink href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
@@ -91,7 +126,6 @@ export default function Sidebar({
           </div>
         ) : null}
 
-        {/* Desktop expanded */}
         {isSidebarOpen && !isMobileMenuOpen ? (
           <div className="relative z-10 hidden h-16 items-center justify-between gap-2 w-full lg:flex">
             <SafeLink href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
@@ -121,7 +155,6 @@ export default function Sidebar({
           </div>
         ) : null}
 
-        {/* Desktop minimized — centered logo, expand icon overlays on hover */}
         {!isSidebarOpen && !isMobileMenuOpen ? (
           <div className="relative z-10 hidden h-16 items-center justify-center w-full lg:flex">
             <div className="relative h-8 w-8">
@@ -153,93 +186,76 @@ export default function Sidebar({
         ) : null}
       </div>
 
-      {/* Navigation Items */}
-      <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
-        <div>
-          <p className={cn(
-            "px-4 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 transition-opacity duration-300",
-            sidebarExpanded ? "opacity-100" : "opacity-0 h-0 overflow-hidden m-0 p-0"
-          )}>
-            Main Menu
-          </p>
-          <div className="space-y-1">
-            {navigation.map((item) => {
-              // Resolve relative/absolute paths
-              const targetHref = item.href.startsWith("/") ? item.href : `/schools/${schoolId}/teachers/${item.href}`;
-              const isActive = pathname === targetHref || (targetHref !== dashboardHref && pathname.startsWith(targetHref));
-              return (
-                <SafeLink
-                  key={item.name}
-                  href={targetHref}
-                  className={cn(
-                    "flex items-center py-2.5 rounded-lg text-sm font-medium transition-all group relative",
-                    sidebarExpanded ? "gap-3 px-3 justify-start" : "px-3 justify-center",
-                    isActive
-                      ? "bg-[#a2c144]/20 text-[#a2c144] shadow-sm border border-[#a2c144]/10"
-                      : "text-gray-300 hover:bg-white/5 hover:text-white"
-                  )}
-                  title={!sidebarExpanded ? item.name : undefined}
-                >
-                  <item.icon size={18} className={cn("shrink-0", isActive ? "text-[#a2c144]" : "text-gray-400 group-hover:text-white")} />
-                  <span className={cn(
-                    "whitespace-nowrap transition-opacity duration-300",
-                    sidebarExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
-                  )}>
-                    {item.name}
-                  </span>
-                </SafeLink>
-              );
-            })}
-          </div>
-        </div>
+      <div className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 scrollbar-thin scrollbar-thumb-white/20 hover:scrollbar-thumb-white/40">
+        {navigation.map((item) => {
+          const isActive =
+            pathname === item.href || (item.href !== dashboardHref && pathname.startsWith(item.href));
+
+          return (
+            <SafeLink
+              key={item.name}
+              href={item.href}
+              onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
+              className={cn(
+                "group relative flex items-center rounded-xl text-[13px] font-semibold transition-all duration-200",
+                sidebarExpanded ? "gap-3 px-2.5 py-2" : "justify-center p-2",
+                isActive ? "bg-white/10 text-white" : "text-white/65 hover:bg-white/5 hover:text-white"
+              )}
+              title={!sidebarExpanded ? item.name : undefined}
+            >
+              {isActive ? (
+                <span className="absolute left-0 top-1/2 h-7 w-1 -translate-y-1/2 rounded-r-full bg-[#a2c144]" aria-hidden />
+              ) : null}
+              <NavIconBox icon={item.icon} active={isActive} />
+              <span
+                className={cn(
+                  "truncate transition-all duration-300",
+                  sidebarExpanded ? "opacity-100 w-auto" : "w-0 overflow-hidden opacity-0"
+                )}
+              >
+                {item.name}
+              </span>
+            </SafeLink>
+          );
+        })}
       </div>
 
-      {/* Profile & Logout */}
-      <div className="p-4 border-t border-white/10 bg-black/20 shrink-0 flex flex-col gap-2">
-        <SafeLink 
-          href={`/schools/${schoolId}/teachers/settings`}
+      <div className="p-3 border-t border-white/10 bg-black/20 shrink-0 flex flex-col gap-1">
+        <SafeLink
+          href={`/schools/${schoolId}/teachers/profile`}
+          onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
           className={cn(
-            "flex items-center px-2 py-2 hover:bg-white/5 rounded-lg transition-colors group",
-            sidebarExpanded ? "gap-3 justify-start" : "justify-center"
+            "flex items-center rounded-xl transition-colors group",
+            sidebarExpanded ? "gap-3 px-2.5 py-2 hover:bg-white/5" : "justify-center p-2 hover:bg-white/5"
           )}
           title={!sidebarExpanded ? "Profile Settings" : undefined}
         >
           <div className="relative shrink-0">
             {user?.photoURL ? (
-              <img src={user.photoURL} alt={user?.displayName || "Teacher"} className="h-10 w-10 rounded-full object-cover border-2 border-white/20 shadow-lg group-hover:border-[#a2c144] transition-colors" />
+              <img
+                src={user.photoURL}
+                alt={user?.displayName || "Teacher"}
+                className="h-9 w-9 rounded-full object-cover border-2 border-white/20 shadow-lg group-hover:border-[#a2c144] transition-colors"
+              />
             ) : (
-              <div className="h-10 w-10 rounded-full bg-[#144835] border-2 border-white/20 shadow-lg group-hover:border-[#a2c144] transition-colors flex items-center justify-center text-white font-bold">
+              <div className="h-9 w-9 rounded-full bg-[#144835] border-2 border-white/20 shadow-lg group-hover:border-[#a2c144] transition-colors flex items-center justify-center text-white font-bold text-xs">
                 {userInitials}
               </div>
             )}
-            <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-[#0f3628] rounded-full"></div>
+            <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 border-2 border-[#0f3628] rounded-full" />
           </div>
-          <div className={cn(
-            "flex flex-col transition-opacity duration-300 min-w-0",
-            sidebarExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
-          )}>
-            <span className="font-bold text-xs text-white truncate whitespace-nowrap group-hover:text-[#a2c144] transition-colors">{user?.displayName || "Teacher"}</span>
-            <span className="text-xs text-gray-400 uppercase tracking-wide mt-0.5 whitespace-nowrap">{role === "teacher" ? "Teacher" : "Staff"}</span>
+          <div
+            className={cn(
+              "flex flex-col transition-all duration-300 min-w-0",
+              sidebarExpanded ? "opacity-100 w-auto" : "w-0 overflow-hidden opacity-0"
+            )}
+          >
+            <span className="text-xs font-bold text-white truncate group-hover:text-[#a2c144] transition-colors">
+              {user?.displayName || "Teacher"}
+            </span>
+            <span className="text-[11px] text-white/50 truncate mt-0.5">{roleLabel}</span>
           </div>
         </SafeLink>
-
-        {/* Logout Button */}
-        <button
-          onClick={logout}
-          className={cn(
-            "flex items-center px-2 py-2 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer text-gray-300 hover:text-red-400 group w-full text-left",
-            sidebarExpanded ? "gap-3 justify-start" : "justify-center"
-          )}
-          title={!sidebarExpanded ? "Log Out" : undefined}
-        >
-          <LogOut size={18} className="shrink-0" />
-          <span className={cn(
-            "whitespace-nowrap text-xs font-semibold transition-opacity duration-300",
-            sidebarExpanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
-          )}>
-            Log Out
-          </span>
-        </button>
       </div>
     </aside>
   );

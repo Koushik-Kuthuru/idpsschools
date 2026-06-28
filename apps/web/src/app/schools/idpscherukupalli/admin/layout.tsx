@@ -8,6 +8,7 @@ import Sidebar from "@/components/admin/Sidebar";
 import Header from "@/components/admin/Header";
 import AdminStandaloneShell from "@/components/admin/AdminStandaloneShell";
 import { BranchProvider } from "@/components/admin/BranchContext";
+import { AcademicYearProvider } from "@/contexts/AcademicYearContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { ADMIN_LAYOUT_ALLOWED_ROLES } from "@/lib/auth/admin-portal-roles";
 import { isAdminStandaloneRoute } from "@/lib/admin-layout";
@@ -26,13 +27,6 @@ export default function AdminLayout({
  const isSettingsRoute = /\/admin\/.*settings(?:\/|$)/.test(pathname || "");
  const [isSidebarOpen, setIsSidebarOpen] = useState(!isSettingsRoute);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
- const [mounted, setMounted] = useState(false);
-
- // Handle initial hydration state mismatch
- useEffect(() => {
-
- setMounted(true);
- }, []);
 
  // Close mobile menu on route change
  useEffect(() => {
@@ -42,17 +36,15 @@ export default function AdminLayout({
  }
  }, [pathname, isSettingsRoute]);
 
- if (!mounted) {
- return null; // or a very minimal loading state matching the server HTML
- }
-
  const isStandalone = isAdminStandaloneRoute(pathname);
 
  if (isStandalone) {
  return (
  <ProtectedRoute allowedRoles={ADMIN_LAYOUT_ALLOWED_ROLES} requiredSchoolId="idpscherukupalli">
  <BranchProvider>
+ <AcademicYearProvider schoolSlug="idpscherukupalli">
  <AdminStandaloneShell>{children}</AdminStandaloneShell>
+ </AcademicYearProvider>
  </BranchProvider>
  </ProtectedRoute>
  );
@@ -61,6 +53,7 @@ export default function AdminLayout({
  return (
  <ProtectedRoute allowedRoles={ADMIN_LAYOUT_ALLOWED_ROLES} requiredSchoolId="idpscherukupalli">
  <BranchProvider>
+ <AcademicYearProvider schoolSlug="idpscherukupalli">
  <AdminNotificationsProvider>
  <div className="min-h-screen bg-[#F8FAFB] flex">
  {isMobileMenuOpen && (
@@ -84,12 +77,13 @@ export default function AdminLayout({
  )}>
  <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
- <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-hidden p-4 sm:p-4 lg:p-8">
+ <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-clip p-4 sm:p-4 lg:p-8">
  {children}
  </main>
  </div>
  </div>
  </AdminNotificationsProvider>
+ </AcademicYearProvider>
  </BranchProvider>
  </ProtectedRoute>
  );

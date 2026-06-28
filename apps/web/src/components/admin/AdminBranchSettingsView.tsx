@@ -1,28 +1,37 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useBranch } from "@/components/admin/BranchContext";
 import SettingsPageShell from "@/components/admin/settings/SettingsPageShell";
+import SettingsSidebar from "@/components/admin/settings/SettingsSidebar";
+import {
+  buildSettingsHomeCategories,
+  buildSettingsNavCategories,
+  parseSettingsViewParam,
+  settingsBasePath,
+  type InPageSectionKey,
+  type SettingsNavKey,
+  type ViewKey,
+} from "@/components/admin/settings/settingsNavigation";
 import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
 import {
   Bell, Building2, CalendarDays, ChevronRight, GraduationCap,
-  IndianRupee, LayoutGrid, Plus, ShieldCheck, SlidersHorizontal, Users,
+  IndianRupee, Plus, ShieldCheck, SlidersHorizontal, Users,
   ClipboardList, Trash2, Save, RefreshCw, Camera,
   CheckCircle2, Globe, Clock,
 } from "lucide-react";
+
+const SafeLink = Link as any;
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
 import { type LucideIcon } from "lucide-react";
 
-type SectionKey = "general" | "academic" | "exams" | "holidays" | "notifications" | "fees" | "staff" | "integrations";
-type ViewKey = "home" | SectionKey;
-
-type NavItem = { key: ViewKey; label: string; desc: string; icon: LucideIcon };
-type NavCategory = { label: string; items: NavItem[] };
-type HomeCategory = { label: string; items: { key: SectionKey; title: string; desc: string; icon: LucideIcon }[] };
+type SectionKey = InPageSectionKey;
 
 const sections: { key: SectionKey; label: string; desc: string; icon: LucideIcon }[] = [
   { key: "general",       label: "General",       desc: "Branch info & branding",     icon: Building2 },
@@ -45,85 +54,6 @@ const sectionColors: Record<SectionKey, { bg: string; text: string; ring: string
   staff:         { bg: "bg-violet-50",   text: "text-violet-700",   ring: "ring-violet-200"   },
   integrations:  { bg: "bg-rose-50",     text: "text-rose-700",     ring: "ring-rose-200"     },
 };
-
-const homeCategories: HomeCategory[] = [
-  {
-    label: "Branch",
-    items: [
-      { key: "general", title: "General Information", desc: "Branch name, contact details and branding.", icon: Building2 },
-    ],
-  },
-  {
-    label: "Academic",
-    items: [
-      { key: "academic", title: "Academic Settings", desc: "Sessions, grading system and timetable.", icon: GraduationCap },
-      { key: "exams", title: "Exam Types", desc: "Define exam schedules and types for this branch.", icon: ClipboardList },
-      { key: "holidays", title: "Holidays & Calendar", desc: "Public holidays, festivals and academic breaks.", icon: CalendarDays },
-    ],
-  },
-  {
-    label: "Communication",
-    items: [
-      { key: "notifications", title: "Notification Settings", desc: "Email, SMS, in-app alerts and daily digest.", icon: Bell },
-      { key: "integrations", title: "SMS & WhatsApp", desc: "Twilio credentials for automated messaging.", icon: Globe },
-    ],
-  },
-  {
-    label: "Finance & HR",
-    items: [
-      { key: "fees", title: "Fee Configuration", desc: "Currency, late fees, gateway and reminders.", icon: IndianRupee },
-      { key: "staff", title: "Staff Policies", desc: "Working hours, leave rules and weekly schedule.", icon: Users },
-    ],
-  },
-];
-
-function buildNavCategories(): NavCategory[] {
-  const sectionMap = Object.fromEntries(sections.map((s) => [s.key, s])) as Record<SectionKey, (typeof sections)[number]>;
-  return [
-    {
-      label: "Overview",
-      items: [{ key: "home", label: "Settings Home", desc: "Browse all configuration areas", icon: LayoutGrid }],
-    },
-    {
-      label: "Branch",
-      items: [
-        {
-          key: "general",
-          label: sectionMap.general.label,
-          desc: sectionMap.general.desc,
-          icon: sectionMap.general.icon,
-        },
-      ],
-    },
-    {
-      label: "Academic",
-      items: [sectionMap.academic, sectionMap.exams, sectionMap.holidays].map((s) => ({
-        key: s.key as ViewKey,
-        label: s.label,
-        desc: s.desc,
-        icon: s.icon,
-      })),
-    },
-    {
-      label: "Communication",
-      items: [sectionMap.notifications, sectionMap.integrations].map((s) => ({
-        key: s.key as ViewKey,
-        label: s.label,
-        desc: s.desc,
-        icon: s.icon,
-      })),
-    },
-    {
-      label: "Finance & HR",
-      items: [sectionMap.fees, sectionMap.staff].map((s) => ({
-        key: s.key as ViewKey,
-        label: s.label,
-        desc: s.desc,
-        icon: s.icon,
-      })),
-    },
-  ];
-}
 
 function FieldCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -186,6 +116,8 @@ function SectionHeader({ sectionKey, title, subtitle, onSave, saving }: {
 export default function AdminBranchSettingsView() {
   const { activeBranch } = useBranch();
   const schoolId = activeBranch.id;
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [activeView, setActiveView] = useState<ViewKey>("home");
   const [searchQuery, setSearchQuery] = useState("");
@@ -195,8 +127,16 @@ export default function AdminBranchSettingsView() {
 
   const sidebarExpanded = isSidebarOpen || mobileNavOpen;
 
-  const navCategories = useMemo(() => buildNavCategories(), []);
+  const navCategories = useMemo(() => buildSettingsNavCategories(schoolId), [schoolId]);
+  const homeCategories = useMemo(() => buildSettingsHomeCategories(schoolId), [schoolId]);
   const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  useEffect(() => {
+    setActiveView(parseSettingsViewParam(searchParams.get("view")));
+  }, [searchParams]);
+
+  const sidebarActiveKey: SettingsNavKey =
+    activeView === "home" ? "home" : activeView;
 
   const filteredNavCategories = useMemo(() => {
     if (!normalizedQuery) return navCategories;
@@ -229,6 +169,12 @@ export default function AdminBranchSettingsView() {
   const openView = (key: ViewKey) => {
     setActiveView(key);
     setMobileNavOpen(false);
+    const base = settingsBasePath(schoolId);
+    if (key === "home") {
+      router.replace(base);
+    } else {
+      router.replace(`${base}?view=${key}`);
+    }
   };
 
   const showSaved = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
@@ -247,10 +193,6 @@ export default function AdminBranchSettingsView() {
   const [newExamStart, setNewExamStart] = useState("");
   const [newExamEnd, setNewExamEnd] = useState("");
   const [savingExams, setSavingExams] = useState(false);
-
-  // ── Sessions ─────────────────────────────────────────────────────────────────
-  const [sessions, setSessions] = useState<{ id: string; year: string; isActive: boolean }[]>([]);
-  const [newSessionYear, setNewSessionYear] = useState("");
 
   // ── Holidays ─────────────────────────────────────────────────────────────────
   const [holidays, setHolidays] = useState<{ id: string; name: string; date: string; type: string }[]>([]);
@@ -280,7 +222,6 @@ export default function AdminBranchSettingsView() {
     };
     load("branchDetails", setBranchDetails);
     load("exams", setExams);
-    load("sessions", setSessions);
     load("holidays", setHolidays);
     load("notifs", setNotifs);
     load("twilioCreds", setTwilioCreds);
@@ -288,7 +229,6 @@ export default function AdminBranchSettingsView() {
 
   useEffect(() => { localStorage.setItem(`branchDetails_${schoolId}`, JSON.stringify(branchDetails)); }, [branchDetails, schoolId]);
   useEffect(() => { localStorage.setItem(`exams_${schoolId}`, JSON.stringify(exams)); }, [exams, schoolId]);
-  useEffect(() => { localStorage.setItem(`sessions_${schoolId}`, JSON.stringify(sessions)); }, [sessions, schoolId]);
   useEffect(() => { localStorage.setItem(`holidays_${schoolId}`, JSON.stringify(holidays)); }, [holidays, schoolId]);
   useEffect(() => { localStorage.setItem(`notifs_${schoolId}`, JSON.stringify(notifs)); }, [notifs, schoolId]);
   useEffect(() => { localStorage.setItem(`twilioCreds_${schoolId}`, JSON.stringify(twilioCreds)); }, [twilioCreds, schoolId]);
@@ -318,19 +258,6 @@ export default function AdminBranchSettingsView() {
     setTimeout(() => setSavingExams(false), 300);
   };
 
-  const handleAddSession = () => {
-    const y = newSessionYear.trim();
-    if (!y) return;
-    setSessions(p => [...p, { id: Date.now().toString(), year: y, isActive: false }].sort((a, b) => a.year.localeCompare(b.year)));
-    setNewSessionYear("");
-  };
-
-  const handleToggleSession = (id: string, next: boolean) => {
-    setSessions(p => p.map(s =>
-      next ? { ...s, isActive: s.id === id } : s.id === id ? { ...s, isActive: false } : s
-    ));
-  };
-
   const handleAddHoliday = () => {
     if (!newHolidayName.trim() || !newHolidayDate) return;
     const start = new Date(`${newHolidayDate}T00:00:00`);
@@ -339,54 +266,20 @@ export default function AdminBranchSettingsView() {
     for (const c = new Date(start <= end ? start : end); c <= (start <= end ? end : start); c.setDate(c.getDate() + 1)) {
       days.push({ id: Date.now() + Math.random() + "", name: newHolidayName.trim(), date: c.toISOString().slice(0, 10), type: newHolidayType });
     }
-    setHolidays(p => [...p, ...days].sort((a, b) => a.date.localeCompare(b.date)));
+    setHolidays(p => [...p, ...days].sort((a: any, b: any) => a.date.localeCompare(b.date)));
     setNewHolidayName(""); setNewHolidayDate(""); setNewHolidayEnd("");
   };
-
-  const activeSessionYears = useMemo(() => sessions.filter(s => s.isActive).map(s => s.year), [sessions]);
 
   const inputCls = "w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all placeholder:text-gray-400";
   const selectCls = "w-full h-9 appearance-none rounded-lg border border-gray-200 bg-white px-3 pr-8 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm cursor-pointer";
 
 
   const settingsSidebar = (
-    <nav className="flex-1 space-y-4 overflow-y-auto px-2 py-3" aria-label="Settings navigation">
-      {filteredNavCategories.map((category) => (
-        <div key={category.label}>
-          {sidebarExpanded ? (
-            <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-              {category.label}
-            </p>
-          ) : null}
-          <div className="space-y-0.5">
-            {category.items.map((item) => {
-              const active = activeView === item.key;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => openView(item.key)}
-                  title={!sidebarExpanded ? item.label : undefined}
-                  className={cn(
-                    "flex w-full items-center rounded-lg text-[13px] font-medium transition-colors",
-                    sidebarExpanded ? "gap-2.5 px-3 py-2" : "justify-center px-2 py-2.5",
-                    active
-                      ? "bg-[#144835]/8 text-[#144835]"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                  )}
-                >
-                  <item.icon
-                    size={16}
-                    className={cn("shrink-0", active ? "text-[#144835]" : "text-gray-400")}
-                  />
-                  {sidebarExpanded ? <span className="truncate text-left">{item.label}</span> : null}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </nav>
+    <SettingsSidebar
+      categories={filteredNavCategories}
+      activeKey={sidebarActiveKey}
+      sidebarExpanded={sidebarExpanded}
+    />
   );
 
   return (
@@ -423,26 +316,44 @@ export default function AdminBranchSettingsView() {
                         {category.label}
                       </h2>
                       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                        {category.items.map((item) => (
-                          <button
-                            key={item.key}
-                            type="button"
-                            onClick={() => openView(item.key)}
-                            className="group flex items-center gap-4 rounded-xl border border-gray-200/80 bg-white p-4 text-left transition-all hover:border-[#144835]/25 hover:shadow-[0_4px_20px_rgba(20,72,53,0.08)]"
-                          >
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#144835]/10 text-[#144835]">
-                              <item.icon size={18} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold text-gray-900">{item.title}</p>
-                              <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{item.desc}</p>
-                            </div>
-                            <ChevronRight
-                              size={16}
-                              className="shrink-0 text-gray-300 transition-colors group-hover:text-[#144835]"
-                            />
-                          </button>
-                        ))}
+                        {category.items.map((item) => {
+                          const cardClassName =
+                            "group flex items-center gap-4 rounded-xl border border-gray-200/80 bg-white p-4 text-left transition-all hover:border-[#144835]/25 hover:shadow-[0_4px_20px_rgba(20,72,53,0.08)]";
+                          const cardBody = (
+                            <>
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#144835]/10 text-[#144835]">
+                                <item.icon size={18} />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                                <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{item.desc}</p>
+                              </div>
+                              <ChevronRight
+                                size={16}
+                                className="shrink-0 text-gray-300 transition-colors group-hover:text-[#144835]"
+                              />
+                            </>
+                          );
+
+                          if (item.href) {
+                            return (
+                              <SafeLink key={item.key} href={item.href} className={cardClassName}>
+                                {cardBody}
+                              </SafeLink>
+                            );
+                          }
+
+                          return (
+                            <button
+                              key={item.key}
+                              type="button"
+                              onClick={() => openView(item.key as ViewKey)}
+                              className={cardClassName}
+                            >
+                              {cardBody}
+                            </button>
+                          );
+                        })}
                       </div>
                     </section>
                   ))}
@@ -540,92 +451,25 @@ export default function AdminBranchSettingsView() {
             {activeView === "academic" && (
               <div>
                 <SectionHeader sectionKey="academic" title="Academic Settings"
-                  subtitle="Session management, grading and timetable" />
+                  subtitle="Grading system, attendance threshold and timetable" />
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Left — form fields */}
-                  <div className="space-y-4">
-                    <FieldCard label="Default Session">
-                      <div className="relative">
-                        <select className={selectCls}>
-                          {activeSessionYears.length > 0
-                            ? activeSessionYears.map(y => <option key={y}>{y}</option>)
-                            : <option>No active session</option>}
-                        </select>
-                        <ChevronRight size={13} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-gray-400 pointer-events-none" />
-                      </div>
-                    </FieldCard>
-                    <FieldCard label="Grading System">
-                      <div className="relative">
-                        <select className={selectCls}>
-                          <option>GPA (10 Point)</option>
-                          <option>Percentage</option>
-                          <option>CBSE Grades</option>
-                        </select>
-                        <ChevronRight size={13} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-gray-400 pointer-events-none" />
-                      </div>
-                    </FieldCard>
-                    <FieldCard label="Attendance Threshold">
-                      <input className={inputCls} defaultValue="80%" />
-                    </FieldCard>
-                    <FieldCard label="Timetable Version">
-                      <input className={inputCls} defaultValue="2025-T1" />
-                    </FieldCard>
-                  </div>
-
-                  {/* Right — sessions table */}
-                  <div>
-                    <p className="text-xs font-bold text-gray-700 mb-3">Academic Year Sessions</p>
-                    <div className="rounded-xl border border-gray-100 overflow-hidden shadow-sm">
-                      <div className="bg-[#144835]/5 border-b border-[#144835]/10 px-4 py-2">
-                        <p className="text-xs font-bold uppercase tracking-wide text-[#144835]">Sessions</p>
-                      </div>
-                      {sessions.length === 0 ? (
-                        <div className="py-8 text-center text-xs text-gray-400">No sessions added yet</div>
-                      ) : (
-                        <table className="w-full">
-                          <thead className="bg-gray-50/60">
-                            <tr>
-                              <th className="px-4 py-2 text-xs font-bold text-gray-500 text-left">#</th>
-                              <th className="px-4 py-2 text-xs font-bold text-gray-500 text-left">Year</th>
-                              <th className="px-4 py-2 text-xs font-bold text-gray-500 text-left">Status</th>
-                              <th className="px-4 py-2 text-xs font-bold text-gray-500 text-right">Action</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-50">
-                            {sessions.map((s, i) => (
-                              <tr key={s.id} className="bg-white hover:bg-gray-50/50 transition-colors">
-                                <td className="px-4 py-2.5 text-xs text-gray-400 font-bold">{i + 1}</td>
-                                <td className="px-4 py-2.5 text-xs font-bold text-gray-900">{s.year}</td>
-                                <td className="px-4 py-2.5">
-                                  <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full",
-                                    s.isActive ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500")}>
-                                    {s.isActive ? "Active" : "Inactive"}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-2.5 text-right">
-                                  <Toggle checked={s.isActive} onChange={(v) => handleToggleSession(s.id, v)} />
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  <FieldCard label="Grading System">
+                    <div className="relative">
+                      <select className={selectCls}>
+                        <option>GPA (10 Point)</option>
+                        <option>Percentage</option>
+                        <option>CBSE Grades</option>
+                      </select>
+                      <ChevronRight size={13} className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 text-gray-400 pointer-events-none" />
                     </div>
-                    <div className="mt-3 flex gap-2">
-                      <input
-                        value={newSessionYear}
-                        onChange={e => setNewSessionYear(e.target.value)}
-                        placeholder="e.g. 2026-2027"
-                        className={cn(inputCls, "flex-1")}
-                        onKeyDown={e => e.key === "Enter" && handleAddSession()}
-                      />
-                      <button onClick={handleAddSession}
-                        className="h-9 px-4 rounded-lg bg-[#144835] text-white text-xs font-bold hover:bg-[#144835]/90 shadow-md shadow-[#144835]/20 transition-all flex items-center gap-1.5 shrink-0">
-                        <Plus size={13} /> Add
-                      </button>
-                    </div>
-                  </div>
+                  </FieldCard>
+                  <FieldCard label="Attendance Threshold">
+                    <input className={inputCls} defaultValue="80%" />
+                  </FieldCard>
+                  <FieldCard label="Timetable Version">
+                    <input className={inputCls} defaultValue="2025-T1" />
+                  </FieldCard>
                 </div>
               </div>
             )}
@@ -673,7 +517,7 @@ export default function AdminBranchSettingsView() {
                             </p>
                           )}
                         </div>
-                        <button onClick={() => setExams(p => p.filter(e => e.id !== exam.id))}
+                        <button onClick={() => setExams(p => p.filter((e: any) => e.id !== exam.id))}
                           className="h-7 w-7 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center shrink-0">
                           <Trash2 size={13} />
                         </button>

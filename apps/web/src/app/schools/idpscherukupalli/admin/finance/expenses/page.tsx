@@ -10,11 +10,13 @@ const SafeLink = Link as any;
 import { Plus, Search, Filter, Download, Receipt, Wrench, Zap, Users, TrendingDown, Eye, CheckCircle2, ChevronRight , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -44,12 +46,12 @@ export default function AdminExpensesPage() {
  setLoading(true);
  setLoadError(null);
 
- const qRef = query(collection(db, "schools", schoolId, "expenses"), orderBy("date", "desc"));
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const list: ExpenseRow[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "expenses"), sortBy("date", "desc"));
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const list: ExpenseRow[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  title: data.title || "Untitled Expense",
  category: data.category || "Other",
  amount: Number(data.amount || 0),
@@ -60,7 +62,7 @@ export default function AdminExpensesPage() {
  });
  setExpenses(list);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading expenses:", err);
  setLoadError("Failed to load expenses. Check permissions.");
  setLoading(false);
@@ -80,13 +82,13 @@ export default function AdminExpensesPage() {
 
  const kpiData = useMemo(() => {
  const total = expenses.reduce((sum, e) => sum + (Number.isFinite(e.amount) ? e.amount : 0), 0);
- const paidTotal = expenses.filter((e) => e.status === "Paid").reduce((sum, e) => sum + (Number.isFinite(e.amount) ? e.amount : 0), 0);
- const pendingCount = expenses.filter((e) => e.status === "Pending").length;
+ const paidTotal = expenses.filter((e: any) => e.status === "Paid").reduce((sum, e) => sum + (Number.isFinite(e.amount) ? e.amount : 0), 0);
+ const pendingCount = expenses.filter((e: any) => e.status === "Pending").length;
  return [
  { title: "Total Expenses", value: `₹${total.toLocaleString("en-IN")}`, icon: TrendingDown, color: "bg-blue-500" },
  { title: "Paid Amount", value: `₹${paidTotal.toLocaleString("en-IN")}`, icon: CheckCircle2, color: "bg-emerald-500" },
  { title: "Pending Items", value: String(pendingCount), icon: Wrench, color: "bg-amber-500" },
- { title: "Categories", value: String(new Set(expenses.map((e) => e.category).filter(Boolean)).size), icon: Receipt, color: "bg-purple-500" },
+ { title: "Categories", value: String(new Set(expenses.map((e: any) => e.category).filter(Boolean)).size), icon: Receipt, color: "bg-purple-500" },
  ];
  }, [expenses]);
 
@@ -249,7 +251,7 @@ export default function AdminExpensesPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No expense records found</p>
- <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search buildQuery.</p>
  </td>
  </tr>
  )}

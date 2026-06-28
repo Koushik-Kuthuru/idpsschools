@@ -30,8 +30,10 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchOne, patchData, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -72,11 +74,11 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  academicYear: "2024-2025"
  });
 
- // Load from Firestore
+ // Load from Supabase
  useEffect(() => {
  async function load() {
  try {
- const snap = await getDoc(doc(db, "schools", branchId));
+ const snap = await fetchOne(buildPath(db, "schools", branchId));
  if (snap.exists()) {
  const d = snap.data() as any;
  setFormData({
@@ -150,7 +152,7 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  }
  setSaving(true);
  try {
- await updateDoc(doc(db, "schools", branchId), {
+ await patchData(buildPath(db, "schools", branchId), {
  name: formData.branchName,
  code: formData.branchCode,
  established: formData.establishedYear,

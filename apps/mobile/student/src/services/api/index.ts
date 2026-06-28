@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { db, fbAuth } from '@/lib/firebase';
 import apiClient from './client';
 import { setSecureItem, getSecureItem, deleteSecureItem } from '@/utils/storage';
 import { mockApi } from './mockData';
@@ -26,7 +25,7 @@ import type {
   AcademicCalendarEventType,
 } from '@/types';
 
-import { collection, doc, query, where, getDocs } from 'firebase/firestore';
+import { buildPath, buildQuery, filterBy, fetchMany, db } from '@/lib/db-client';
 
 const useMock = false;
 
@@ -43,21 +42,21 @@ export const authService = {
     for (const sch of SCHOOL_BRANCHES) {
       try {
         const usernames = Array.from(new Set([identifier.toLowerCase(), identifier, identifier.toUpperCase()]));
-        const studentColl = collection(db, 'schools', sch, 'students');
-        const q = query(
+        const studentColl = buildPath(db, 'schools', sch, 'students');
+        const q = buildQuery(
           studentColl,
-          where('username', 'in', usernames),
-          where('portalPassword', '==', password)
+          filterBy('username', 'in', usernames),
+          filterBy('portalPassword', '==', password)
         );
-        let snap = await getDocs(q);
+        let snap = await fetchMany(q);
 
         if (snap.empty && identifier === password) {
-          let qFallback = query(studentColl, where("studentId", "in", usernames));
-          snap = await getDocs(qFallback);
+          let qFallback = buildQuery(studentColl, filterBy("studentId", "in", usernames));
+          snap = await fetchMany(qFallback);
           
           if (snap.empty) {
-            qFallback = query(studentColl, where("admissionNumber", "in", usernames));
-            snap = await getDocs(qFallback);
+            qFallback = buildQuery(studentColl, filterBy("admissionNumber", "in", usernames));
+            snap = await fetchMany(qFallback);
           }
         }
           
@@ -403,7 +402,7 @@ function normalizeCalendarType(value: unknown): AcademicCalendarEventType {
     : 'event';
 }
 
-function mapFirestoreCalendarDoc(
+function mapCalendarDoc(
   id: string,
   data: Record<string, unknown>,
   fallbackType: AcademicCalendarEventType,
@@ -425,22 +424,22 @@ function mapFirestoreCalendarDoc(
   };
 }
 
-async function fetchFirestoreCalendarEvents(schoolId: string): Promise<AcademicCalendarEvent[]> {
+async function fetchCalendarEvents(schoolId: string): Promise<AcademicCalendarEvent[]> {
   const [eventsSnap, holidaysSnap, examsSnap] = await Promise.all([
-    getDocs(collection(db, 'schools', schoolId, 'events')),
-    getDocs(collection(db, 'schools', schoolId, 'holidays')),
-    getDocs(collection(db, 'schools', schoolId, 'exams')),
+    fetchMany(buildPath(db, 'schools', schoolId, 'events')),
+    fetchMany(buildPath(db, 'schools', schoolId, 'holidays')),
+    fetchMany(buildPath(db, 'schools', schoolId, 'exams')),
   ]);
 
   const items: AcademicCalendarEvent[] = [
     ...eventsSnap.docs
-      .map((docSnap) => mapFirestoreCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'event'))
+      .map((docSnap) => mapCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'event'))
       .filter((item): item is AcademicCalendarEvent => item !== null),
     ...holidaysSnap.docs
-      .map((docSnap) => mapFirestoreCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'holiday'))
+      .map((docSnap) => mapCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'holiday'))
       .filter((item): item is AcademicCalendarEvent => item !== null),
     ...examsSnap.docs
-      .map((docSnap) => mapFirestoreCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'exam'))
+      .map((docSnap) => mapCalendarDoc(docSnap.id, docSnap.data() as Record<string, unknown>, 'exam'))
       .filter((item): item is AcademicCalendarEvent => item !== null),
   ];
 
@@ -458,7 +457,7 @@ export const calendarService = {
     try {
       const schoolId = await authService.getStoredSchoolId();
       if (schoolId) {
-        const remote = await fetchFirestoreCalendarEvents(schoolId);
+        const remote = await fetchCalendarEvents(schoolId);
         if (remote.length) return remote;
       }
     } catch {

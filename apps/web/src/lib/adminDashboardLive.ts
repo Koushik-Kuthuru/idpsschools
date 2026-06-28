@@ -68,7 +68,7 @@ export function mergeLiveActivities(items: LiveActivity[], limit = 8): Dashboard
   const seen = new Set<string>();
   return items
     .filter((item) => item.ts > 0 && item.text.trim().length > 0)
-    .sort((a, b) => b.ts - a.ts)
+    .sort((a: any, b: any) => b.ts - a.ts)
     .filter((item) => {
       const key = `${item.id}-${item.ts}`;
       if (seen.has(key)) return false;

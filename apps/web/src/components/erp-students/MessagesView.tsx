@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import { 
   MessageSquare, 
   Megaphone, 
@@ -68,14 +69,11 @@ export default function MessagesView() {
   };
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
-      {/* Header */}
-      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Communication Hub</h2>
-          <p className="text-xs font-medium text-gray-500 mt-0.5">Direct classroom chats and school notice boards</p>
-        </div>
-      </div>
+    <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
+      <AdminPageHeader
+        title="Messages"
+        description="Direct classroom chats and school notice boards"
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left Side: Notice Board */}

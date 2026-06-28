@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { Search, CalendarDays } from "lucide-react";
+import { buildPath, buildQuery, fetchMany, sortBy, limitTo, db, auth } from "@/lib/db-client";
+
 
 interface StaffDatewiseSummaryTabProps {
   schoolId: string;
@@ -18,6 +20,7 @@ export default function StaffDatewiseSummaryTab({ schoolId }: StaffDatewiseSumma
     if (schoolId) {
       loadSummary();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schoolId, staffType]);
 
   const loadSummary = async () => {
@@ -25,12 +28,12 @@ export default function StaffDatewiseSummaryTab({ schoolId }: StaffDatewiseSumma
     try {
       let data: any[] = [];
       if (staffType === "all" || staffType === "teachers") {
-        const tSnap = await getDocs(query(collection(db, "schools", schoolId, "teachers")));
-        data = [...data, ...tSnap.docs.map(d => d.data())];
+        const tSnap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "teachers")));
+        data = [...data, ...tSnap.docs.map((d: any) => d.data())];
       }
       if (staffType === "all" || staffType === "non-teaching-staff") {
-        const ntSnap = await getDocs(query(collection(db, "schools", schoolId, "non-teaching-staff")));
-        data = [...data, ...ntSnap.docs.map(d => d.data())];
+        const ntSnap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "non-teaching-staff")));
+        data = [...data, ...ntSnap.docs.map((d: any) => d.data())];
       }
 
       // Aggregate dates
@@ -40,12 +43,12 @@ export default function StaffDatewiseSummaryTab({ schoolId }: StaffDatewiseSumma
         const presents: string[] = staff.attendance?.presentDates || [];
         const absents: string[] = staff.attendance?.absentDates || [];
         
-        presents.forEach(d => {
+        presents.forEach((d: any) => {
           if (!dateMap[d]) dateMap[d] = { present: 0, absent: 0 };
           dateMap[d].present += 1;
         });
         
-        absents.forEach(d => {
+        absents.forEach((d: any) => {
           if (!dateMap[d]) dateMap[d] = { present: 0, absent: 0 };
           dateMap[d].absent += 1;
         });
@@ -59,7 +62,7 @@ export default function StaffDatewiseSummaryTab({ schoolId }: StaffDatewiseSumma
           absent: counts.absent,
           total: counts.present + counts.absent
         }))
-        .sort((a, b) => b.date.localeCompare(a.date))
+        .sort((a: any, b: any) => b.date.localeCompare(a.date))
         .slice(0, 30); // Last 30 dates
 
       setSummaryData(chartData.reverse()); // Reverse for chart (chronological left to right)

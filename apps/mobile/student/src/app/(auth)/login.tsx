@@ -21,7 +21,6 @@ import { Button } from '@/components/ui/Button';
 import { loginSchema, type LoginForm } from '@/utils/validation';
 import type { FieldErrors } from 'react-hook-form';
 import { useAuthStore } from '@/store';
-import { MOCK_CREDENTIALS } from '@/constants/config';
 
 const LOGO_URI =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuBNfSxRmmVCjqEMXCEtb8FoX6yTQbN3_YBDN9PNu9kJE4Jq9znHo3pMqH82l7cYDwD_Mx8dhmNyc0Yd8q2HpYNr57ctYyC76LiYmiH1k73JuDX8i6RUE7b4hai38DMKMQtdirR7RVJpbIr-GLTE-TVJnGqD_Vh9BxEPcGzDYjTT_-alDZMoQc-KWh1Dix8D83-6Y_heqq625PbH9TttSi6--N1pTjkb_VVxSrt0MFEDFvEVm5fuZmTOPyvF4zxFMN0EcUQ9tfSjfYif';

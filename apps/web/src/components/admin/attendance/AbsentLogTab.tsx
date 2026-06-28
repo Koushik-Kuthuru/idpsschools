@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, query, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { Search, RotateCw, Download, FileText, AlertCircle } from "lucide-react";
 import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
 import { absentLogGuide } from "./attendanceGuidePresets";
@@ -11,6 +11,8 @@ import { twMerge } from "tailwind-merge";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { buildPath, buildQuery, fetchMany, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -60,9 +62,9 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
     setLogData(null);
     setErrorMessage("");
     try {
-      const q = query(collection(db, "schools", schoolId, "students"));
-      const snapshot = await getDocs(q);
-      const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
+      const snapshot = await fetchMany(q);
+      const students = snapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() as any }));
 
       const filtered = students.filter(s => {
         const classId = String(s.classId || "").trim();
@@ -72,7 +74,17 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
         return matchClass && matchSection;
       });
 
-      const records = [];
+      const records: {
+        id: string;
+        date: string;
+        roll: string;
+        admNo: string;
+        name: string;
+        classId: string;
+        section: string;
+        contact: string;
+        status: string;
+      }[] = [];
       const datesInRange = [selectedDate];
 
       for (let s of filtered) {
@@ -80,7 +92,7 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
         
         const addDates = (arr: string[] | undefined, statusStr: string) => {
           if (arr) {
-            arr.forEach(d => datesToCheck.push({ date: d, status: statusStr }));
+            arr.forEach((d: any) => datesToCheck.push({ date: d, status: statusStr }));
           }
         };
 
@@ -93,7 +105,7 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
         if (isAll || selectedType === "Late") addDates(s.attendance?.lateDates, "Late");
 
         if (isAll || selectedType === "Holiday") {
-          datesInRange.forEach(d => {
+          datesInRange.forEach((d: any) => {
             if (holidays.includes(d) || new Date(d).getDay() === 0) {
               datesToCheck.push({ date: d, status: "Holiday" });
             }
@@ -118,7 +130,7 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
       }
 
       // Sort by date descending, then name
-      records.sort((a, b) => {
+      records.sort((a: any, b: any) => {
         if (a.date !== b.date) return new Date(b.date).getTime() - new Date(a.date).getTime();
         return a.name.localeCompare(b.name);
       });
@@ -150,16 +162,16 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
 
   const handleExportPDF = () => {
     if (!logData || logData.length === 0) return;
-    const doc = new jsPDF();
+    const buildPath = new jsPDF();
     const title = `Attendance Log: ${selectedDate}`;
-    doc.setFontSize(14);
-    doc.text(title, 14, 15);
+    buildPath.setFontSize(14);
+    buildPath.text(title, 14, 15);
     
     const tableData = logData.map((row, idx) => [
       idx + 1, row.date, row.name, gradeLabel(row.classId), row.section, row.roll, row.contact, row.status
     ]);
     
-    autoTable(doc, {
+    autoTable(buildPath, {
       startY: 20,
       head: [["#", "Date", "Name", "Class", "Section", "Roll No", "Contact", "Type"]],
       body: tableData,
@@ -167,7 +179,7 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
       headStyles: { fillColor: [20, 72, 53] }
     });
     
-    doc.save(`Attendance_Log_${selectedDate}.pdf`);
+    buildPath.save(`Attendance_Log_${selectedDate}.pdf`);
   };
 
   return (

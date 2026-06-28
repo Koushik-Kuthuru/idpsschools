@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, query, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { Search, RotateCw, Download, FileText, AlertCircle } from "lucide-react";
 import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
 import { continuousGuide } from "./attendanceGuidePresets";
@@ -11,6 +11,8 @@ import { twMerge } from "tailwind-merge";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { buildPath, buildQuery, fetchMany, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -46,9 +48,9 @@ export default function ContinuousAbsentTab({ schoolId, classOptions, sectionOpt
     setStreakData(null);
     setErrorMessage("");
     try {
-      const q = query(collection(db, "schools", schoolId, "students"));
-      const snapshot = await getDocs(q);
-      const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
+      const snapshot = await fetchMany(q);
+      const students = snapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() as any }));
 
       const filtered = students.filter(s => {
         const classId = String(s.classId || "").trim();
@@ -61,7 +63,17 @@ export default function ContinuousAbsentTab({ schoolId, classOptions, sectionOpt
       const today = new Date();
       today.setHours(0,0,0,0);
 
-      const results = [];
+      const results: {
+        id: string;
+        roll: string;
+        admNo: string;
+        name: string;
+        classId: string;
+        section: string;
+        contact: string;
+        streak: number;
+        lastPresent: string;
+      }[] = [];
 
       for (let s of filtered) {
         let absentDates = s.attendance?.absentDates || [];
@@ -75,7 +87,7 @@ export default function ContinuousAbsentTab({ schoolId, classOptions, sectionOpt
 
         // Calculate consecutive absent streak backward from today
         // Skipping holidays and sundays
-        while (currentStreak < 30) { // arbitrary limit to prevent infinite loops
+        while (currentStreak < 30) { // arbitrary limitTo to prevent infinite loops
           const dateStr = checkDate.toISOString().split('T')[0];
           
           if (holidays.includes(dateStr) || checkDate.getDay() === 0) {
@@ -114,7 +126,7 @@ export default function ContinuousAbsentTab({ schoolId, classOptions, sectionOpt
       }
 
       // Sort by streak descending, then name
-      results.sort((a, b) => {
+      results.sort((a: any, b: any) => {
         if (b.streak !== a.streak) return b.streak - a.streak;
         return a.name.localeCompare(b.name);
       });
@@ -146,16 +158,16 @@ export default function ContinuousAbsentTab({ schoolId, classOptions, sectionOpt
 
   const handleExportPDF = () => {
     if (!streakData || streakData.length === 0) return;
-    const doc = new jsPDF();
+    const buildPath = new jsPDF();
     const title = `Consecutive Absentees (Minimum ${minDays} days)`;
-    doc.setFontSize(14);
-    doc.text(title, 14, 15);
+    buildPath.setFontSize(14);
+    buildPath.text(title, 14, 15);
     
     const tableData = streakData.map((row, idx) => [
       idx + 1, row.name, gradeLabel(row.classId), row.section, row.streak, row.lastPresent, row.contact
     ]);
     
-    autoTable(doc, {
+    autoTable(buildPath, {
       startY: 20,
       head: [["#", "Name", "Class", "Section", "Streak (Days)", "Last Present", "Contact"]],
       body: tableData,
@@ -163,7 +175,7 @@ export default function ContinuousAbsentTab({ schoolId, classOptions, sectionOpt
       headStyles: { fillColor: [20, 72, 53] }
     });
     
-    doc.save(`Consecutive_Absentees_Min${minDays}Days.pdf`);
+    buildPath.save(`Consecutive_Absentees_Min${minDays}Days.pdf`);
   };
 
   return (

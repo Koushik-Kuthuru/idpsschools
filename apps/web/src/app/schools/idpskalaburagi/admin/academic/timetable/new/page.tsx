@@ -9,8 +9,10 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, ChevronRight } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, doc, getDoc, getDocs, query, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchOne, fetchMany, buildQuery, upsertData, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -133,8 +135,8 @@ export default function AdminCreateTimetableSchedulePage() {
  }
 
  try {
- const ref = doc(db, "schools", schoolId, "timetables", timetableDocId(scope, key, g, s));
- const snap = await getDoc(ref);
+ const ref = buildPath(db, "schools", schoolId, "timetables", timetableDocId(scope, key, g, s));
+ const snap = await fetchOne(ref);
  if (!snap.exists()) {
  setGrid(emptyGrid());
  return;
@@ -152,11 +154,11 @@ export default function AdminCreateTimetableSchedulePage() {
  async function init() {
  try {
  setLoading(true);
- const snap = await getDocs(query(collection(db, "schools", schoolId, "classes")));
+ const snap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "classes")));
  const catalogSet = new Set<string>();
  const map: Record<string, string[]> = {};
 
- snap.docs.forEach((d) => {
+ snap.docs.forEach((d: any) => {
  const data = d.data();
  const g = String(data.grade ?? data.name ?? "").trim();
  const s = String(data.section ?? "").trim().toUpperCase();
@@ -166,7 +168,7 @@ export default function AdminCreateTimetableSchedulePage() {
  if (s) map[g].push(s);
  });
 
- const catalog = Array.from(catalogSet).sort((a, b) => {
+ const catalog = Array.from(catalogSet).sort((a: any, b: any) => {
  const numA = parseInt(a);
  const numB = parseInt(b);
  if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
@@ -174,7 +176,7 @@ export default function AdminCreateTimetableSchedulePage() {
  });
 
  if (!cancelled) {
- if (catalog.length) setGradeCatalog(catalog);
+ if (catalog.length) setGradeCatalog(catalog as string[]);
  setSectionsByGrade(map);
  }
  } finally {
@@ -185,6 +187,7 @@ export default function AdminCreateTimetableSchedulePage() {
  return () => {
  cancelled = true;
  };
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, []);
 
  function openEditor(day: Day, slotKey: SlotKey) {
@@ -222,8 +225,8 @@ export default function AdminCreateTimetableSchedulePage() {
  const s = String(section || "").trim().toUpperCase();
  if (!key || !g || !s) throw new Error("Missing scope/key/grade/section");
 
- const ref = doc(db, "schools", schoolId, "timetables", timetableDocId(scope, key, g, s));
- await setDoc(
+ const ref = buildPath(db, "schools", schoolId, "timetables", timetableDocId(scope, key, g, s));
+ await upsertData(
  ref,
  {
  scope,
@@ -363,7 +366,7 @@ export default function AdminCreateTimetableSchedulePage() {
  <thead className="bg-gray-50/80">
  <tr className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
  <th className="px-4 py-2.5 w-[140px] border-b border-gray-100">Time</th>
- {days.map((d) => (
+ {days.map((d: any) => (
  <th key={d} className="px-4 py-2.5 border-b border-gray-100">
  <span className="text-gray-700">{d}</span>
  </th>
@@ -374,7 +377,7 @@ export default function AdminCreateTimetableSchedulePage() {
  {slotKeys.slice(0, 2).map((slot) => (
  <tr key={slot} className="group hover:bg-gray-50/30 transition-colors">
  <td className="px-6 py-5 text-xs font-bold text-gray-500 whitespace-nowrap">{slot}</td>
- {days.map((d) => {
+ {days.map((d: any) => {
  const cell = grid[d][slot];
  return (
  <td key={d} className="px-4 py-4">
@@ -408,7 +411,7 @@ export default function AdminCreateTimetableSchedulePage() {
 
  <tr className="group hover:bg-gray-50/30 transition-colors">
  <td className="px-6 py-5 text-xs font-bold text-gray-500 whitespace-nowrap">10:30-11:30</td>
- {days.map((d) => {
+ {days.map((d: any) => {
  const cell = grid[d]["10:30-11:30"];
  return (
  <td key={d} className="px-4 py-4">

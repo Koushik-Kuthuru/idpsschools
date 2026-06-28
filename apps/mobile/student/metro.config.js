@@ -15,8 +15,6 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
-// Ensure Firebase Auth resolves to the React Native bundle on iOS/Android
-// so auth persistence works the same as web across all platforms.
 config.resolver.unstable_enablePackageExports = true;
 
 module.exports = config;

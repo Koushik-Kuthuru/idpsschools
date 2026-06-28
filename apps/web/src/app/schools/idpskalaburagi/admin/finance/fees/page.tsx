@@ -11,11 +11,13 @@ import { Plus, Search, Filter, Download, BookOpen, Edit2, Trash2, Copy, Wallet, 
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import BarSummary from "@/components/charts/BarSummary";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -67,12 +69,12 @@ export default function AdminFeeManagementPage() {
  setLoadError(null);
 
  // 1. Fetch live fee structures
- const qStructures = query(collection(db, "schools", schoolId, "fee_structures"), orderBy("grade", "asc"));
- const unsubStructures = onSnapshot(qStructures, (snap) => {
- const structs: FeeStructureRow[] = snap.docs.map(doc => {
- const d = doc.data();
+ const qStructures = buildQuery(buildPath(db, "schools", schoolId, "fee_structures"), sortBy("grade", "asc"));
+ const unsubStructures = subscribeData(qStructures, (snap: any) => {
+ const structs: FeeStructureRow[] = snap.docs.map((buildPath: any) => {
+ const d = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  grade: d.grade || "Unknown",
  tuition: Number(d.tuition || 0),
  sports: Number(d.sports || 0),
@@ -84,17 +86,17 @@ export default function AdminFeeManagementPage() {
  };
  });
  setFeeStructures(structs);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading fee structures:", err);
  setLoadError("Failed to load fee structures. Check permissions.");
  });
 
- const qStudents = query(collection(db, "schools", schoolId, "students"));
- const unsubStudents = onSnapshot(
+ const qStudents = buildQuery(buildPath(db, "schools", schoolId, "students"));
+ const unsubStudents = subscribeData(
  qStudents,
- (snap) => {
+ (snap: any) => {
  const map: Record<string, number> = {};
- snap.docs.forEach((d) => {
+ snap.docs.forEach((d: any) => {
  const data = d.data() as any;
  const grade = String(data.classId || "").trim();
  if (!grade) return;
@@ -106,12 +108,12 @@ export default function AdminFeeManagementPage() {
  );
 
  // 2. Compute live collections based on invoices
- const qInvoices = query(collection(db, "schools", schoolId, "invoices"));
- const unsubInvoices = onSnapshot(qInvoices, (snap) => {
+ const qInvoices = buildQuery(buildPath(db, "schools", schoolId, "invoices"));
+ const unsubInvoices = subscribeData(qInvoices, (snap: any) => {
  const colMap: Record<string, { expected: number; collected: number; pending: number }> = {};
  
- snap.docs.forEach(doc => {
- const d = doc.data();
+ snap.docs.forEach((buildPath: any) => {
+ const d = buildPath.data();
  const grade = d.grade || "Unknown"; // Assuming invoice tracks the grade
  if (!colMap[grade]) {
  colMap[grade] = { expected: 0, collected: 0, pending: 0 };
@@ -135,7 +137,7 @@ export default function AdminFeeManagementPage() {
  });
  setCollections(cols);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading invoices:", err);
  setLoading(false);
  });
@@ -157,7 +159,7 @@ export default function AdminFeeManagementPage() {
  const allGrades = useMemo(() => {
  const defaults = ["Nursery", "LKG", "UKG", ...Array.from({ length: 12 }, (_, i) => String(i + 1))];
  const set = new Set<string>();
- defaults.forEach((d) => set.add(d));
+ defaults.forEach((d: any) => set.add(d));
  const isRange = (s: string) => /grades?\s*\d+\s*(to|-)\s*\d+/i.test(s);
  fees.forEach((f) => {
  const g = String(f.grade || "").trim();
@@ -169,7 +171,7 @@ export default function AdminFeeManagementPage() {
  });
  const list = Array.from(set);
  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
- list.sort((a, b) => collator.compare(a, b));
+ list.sort((a: any, b: any) => collator.compare(a, b));
  return list;
  }, [collections, fees]);
 
@@ -411,7 +413,7 @@ export default function AdminFeeManagementPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No fee structures found</p>
- <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search buildQuery.</p>
  </td>
  </tr>
  )}
@@ -474,8 +476,8 @@ export default function AdminFeeManagementPage() {
  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 mb-2">
  <Search size={16} className="text-gray-400" />
  </div>
- <p className="text-xs font-bold text-gray-900">No collection records found</p>
- <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs font-bold text-gray-900">No buildPath records found</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search buildQuery.</p>
  </td>
  </tr>
  )}

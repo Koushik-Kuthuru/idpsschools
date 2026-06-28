@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Jost } from "next/font/google";
 import "./globals.css";
-import FirebaseAnalytics from "@/components/firebase/FirebaseAnalytics";
 import { Providers } from "./Providers";
 
 const jost = Jost({
@@ -22,7 +21,6 @@ export default function RootLayout({
  return (
  <html lang="en">
  <body className={`${jost.variable} font-jost antialiased`}>
- <FirebaseAnalytics />
  <Providers>
  {children}
  </Providers>

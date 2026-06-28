@@ -10,11 +10,13 @@ const SafeLink = Link as any;
 import { CalendarDays, Check, ChevronRight, Clock, Download, Filter, Mail, PieChart, Plus, Search, X, CheckCircle2, AlertCircle , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, doc, onSnapshot, orderBy, query as fsQuery, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, sortBy, buildQuery as fsQuery, patchData, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -67,7 +69,7 @@ function getAvatarColor(name: string) {
 
 export default function AdminLeavesPage() {
  const schoolId = useSchoolId();
- const [query, setQuery] = useState("");
+ const [buildQuery, setQuery] = useState("");
  const [statusFilter, setStatusFilter] = useState("All Status");
  const [typeFilter, setTypeFilter] = useState("Leave Type");
  const [requests, setRequests] = useState<LeaveRequest[]>([]);
@@ -78,15 +80,15 @@ export default function AdminLeavesPage() {
  useEffect(() => {
  setLoadError(null);
 
- const teacherQ = fsQuery(collection(db, "schools", schoolId, "teachers"), orderBy("firstName", "asc"));
- const staffQ = fsQuery(collection(db, "schools", schoolId, "staff"), orderBy("firstName", "asc"));
+ const teacherQ = fsQuery(buildPath(db, "schools", schoolId, "teachers"), sortBy("firstName", "asc"));
+ const staffQ = fsQuery(buildPath(db, "schools", schoolId, "staff"), sortBy("firstName", "asc"));
 
- const unsubTeachers = onSnapshot(
+ const unsubTeachers = subscribeData(
  teacherQ,
- (snap) => {
+ (snap: any) => {
  setEmployees((prev) => {
  const keepStaff = prev.filter((p) => p.type === "staff");
- const nextTeachers = snap.docs.map((d) => {
+ const nextTeachers = snap.docs.map((d: any) => {
  const data = d.data() as any;
  const name = `${String(data.firstName || "").trim()} ${String(data.lastName || "").trim()}`.trim() || "Unnamed";
  return { id: d.id, name, type: "teacher" as const, departmentId: String(data.departmentId || "General"), designation: String(data.designation || "Teacher") };
@@ -97,12 +99,12 @@ export default function AdminLeavesPage() {
  () => setEmployees((prev) => prev.filter((p) => p.type === "staff"))
  );
 
- const unsubStaff = onSnapshot(
+ const unsubStaff = subscribeData(
  staffQ,
- (snap) => {
+ (snap: any) => {
  setEmployees((prev) => {
  const keepTeachers = prev.filter((p) => p.type === "teacher");
- const nextStaff = snap.docs.map((d) => {
+ const nextStaff = snap.docs.map((d: any) => {
  const data = d.data() as any;
  const name = `${String(data.firstName || "").trim()} ${String(data.lastName || "").trim()}`.trim() || "Unnamed";
  return { id: d.id, name, type: "staff" as const, departmentId: String(data.departmentId || "General"), designation: String(data.designation || "Staff") };
@@ -113,11 +115,11 @@ export default function AdminLeavesPage() {
  () => setEmployees((prev) => prev.filter((p) => p.type === "teacher"))
  );
 
- const leavesQ = fsQuery(collection(db, "schools", schoolId, "leaves"), orderBy("createdAt", "desc"));
- const unsubLeaves = onSnapshot(
+ const leavesQ = fsQuery(buildPath(db, "schools", schoolId, "leaves"), sortBy("createdAt", "desc"));
+ const unsubLeaves = subscribeData(
  leavesQ,
- (snapshot) => {
- const mapped: LeaveRequest[] = snapshot.docs.map((d) => {
+ (snapshot: any) => {
+ const mapped: LeaveRequest[] = snapshot.docs.map((d: any) => {
  const data = d.data() as any;
  return {
  id: d.id,
@@ -136,7 +138,7 @@ export default function AdminLeavesPage() {
  setRequests(mapped);
  setLoading(false);
  },
- (err) => {
+ (err: any) => {
  setRequests([]);
  setLoadError(err?.message || "Failed to load leave requests");
  setLoading(false);
@@ -175,7 +177,7 @@ export default function AdminLeavesPage() {
  const updateStatus = async (id: string, status: LeaveStatus) => {
  try {
  setLoadError(null);
- await updateDoc(doc(db, "schools", schoolId, "leaves", id), { status, updatedAt: new Date() });
+ await patchData(buildPath(db, "schools", schoolId, "leaves", id), { status, updatedAt: new Date() });
  } catch (e: any) {
  setLoadError(e?.message || "Failed to update leave request");
  }
@@ -194,14 +196,14 @@ export default function AdminLeavesPage() {
  }, [requestsWithEmployee]);
 
  const filteredRequests = useMemo(() => {
- const q = query.toLowerCase();
+ const q = buildQuery.toLowerCase();
  return requestsWithEmployee.filter((r) => {
  const matchQ = !q || r.employeeName.toLowerCase().includes(q) || r.employeeId.toLowerCase().includes(q);
  const matchStatus = statusFilter === "All Status" || r.status === statusFilter;
  const matchType = typeFilter === "Leave Type" || r.type === typeFilter;
  return matchQ && matchStatus && matchType;
  });
- }, [query, statusFilter, typeFilter, requestsWithEmployee]);
+ }, [buildQuery, statusFilter, typeFilter, requestsWithEmployee]);
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
@@ -223,7 +225,7 @@ export default function AdminLeavesPage() {
  <input
  className="w-full h-9 bg-gray-50/50 border border-gray-200 rounded-lg pl-9 pr-4 text-xs font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all shadow-sm"
  placeholder="Search employee, ID..."
- value={query}
+ value={buildQuery}
  onChange={e => setQuery(e.target.value)}
  />
  </div>
@@ -454,7 +456,7 @@ export default function AdminLeavesPage() {
 
  const rows = Object.entries(totals)
  .map(([employeeId, days]) => ({ employeeId, days }))
- .sort((a, b) => b.days - a.days)
+ .sort((a: any, b: any) => b.days - a.days)
  .slice(0, 6);
 
  if (!rows.length) {

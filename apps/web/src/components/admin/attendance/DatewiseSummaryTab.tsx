@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, query, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { Search, RotateCw, Download, FileText, AlertCircle } from "lucide-react";
 import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
 import { datewiseGuide } from "./attendanceGuidePresets";
@@ -11,6 +11,8 @@ import { twMerge } from "tailwind-merge";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { buildPath, buildQuery, fetchMany, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -38,9 +40,9 @@ export default function DatewiseSummaryTab({ schoolId, holidays }: DatewiseSumma
     setSummaryData(null);
     setErrorMessage("");
     try {
-      const q = query(collection(db, "schools", schoolId, "students"));
-      const snapshot = await getDocs(q);
-      const students = snapshot.docs.map(doc => doc.data() as any);
+      const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
+      const snapshot = await fetchMany(q);
+      const students = snapshot.docs.map((buildPath: any) => buildPath.data() as any);
 
       const start = new Date(fromDate);
       const end = new Date(toDate);
@@ -67,7 +69,7 @@ export default function DatewiseSummaryTab({ schoolId, holidays }: DatewiseSumma
       }
 
       const rows = Object.keys(dataMap)
-        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+        .sort((a: any, b: any) => new Date(b).getTime() - new Date(a).getTime())
         .map(dateStr => {
           const m = dataMap[dateStr];
           const marked = m.present + m.absent;
@@ -108,16 +110,16 @@ export default function DatewiseSummaryTab({ schoolId, holidays }: DatewiseSumma
 
   const handleExportPDF = () => {
     if (!summaryData || summaryData.length === 0) return;
-    const doc = new jsPDF();
+    const buildPath = new jsPDF();
     const title = `Datewise Absent Summary: ${fromDate} to ${toDate}`;
-    doc.setFontSize(14);
-    doc.text(title, 14, 15);
+    buildPath.setFontSize(14);
+    buildPath.text(title, 14, 15);
     
     const tableData = summaryData.map((row) => [
       row.date, row.totalStudents, row.present, row.absent, row.unmarked, row.absentPercent
     ]);
     
-    autoTable(doc, {
+    autoTable(buildPath, {
       startY: 20,
       head: [["Date", "Total Students", "Present", "Absent", "Unmarked", "Absent %"]],
       body: tableData,
@@ -125,7 +127,7 @@ export default function DatewiseSummaryTab({ schoolId, holidays }: DatewiseSumma
       headStyles: { fillColor: [20, 72, 53] }
     });
     
-    doc.save(`Datewise_Summary_${fromDate}_to_${toDate}.pdf`);
+    buildPath.save(`Datewise_Summary_${fromDate}_to_${toDate}.pdf`);
   };
 
   return (

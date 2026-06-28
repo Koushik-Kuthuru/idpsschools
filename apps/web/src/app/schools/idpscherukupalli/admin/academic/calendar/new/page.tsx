@@ -9,8 +9,10 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, CalendarDays, AlignLeft } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { insertData, buildPath, getTimestamp, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -45,13 +47,13 @@ export default function NewEventPage() {
  if (!title) throw new Error("Event title is required.");
  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("Invalid date.");
 
- await addDoc(collection(db, "schools", schoolId, "events"), {
+ await insertData(buildPath(db, "schools", schoolId, "events"), {
  title,
  date,
  type: form.type,
  description: String(form.description || "").trim(),
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp(),
+ createdAt: getTimestamp(),
+ updatedAt: getTimestamp(),
  });
  router.push(`/schools/${schoolId}/admin/academic/calendar`);
  } catch (e: any) {

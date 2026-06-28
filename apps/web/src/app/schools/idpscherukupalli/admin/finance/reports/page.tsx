@@ -8,9 +8,11 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { CalendarRange, ChevronRight, Download, Mail, Printer, TrendingDown, TrendingUp, Wallet, FileText, Landmark, Receipt, ShieldCheck, type LucideIcon, FileSpreadsheet, PieChart, BarChart3, AlertCircle, CheckCircle2, ArrowRightLeft } from "lucide-react";
 import { useBranch } from "@/components/admin/BranchContext";
-import { collection, getDocs, query } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
+import { buildPath, fetchMany, buildQuery, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -43,13 +45,13 @@ export default function AdminFinancialReportsPage() {
  setLoading(true);
  try {
  const [paySnap, expSnap, prSnap] = await Promise.all([
- getDocs(query(collection(db, "schools", schoolId, "payments"))),
- getDocs(query(collection(db, "schools", schoolId, "expenses"))),
- getDocs(query(collection(db, "schools", schoolId, "payroll"))),
+ fetchMany(buildQuery(buildPath(db, "schools", schoolId, "payments"))),
+ fetchMany(buildQuery(buildPath(db, "schools", schoolId, "expenses"))),
+ fetchMany(buildQuery(buildPath(db, "schools", schoolId, "payroll"))),
  ]);
- setPayments(paySnap.docs.map(d => d.data()));
- setExpensesList(expSnap.docs.map(d => d.data()));
- setPayrollList(prSnap.docs.map(d => d.data()));
+ setPayments(paySnap.docs.map((d: any) => d.data()));
+ setExpensesList(expSnap.docs.map((d: any) => d.data()));
+ setPayrollList(prSnap.docs.map((d: any) => d.data()));
  } catch (err) {
  console.error("Error loading financial data", err);
  } finally {
@@ -252,7 +254,7 @@ export default function AdminFinancialReportsPage() {
  </div>
  </div>
  <div className="p-4 flex-1 space-y-3">
- {pnl.expenses.map((e) => (
+ {pnl.expenses.map((e: any) => (
  <div key={e.label} className="flex items-center justify-between">
  <span className="text-xs font-semibold text-gray-600">{e.label}</span>
  <span className="text-xs font-bold text-gray-900">

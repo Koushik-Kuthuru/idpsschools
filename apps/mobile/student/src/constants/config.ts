@@ -17,9 +17,3 @@ export const STORAGE_KEYS = {
   FEES_STATE: 'fees_state',
   SCHOOL_ID: 'school_id',
 } as const;
-
-export const MOCK_CREDENTIALS = {
-  email: 'user@school.com',
-  password: 'password123',
-  otp: '483920',
-} as const;

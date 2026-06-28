@@ -27,8 +27,10 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, deleteDoc, doc, limit, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, removeData, limitTo, subscribeData, sortBy, buildQuery, patchData, filterBy, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -51,9 +53,9 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  useEffect(() => {
  setLoading(true);
 
- const unsubSchool = onSnapshot(
- doc(db, "schools", branchId),
- (snap) => {
+ const unsubSchool = subscribeData(
+ buildPath(db, "schools", branchId),
+ (snap: any) => {
  if (snap.exists()) {
  setBranch({ id: snap.id, ...snap.data() });
  } else {
@@ -61,45 +63,45 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  }
  setLoading(false);
  },
- (err) => {
+ (err: any) => {
  console.error("Error listening school:", err);
  setBranch(null);
  setLoading(false);
  }
  );
 
- const unsubStudents = onSnapshot(
- collection(db, "schools", branchId, "students"),
- (snap) => setStudentCount(snap.size),
+ const unsubStudents = subscribeData(
+ buildPath(db, "schools", branchId, "students"),
+ (snap: any) => setStudentCount(snap.size),
  () => setStudentCount(0)
  );
 
- const unsubTeachers = onSnapshot(
- collection(db, "schools", branchId, "teachers"),
- (snap) => setTeacherCount(snap.size),
+ const unsubTeachers = subscribeData(
+ buildPath(db, "schools", branchId, "teachers"),
+ (snap: any) => setTeacherCount(snap.size),
  () => setTeacherCount(0)
  );
 
- const unsubClasses = onSnapshot(
- collection(db, "schools", branchId, "classes"),
- (snap) => setClassCount(snap.size),
+ const unsubClasses = subscribeData(
+ buildPath(db, "schools", branchId, "classes"),
+ (snap: any) => setClassCount(snap.size),
  () => setClassCount(0)
  );
 
- const unsubBranchAdmin = onSnapshot(
- query(collection(db, "user_roles"), where("schoolId", "==", branchId), where("role", "==", "admin"), limit(1)),
- (snap) => {
+ const unsubBranchAdmin = subscribeData(
+ buildQuery(buildPath(db, "user_roles"), filterBy("schoolId", "==", branchId), filterBy("role", "==", "admin"), limitTo(1)),
+ (snap: any) => {
  const d = snap.docs[0];
  setBranchAdmin(d ? { id: d.id, ...(d.data() as any) } : null);
  },
  () => setBranchAdmin(null)
  );
 
- const unsubActivities = onSnapshot(
- query(collection(db, "schools", branchId, "activity"), orderBy("createdAt", "desc"), limit(10)),
- (snap) => {
+ const unsubActivities = subscribeData(
+ buildQuery(buildPath(db, "schools", branchId, "activity"), sortBy("createdAt", "desc"), limitTo(10)),
+ (snap: any) => {
  setActivities(
- snap.docs.map((d) => ({
+ snap.docs.map((d: any) => ({
  id: d.id,
  ...(d.data() as any),
  }))
@@ -108,11 +110,11 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  () => setActivities([])
  );
 
- const unsubTransactions = onSnapshot(
- query(collection(db, "schools", branchId, "transactions"), orderBy("date", "desc"), limit(10)),
- (snap) => {
+ const unsubTransactions = subscribeData(
+ buildQuery(buildPath(db, "schools", branchId, "transactions"), sortBy("date", "desc"), limitTo(10)),
+ (snap: any) => {
  setTransactions(
- snap.docs.map((d) => ({
+ snap.docs.map((d: any) => ({
  id: d.id,
  ...(d.data() as any),
  }))
@@ -137,7 +139,7 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
 
  const handleToggleVisibility = async (checked: boolean) => {
  try {
- await updateDoc(doc(db, "schools", branchId), { visible: checked });
+ await patchData(buildPath(db, "schools", branchId), { visible: checked });
  } catch (error) {
  console.error("Failed to update visibility:", error);
  alert("Failed to update visibility. Check console for details.");
@@ -146,7 +148,7 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
 
  const handleToggleNotifications = async (checked: boolean) => {
  try {
- await updateDoc(doc(db, "schools", branchId), { notificationsEnabled: checked });
+ await patchData(buildPath(db, "schools", branchId), { notificationsEnabled: checked });
  } catch (error) {
  console.error("Failed to update notifications:", error);
  alert("Failed to update notifications. Check console for details.");
@@ -184,7 +186,7 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  const handleDeleteBranch = async () => {
  if (!confirm("Are you sure you want to delete this branch? This action cannot be undone.")) return;
  try {
- await deleteDoc(doc(db, "schools", branchId));
+ await removeData(buildPath(db, "schools", branchId));
  router.push("/super-admin/branches");
  } catch (error) {
  console.error("Failed to delete branch:", error);
@@ -408,7 +410,7 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  
  {/* Map Placeholder */}
  <a
- href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+ href={`https://www.google.com/maps/search/?api=1&buildQuery=${encodeURIComponent(
  [branch.address, branch.city, branch.state].filter(Boolean).join(", ")
  )}`}
  target="_blank"
@@ -697,7 +699,7 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  <div className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
  <div className="space-y-1">
  <h3 className="text-xs font-bold text-gray-900">Notifications</h3>
- <p className="text-xs text-gray-500">Receive alerts for attendance and fee collection anomalies.</p>
+ <p className="text-xs text-gray-500">Receive alerts for attendance and fee buildPath anomalies.</p>
  </div>
  <div className="relative inline-flex items-center cursor-pointer">
  <input

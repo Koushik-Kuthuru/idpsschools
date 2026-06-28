@@ -204,11 +204,6 @@ CREATE TABLE public.exam_results (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Initial Seed Data
-INSERT INTO public.schools (id, name, code, is_active) VALUES
-  (uuid_generate_v4(), 'IDPS Cherukupalli', 'IDPS-CHER', true),
-  (uuid_generate_v4(), 'IDPS Kalaburagi', 'IDPS-KALA', true);
-
 -- Phase 6: Schema Additions for Admin Dashboard (Finance, HR, Inventory, Admissions)
 
 -- 1. Operations & Communication

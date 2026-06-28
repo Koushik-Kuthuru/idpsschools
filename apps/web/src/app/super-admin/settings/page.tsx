@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { RotateCcw, Save } from "lucide-react";
-import { doc, onSnapshot, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { useAuth } from "@/contexts/AuthContext";
 import { logAuditEvent } from "@/lib/audit";
+import { buildPath, subscribeData, upsertData, db, auth } from "@/lib/db-client";
+
 
 export default function SettingsPage() {
  const { user } = useAuth();
@@ -27,8 +29,8 @@ export default function SettingsPage() {
  if (!user) return;
  setLoading(true);
 
- const profileRef = doc(db, "super_admin_users", user.uid);
- const settingsRef = doc(db, "system_settings", "global");
+ const profileRef = buildPath(db, "super_admin_users", user.uid);
+ const settingsRef = buildPath(db, "system_settings", "global");
 
  let gotProfile = false;
  let gotSettings = false;
@@ -38,9 +40,9 @@ export default function SettingsPage() {
  if (gotProfile && gotSettings) setLoading(false);
  };
 
- const unsubProfile = onSnapshot(
+ const unsubProfile = subscribeData(
  profileRef,
- (snap) => {
+ (snap: any) => {
  gotProfile = true;
  const data = snap.exists() ? (snap.data() as any) : {};
  setProfileName(String(data.name ?? user.displayName ?? ""));
@@ -50,16 +52,16 @@ export default function SettingsPage() {
  },
  });
  },
- (err) => {
+ (err: any) => {
  console.error("Error loading super admin profile:", err);
  gotProfile = true;
  syncLoaded({ profile: { name: "" } });
  }
  );
 
- const unsubSettings = onSnapshot(
+ const unsubSettings = subscribeData(
  settingsRef,
- (snap) => {
+ (snap: any) => {
  gotSettings = true;
  const data = snap.exists() ? (snap.data() as any) : {};
  setSystemName(String(data.systemName ?? "IDPS ERP"));
@@ -79,7 +81,7 @@ export default function SettingsPage() {
  },
  });
  },
- (err) => {
+ (err: any) => {
  console.error("Error loading system settings:", err);
  gotSettings = true;
  syncLoaded({ settings: null });
@@ -109,10 +111,10 @@ export default function SettingsPage() {
  if (!user || saving) return;
  setSaving(true);
  try {
- const profileRef = doc(db, "super_admin_users", user.uid);
- const settingsRef = doc(db, "system_settings", "global");
+ const profileRef = buildPath(db, "super_admin_users", user.uid);
+ const settingsRef = buildPath(db, "system_settings", "global");
 
- await setDoc(
+ await upsertData(
  profileRef,
  {
  id: user.uid,
@@ -124,7 +126,7 @@ export default function SettingsPage() {
  { merge: true }
  );
 
- await setDoc(
+ await upsertData(
  settingsRef,
  {
  systemName: systemName.trim(),
@@ -154,7 +156,7 @@ export default function SettingsPage() {
  const code = String(error?.code ?? "");
  if (code.includes("permission-denied")) {
  alert(
- "Permission denied while saving. Please publish the latest Firestore rules in Firebase Console, then try again."
+ "Permission denied while saving. Check Supabase row-level security policies, then try again."
  );
  } else {
  alert(`Failed to save settings: ${error?.message ?? "Unknown error"}`);

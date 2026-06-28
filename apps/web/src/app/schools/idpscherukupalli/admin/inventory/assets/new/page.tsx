@@ -2,8 +2,8 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useState } from "react";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 
 
 import { useRouter } from "next/navigation";
@@ -13,6 +13,8 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, Package, Tag } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, upsertData, getTimestamp, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -48,9 +50,9 @@ export default function NewAssetPage() {
  try {
  const payload = {
  ...form,
- createdAt: serverTimestamp(),
+ createdAt: getTimestamp(),
  };
- await setDoc(doc(db, "schools", schoolId, "assets", form.id), payload);
+ await upsertData(buildPath(db, "schools", schoolId, "assets", form.id), payload);
  router.push(`/schools/${schoolId}/admin/inventory/assets`);
  } catch (err: any) {
  setError(err.message || "An unexpected error occurred");

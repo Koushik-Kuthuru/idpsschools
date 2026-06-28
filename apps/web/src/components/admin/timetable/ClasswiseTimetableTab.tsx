@@ -1,38 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { LayoutGrid, RotateCw, Printer, Download } from "lucide-react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { useSchoolId } from "@/hooks/useSchoolId";
+import { buildPath, fetchMany, db, auth } from "@/lib/db-client";
+import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
+
 
 export default function ClasswiseTimetableTab() {
   const schoolId = useSchoolId();
+  const { grades: classOptions } = useBranchClassOptions(schoolId);
   const [grade, setGrade] = useState("");
-  const [classOptions, setClassOptions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    async function loadMeta() {
-      try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "classes"));
-        const grades = new Set<string>();
-        snap.docs.forEach((d) => {
-          const data = d.data();
-          const g = String(data.grade ?? data.name ?? "").trim();
-          if (g) grades.add(g);
-        });
-        const sortedGrades = Array.from(grades).sort((a, b) =>
-          a.localeCompare(b, undefined, { numeric: true })
-        );
-        setClassOptions(sortedGrades);
-        if (sortedGrades.length > 0) {
-          setGrade(sortedGrades[0]);
-        }
-      } catch (err) {
-        console.error("Failed to load classes", err);
-      }
-    }
-    loadMeta();
-  }, []);
+    if (!classOptions.length) return;
+    setGrade((prev) => (classOptions.includes(prev) ? prev : classOptions[0]));
+  }, [classOptions]);
 
   return (
     <div className="space-y-4 animate-in fade-in duration-300">

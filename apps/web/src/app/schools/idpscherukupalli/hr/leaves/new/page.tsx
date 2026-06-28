@@ -9,8 +9,11 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, CalendarDays, User, Clock } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { addDoc, collection, onSnapshot, orderBy, query as fsQuery, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { insertData, buildPath, subscribeData, sortBy, buildQuery as fsQuery, getTimestamp, db, auth } from "@/lib/db-client";
+import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -19,6 +22,8 @@ function cn(...inputs: ClassValue[]) {
 export default function NewLeavePage() {
  const router = useRouter();
  const schoolId = useSchoolId();
+ const teacherPortal = useTeacherPortalScope();
+ const listHref = teacherPortal ? `/schools/${schoolId}/teachers/leaves` : `/schools/${schoolId}/hr/leaves`;
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState<string | null>(null);
  const [employees, setEmployees] = useState<Array<{ id: string; name: string; type: "teacher" | "staff" }>>([]);
@@ -41,15 +46,15 @@ export default function NewLeavePage() {
  };
 
  useEffect(() => {
- const teacherQ = fsQuery(collection(db, "schools", schoolId, "teachers"), orderBy("firstName", "asc"));
- const staffQ = fsQuery(collection(db, "schools", schoolId, "non-teaching-staff"), orderBy("firstName", "asc"));
+ const teacherQ = fsQuery(buildPath(db, "schools", schoolId, "teachers"), sortBy("firstName", "asc"));
+ const staffQ = fsQuery(buildPath(db, "schools", schoolId, "non-teaching-staff"), sortBy("firstName", "asc"));
 
- const unsubTeachers = onSnapshot(
+ const unsubTeachers = subscribeData(
  teacherQ,
- (snap) => {
+ (snap: any) => {
  setEmployees((prev) => {
  const keepStaff = prev.filter((p) => p.type === "staff");
- const teachers = snap.docs.map((d) => {
+ const teachers = snap.docs.map((d: any) => {
  const data = d.data() as any;
  const name = `${String(data.firstName || "").trim()} ${String(data.lastName || "").trim()}`.trim() || "Unnamed";
  return { id: d.id, name, type: "teacher" as const };
@@ -60,12 +65,12 @@ export default function NewLeavePage() {
  () => setEmployees((prev) => prev.filter((p) => p.type === "staff"))
  );
 
- const unsubStaff = onSnapshot(
+ const unsubStaff = subscribeData(
  staffQ,
- (snap) => {
+ (snap: any) => {
  setEmployees((prev) => {
  const keepTeachers = prev.filter((p) => p.type === "teacher");
- const staff = snap.docs.map((d) => {
+ const staff = snap.docs.map((d: any) => {
  const data = d.data() as any;
  const name = `${String(data.firstName || "").trim()} ${String(data.lastName || "").trim()}`.trim() || "Unnamed";
  return { id: d.id, name, type: "staff" as const };
@@ -81,6 +86,16 @@ export default function NewLeavePage() {
  unsubStaff();
  };
  }, [schoolId]);
+
+ useEffect(() => {
+  if (!teacherPortal?.teacherUid || !teacherPortal.teacherDisplayName) return;
+  setForm((prev) => ({
+   ...prev,
+   employeeId: teacherPortal.teacherUid || prev.employeeId,
+   employeeName: teacherPortal.teacherDisplayName || prev.employeeName,
+   employeeType: "teacher",
+  }));
+ }, [teacherPortal?.teacherDisplayName, teacherPortal?.teacherUid]);
 
  const employeeById = useMemo(() => {
  const map: Record<string, { name: string; type: "teacher" | "staff" }> = {};
@@ -109,7 +124,7 @@ export default function NewLeavePage() {
 
  const days = Number.isFinite(form.days) ? Number(form.days) : undefined;
 
- await addDoc(collection(db, "schools", schoolId, "leaves"), {
+ await insertData(buildPath(db, "schools", schoolId, "leaves"), {
  employeeId,
  employeeName,
  employeeType: form.employeeType,
@@ -119,11 +134,11 @@ export default function NewLeavePage() {
  days,
  reason: String(form.reason || "").trim(),
  status: "Pending",
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp(),
+ createdAt: getTimestamp(),
+ updatedAt: getTimestamp(),
  });
 
- router.push(`/schools/${schoolId}/hr/leaves`);
+ router.push(listHref);
  router.refresh();
  } catch (err: any) {
  setError(err.message || "An unexpected error occurred");
@@ -135,14 +150,14 @@ export default function NewLeavePage() {
  <div className="max-w-[1200px] mx-auto animate-in fade-in duration-500 pb-10 font-jost">
  <div className="flex items-center gap-4 mb-6">
  <SafeLink 
- href={`/schools/${schoolId}/hr/leaves`}
+ href={listHref}
  className="h-10 w-10 bg-white border border-gray-200 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm"
  >
  <ArrowLeft size={18} />
  </SafeLink>
  <div>
  <h1 className="text-xl font-extrabold text-gray-900">New Leave Request</h1>
- <p className="text-xs font-bold text-gray-500 mt-1">Submit a leave request for an employee</p>
+ <p className="text-xs font-bold text-gray-500 mt-1">{teacherPortal ? "Submit your leave request" : "Submit a leave request for an employee"}</p>
  </div>
  </div>
 
@@ -165,6 +180,16 @@ export default function NewLeavePage() {
  </div>
  </div>
  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+ {teacherPortal ? (
+ <div className="space-y-1.5 md:col-span-2">
+  <label className="text-xs font-bold text-gray-700">Employee</label>
+  <input
+   value={form.employeeName}
+   readOnly
+   className="w-full h-9 bg-gray-50 border border-gray-200 rounded-lg px-4 text-xs font-semibold text-gray-800"
+  />
+ </div>
+ ) : (
  <div className="space-y-1.5 md:col-span-2">
  <label className="text-xs font-bold text-gray-700">Employee <span className="text-rose-500">*</span></label>
  <select
@@ -193,6 +218,9 @@ export default function NewLeavePage() {
  ))}
  </select>
  </div>
+ )}
+ {!teacherPortal ? (
+ <>
  <div className="space-y-1.5">
  <label className="text-xs font-bold text-gray-700">Employee Name <span className="text-rose-500">*</span></label>
  <input
@@ -217,6 +245,8 @@ export default function NewLeavePage() {
  className="w-full h-9 bg-white border border-gray-200 rounded-lg px-4 text-xs font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm"
  />
  </div>
+ </>
+ ) : null}
  </div>
  </div>
 
@@ -310,7 +340,7 @@ export default function NewLeavePage() {
 
  <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
  <SafeLink
- href={`/schools/${schoolId}/hr/leaves`}
+ href={listHref}
  className="h-9 px-6 bg-white border border-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-50 flex items-center transition-colors shadow-sm"
  >
  Cancel

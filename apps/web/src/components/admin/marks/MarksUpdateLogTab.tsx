@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { collection, doc, getDoc, getDocs, setDoc, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { Search, Save, User, XCircle, RotateCw, AlertCircle } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, fetchOne, fetchMany, upsertData, subscribeData, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -70,8 +72,8 @@ export default function MarksUpdateLogTab() {
 
   // Load Exam Types
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "schools", schoolId, "exam_types"), (snap) => {
-      const names = snap.docs.map(d => String(d.data().name || "").trim()).filter(Boolean);
+    const unsub = subscribeData(buildPath(db, "schools", schoolId, "exam_types"), (snap: any) => {
+      const names = snap.docs.map((d: any) => String(d.data().name || "").trim()).filter(Boolean);
       setExamOptions(names);
       if (names.length && !exam) setExam(names[0]);
     });
@@ -82,7 +84,7 @@ export default function MarksUpdateLogTab() {
   useEffect(() => {
     async function loadAllStudents() {
       try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "students"));
+        const snap = await fetchMany(buildPath(db, "schools", schoolId, "students"));
         const all = snap.docs.map((d, idx) => {
           const s = d.data();
           return {
@@ -123,9 +125,9 @@ export default function MarksUpdateLogTab() {
       setBanner(null);
       try {
         // 1. Fetch subjects for this student's class
-        const subSnap = await getDocs(collection(db, "schools", schoolId, "subjects"));
+        const subSnap = await fetchMany(buildPath(db, "schools", schoolId, "subjects"));
         const classSubjects = subSnap.docs
-          .map(d => d.data())
+          .map((d: any) => d.data())
           .filter(s => 
             String(s.classId || "").trim() === selectedStudent!.grade && 
             String(s.section || "").trim().toUpperCase() === selectedStudent!.section
@@ -133,13 +135,13 @@ export default function MarksUpdateLogTab() {
           .map(s => String(s.name || "").trim())
           .filter(Boolean);
 
-        const uniqueSubjects = Array.from(new Set(classSubjects)).sort((a, b) => a.localeCompare(b));
+        const uniqueSubjects = Array.from(new Set(classSubjects)).sort((a: any, b: any) => a.localeCompare(b));
 
         // 2. Fetch marks for each subject
         const subMarks: SubjectMarks[] = [];
         for (const sub of uniqueSubjects) {
           const docId = marksDocId(exam, selectedStudent!.grade, selectedStudent!.section, sub);
-          const snap = await getDoc(doc(db, "schools", schoolId, "marks", docId));
+          const snap = await fetchOne(buildPath(db, "schools", schoolId, "marks", docId));
           let val: number | "" = "";
           
           if (snap.exists()) {
@@ -180,9 +182,9 @@ export default function MarksUpdateLogTab() {
 
       for (const s of changed) {
         const docId = marksDocId(exam, selectedStudent.grade, selectedStudent.section, s.subject);
-        const ref = doc(db, "schools", schoolId, "marks", docId);
+        const ref = buildPath(db, "schools", schoolId, "marks", docId);
         
-        const snap = await getDoc(ref);
+        const snap = await fetchOne(ref);
         
         if (snap.exists()) {
           const data = snap.data();
@@ -199,10 +201,10 @@ export default function MarksUpdateLogTab() {
             });
           }
           
-          await setDoc(ref, { rows, updatedAt: new Date().toISOString() }, { merge: true });
+          await upsertData(ref, { rows, updatedAt: new Date().toISOString() }, { merge: true });
         } else {
           // Document doesn't exist, create it
-          await setDoc(ref, {
+          await upsertData(ref, {
             exam,
             grade: selectedStudent.grade,
             section: selectedStudent.section,
@@ -241,7 +243,7 @@ export default function MarksUpdateLogTab() {
                 onChange={(e) => setExam(e.target.value)}
                 className="w-full h-10 appearance-none rounded-lg border border-gray-200 bg-gray-50/50 pl-3 pr-8 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all cursor-pointer"
               >
-                {examOptions.map((e) => <option key={e} value={e}>{e}</option>)}
+                {examOptions.map((e: any) => <option key={e} value={e}>{e}</option>)}
               </select>
               <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>

@@ -10,11 +10,13 @@ const SafeLink = Link as any;
 import { Plus, Search, Filter, Download, Eye, FileText, CheckCircle2, Clock, AlertCircle, ChevronRight, Users, Briefcase, Settings , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -57,14 +59,14 @@ export default function AdminInvoiceManagementPage() {
  setLoading(true);
  setLoadError(null);
 
- const qRef = query(
- collection(db, "schools", schoolId, "invoices"),
- orderBy("dueDate", "desc")
+ const qRef = buildQuery(
+ buildPath(db, "schools", schoolId, "invoices"),
+ sortBy("dueDate", "desc")
  );
 
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const list: InvoiceRow[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const list: InvoiceRow[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  
  // Determine status based on dates if it's pending
  let computedStatus = (data.status as InvoiceStatus) || "Pending";
@@ -75,7 +77,7 @@ export default function AdminInvoiceManagementPage() {
  }
 
  return {
- id: doc.id,
+ id: buildPath.id,
  student: data.studentName || "Unknown Student",
  grade: data.grade || "-",
  section: data.section || "-",
@@ -87,7 +89,7 @@ export default function AdminInvoiceManagementPage() {
  });
  setInvoices(list);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading invoices:", err);
  setLoadError("Failed to load invoices. Check permissions.");
  setLoading(false);
@@ -296,7 +298,7 @@ export default function AdminInvoiceManagementPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No invoice records found</p>
- <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search buildQuery.</p>
  </td>
  </tr>
  )}

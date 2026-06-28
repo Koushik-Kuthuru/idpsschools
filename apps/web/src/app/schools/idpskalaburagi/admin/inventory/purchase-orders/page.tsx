@@ -4,8 +4,8 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
@@ -15,6 +15,8 @@ import { Download, Plus, Search, Filter, ChevronRight, FileText, IndianRupee, Cl
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -62,12 +64,12 @@ export default function AdminPurchaseOrdersPage() {
  useEffect(() => {
  setLoading(true);
  setLoadError(null);
- const qRef = query(collection(db, "schools", schoolId, "purchase_orders"), orderBy("createdAt", "desc"));
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const mapped: OrderRecord[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "purchase_orders"), sortBy("createdAt", "desc"));
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const mapped: OrderRecord[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  vendor: data.vendor || "Unknown",
  date: data.date ? new Date(data.date).toLocaleDateString('en-IN') : "-",
  amount: Number(data.amount || data.total || 0),
@@ -76,7 +78,7 @@ export default function AdminPurchaseOrdersPage() {
  });
  setRecords(mapped);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading orders:", err);
  setLoadError("Failed to load orders.");
  setLoading(false);

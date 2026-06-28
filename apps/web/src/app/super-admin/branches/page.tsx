@@ -27,8 +27,10 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchMany, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -49,8 +51,8 @@ export default function BranchesPage() {
  useEffect(() => {
  async function fetchSchools() {
  try {
- const schoolsSnapshot = await getDocs(query(collection(db, "schools")));
- const schools = schoolsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+ const schoolsSnapshot = await fetchMany(buildQuery(buildPath(db, "schools")));
+ const schools = schoolsSnapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }));
  setBranchesData(schools);
  } catch (error) {
  console.error("Error fetching schools:", error);
@@ -91,7 +93,7 @@ export default function BranchesPage() {
  return matchesSearch && matchesStatus && matchesRegion;
  });
 
- // Derived metrics — computed from real Firebase data
+ // Derived metrics — computed from Supabase data
  const totalBranches = branches.length;
  const activeBranches = branches.filter(b => b.status === "Active").length;
  const totalStudents = branches.reduce((acc, curr) => acc + (curr.students || 0), 0);

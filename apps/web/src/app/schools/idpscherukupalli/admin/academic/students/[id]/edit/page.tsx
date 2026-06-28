@@ -8,8 +8,10 @@ const SafeLink = Link as any;
 import { useRouter } from "next/navigation";
 import { useRouteParam } from "@/hooks/useRouteParams";
 import { ArrowLeft, Save, User, Heart, Building, Users, Home, BookOpen, FileText, CheckCircle2, GraduationCap, Sparkles, HelpCircle, Upload, X } from "lucide-react";
-import { collection, addDoc, getDocs, query, doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, insertData, fetchMany, buildQuery, fetchOne, patchData, db, auth } from "@/lib/db-client";
+
+
+
 
 // Tooltip Component
 const TooltipIcon = ({ text }: { text?: string }) => {
@@ -120,8 +122,8 @@ export default function AdminEditStudentPage({
  if (!studentId) return;
  try {
  setLoading(true);
- const docRef = doc(db, "schools", schoolId, "students", studentId);
- const snap = await getDoc(docRef);
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
+ const snap = await fetchOne(docRef);
  if (snap.exists()) {
  const data = snap.data();
  let loadedSiblings = data.siblings || [];
@@ -217,10 +219,10 @@ export default function AdminEditStudentPage({
  useEffect(() => {
  async function loadClasses() {
  try {
- const snap = await getDocs(query(collection(db, "schools", schoolId, "classes")));
+ const snap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "classes")));
  const map = new Map<string, Set<string>>();
- snap.forEach(doc => {
- const d = doc.data();
+ snap.forEach((buildPath: any) => {
+ const d = buildPath.data();
  const g = d.grade || d.name;
  if (g) {
  if (!map.has(g)) map.set(g, new Set());
@@ -260,7 +262,7 @@ export default function AdminEditStudentPage({
  createdAt: new Date().toISOString()
  };
  
- await updateDoc(doc(db, "schools", schoolId, "students", studentId), payload);
+ await patchData(buildPath(db, "schools", schoolId, "students", studentId), payload);
  router.push(`/schools/${schoolId}/admin/academic/students`);
  } catch (e: any) {
  setError(e.message || "Unknown error");
@@ -512,7 +514,7 @@ export default function AdminEditStudentPage({
  </FormGroup>
 
  <FormGroup title="Bank Details" icon={Building}>
- <Input label="Bank Name" value={formData.bankName} onChange={(e: any) => handleChange('bankName', e.target.value)} tooltip="Enter the name of the bank where the student/parent holds an account" />
+ <Input label="Bank Name" value={formData.bankName} onChange={(e: any) => handleChange('bankName', e.target.value)} tooltip="Enter the name of the bank filterBy the student/parent holds an account" />
  <Input label="Branch Name" value={formData.branchName} onChange={(e: any) => handleChange('branchName', e.target.value)} tooltip="Enter the specific branch name of the bank" />
  <Input label="A/C No." value={formData.accountNo} onChange={(e: any) => handleChange('accountNo', e.target.value)} tooltip="Enter the bank account number" />
  <Input label="IFSC Code" value={formData.ifscCode} onChange={(e: any) => handleChange('ifscCode', e.target.value)} tooltip="Enter the IFSC code of the bank branch" />
@@ -753,16 +755,16 @@ export default function AdminEditStudentPage({
  <tbody className="divide-y divide-gray-100">
  {[
  "Admission Form", "School Leaving Certificate(TC)", "Bonafide Certificate", "Birth Certificate", "Caste Certificate", "All Documents", "Ration Card", "Student Adhar Certificate", "Father Adhar Certificate", "Mother Adhar Certificate"
- ].map((doc, i) => (
+ ].map((buildPath, i) => (
  <tr key={i} className="hover:bg-gray-50/50 transition-colors">
  <td className="py-2 px-3 text-xs font-bold text-gray-500">{i + 1}</td>
- <td className="py-2 px-3 text-xs font-bold text-gray-700">{doc}</td>
+ <td className="py-2 px-3 text-xs font-bold text-gray-700">{buildPath}</td>
  <td className="py-2 px-3">
  <div className="flex items-center justify-center gap-4">
- <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">YES</span></label>
- <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" defaultChecked /> <span className="group-hover:text-[#144835]">NO</span></label>
- <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">N/A</span></label>
- <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`doc-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">PARTIAL</span></label>
+ <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`buildPath-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">YES</span></label>
+ <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`buildPath-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" defaultChecked /> <span className="group-hover:text-[#144835]">NO</span></label>
+ <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`buildPath-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">N/A</span></label>
+ <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`buildPath-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">PARTIAL</span></label>
  </div>
  </td>
  <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>

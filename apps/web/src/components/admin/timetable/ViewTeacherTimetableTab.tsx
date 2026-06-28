@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { UserSquare2, RotateCw, Printer } from "lucide-react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { useSchoolId } from "@/hooks/useSchoolId";
 
-export default function ViewTeacherTimetableTab() {
+
+import { useSchoolId } from "@/hooks/useSchoolId";
+import { buildPath, fetchMany, db, auth } from "@/lib/db-client";
+
+
+type ViewTeacherTimetableTabProps = {
+  lockedTeacherName?: string;
+  readOnly?: boolean;
+};
+
+export default function ViewTeacherTimetableTab({
+  lockedTeacherName,
+  readOnly = false,
+}: ViewTeacherTimetableTabProps = {}) {
   const schoolId = useSchoolId();
   const [teacher, setTeacher] = useState("");
   const [teacherOptions, setTeacherOptions] = useState<string[]>([]);
@@ -13,15 +23,18 @@ export default function ViewTeacherTimetableTab() {
   useEffect(() => {
     async function loadTeachers() {
       try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "teaching_staff"));
-        const names = snap.docs.map((d) => {
+        const snap = await fetchMany(buildPath(db, "schools", schoolId, "teaching_staff"));
+        const names = snap.docs.map((d: any) => {
           const data = d.data();
           const first = String(data.firstName ?? "").trim();
           const last = String(data.lastName ?? "").trim();
           return `${first} ${last}`.trim() || String(data.employeeId ?? "Teacher").trim();
         }).filter(Boolean);
-        setTeacherOptions(Array.from(new Set(names)).sort((a, b) => a.localeCompare(b)));
-        if (names.length > 0) {
+        setTeacherOptions(Array.from(new Set(names)).sort((a: any, b: any) => a.localeCompare(b)));
+        if (lockedTeacherName) {
+          const match = names.find((n: string) => n.toLowerCase() === lockedTeacherName.toLowerCase()) || lockedTeacherName;
+          setTeacher(match);
+        } else if (names.length > 0) {
           setTeacher(names[0]);
         }
       } catch (err) {
@@ -29,7 +42,8 @@ export default function ViewTeacherTimetableTab() {
       }
     }
     loadTeachers();
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lockedTeacherName]);
 
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
@@ -37,6 +51,11 @@ export default function ViewTeacherTimetableTab() {
         <div className="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gray-50/50">
           <div className="flex items-center gap-2">
             <label className="text-xs font-bold text-gray-500 uppercase">Teacher:</label>
+            {readOnly && lockedTeacherName ? (
+              <span className="h-8 inline-flex items-center rounded-md border border-gray-200 bg-gray-50 px-3 text-xs font-semibold text-gray-800">
+                {teacher || lockedTeacherName}
+              </span>
+            ) : (
             <select
               value={teacher}
               onChange={(e) => setTeacher(e.target.value)}
@@ -47,6 +66,7 @@ export default function ViewTeacherTimetableTab() {
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
+            )}
           </div>
           
           <div className="flex-1" />

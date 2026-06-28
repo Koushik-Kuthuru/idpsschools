@@ -2,8 +2,8 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useState } from "react";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -12,6 +12,8 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, Mail, Users } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, upsertData, getTimestamp, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -108,9 +110,9 @@ export default function ComposeMessagePage() {
 
      const payload = {
        ...form,
-       createdAt: serverTimestamp(),
+       createdAt: getTimestamp(),
      };
-     await setDoc(doc(db, "schools", schoolId, "messages", form.id), payload);
+     await upsertData(buildPath(db, "schools", schoolId, "messages", form.id), payload);
      setSuccess("Message sent and logged successfully!");
      setTimeout(() => {
        router.push(`/schools/${schoolId}/admin/communication/messages`);

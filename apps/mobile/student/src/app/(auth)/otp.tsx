@@ -7,7 +7,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/Button';
 import { authService } from '@/services/api';
 import { useAuthStore } from '@/store';
-import { MOCK_CREDENTIALS } from '@/constants/config';
 import { useOtpResend } from '@/hooks/useOtpResend';
 
 export default function OtpScreen() {
@@ -20,7 +19,7 @@ export default function OtpScreen() {
   const [loading, setLoading] = useState(false);
   const inputs = useRef<(TextInput | null)[]>([]);
 
-  const destination = resetMethod === 'phone' ? resetPhone || '+91 9876543210' : resetEmail || 'user@school.com';
+  const destination = resetMethod === 'phone' ? resetPhone || '' : resetEmail || '';
 
   const { secondsLeft, canResend, resending, resend } = useOtpResend(async () => {
     await authService.resendOtp(
@@ -55,7 +54,7 @@ export default function OtpScreen() {
       await authService.verifyOtp(otp);
       router.push('/(auth)/reset-password');
     } catch {
-      Alert.alert('Invalid OTP', `The code is incorrect. Demo OTP: ${MOCK_CREDENTIALS.otp}`);
+      Alert.alert('Invalid OTP', 'The code is incorrect. Please try again.');
       setDigits(['', '', '', '', '', '']);
       inputs.current[0]?.focus();
     } finally {

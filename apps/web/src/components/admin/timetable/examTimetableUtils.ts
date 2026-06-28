@@ -47,7 +47,7 @@ export function flattenExamGridForExport(
     columns.forEach((col) => {
       if (col.type !== "period") return;
       const entries = grid[day]?.[col.period.id] ?? [];
-      const filled = entries.filter((e) => e.subject || e.teacher);
+      const filled = entries.filter((e: any) => e.subject || e.teacher);
       if (filled.length === 0) {
         rows.push({
           Day: day,

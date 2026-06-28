@@ -27,10 +27,12 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useEffect, useMemo, useState } from "react";
-import { collection, doc, getDoc, onSnapshot, orderBy, query, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import StaffAttendanceLogTab from "@/components/admin/hr/attendance/StaffAttendanceLogTab";
 import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
+import { buildPath, fetchOne, subscribeData, sortBy, buildQuery, patchData, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -79,7 +81,7 @@ async function loadStaffRecord(
       : ["teachers", "teaching_staff", "staff"];
 
   for (const col of collections) {
-    const snap = await getDoc(doc(db, "schools", schoolId, col, employeeId));
+    const snap = await fetchOne(buildPath(db, "schools", schoolId, col, employeeId));
     if (snap.exists()) {
       return mapStaffDoc(snap.id, snap.data() as Record<string, unknown>);
     }
@@ -127,13 +129,13 @@ export default function EmployeeProfileView({
     let cancelled = false;
     (async () => {
       for (const col of collections) {
-        const docRef = doc(db, "schools", schoolId, col, employeeId);
-        const snap = await getDoc(docRef);
+        const docRef = buildPath(db, "schools", schoolId, col, employeeId);
+        const snap = await fetchOne(docRef);
         if (!cancelled && snap.exists()) {
           const data = snap.data() as Record<string, unknown>;
           if (!data.username || !data.portalPassword) {
             const empId = String(data.employeeId || snap.id).toLowerCase();
-            await updateDoc(docRef, {
+            await patchData(docRef, {
               username: empId,
               portalPassword: empId,
             });
@@ -155,18 +157,18 @@ export default function EmployeeProfileView({
     if (!employeeId || !schoolId || !staff) return;
 
     const ids = new Set([staff.employeeId, staff.id, employeeId].filter(Boolean));
-    const qRef = query(collection(db, "schools", schoolId, "leaves"), orderBy("createdAt", "desc"));
+    const qRef = buildQuery(buildPath(db, "schools", schoolId, "leaves"), sortBy("createdAt", "desc"));
 
-    const unsub = onSnapshot(
+    const unsub = subscribeData(
       qRef,
-      (snap) => {
+      (snap: any) => {
         const rows: LeaveRow[] = snap.docs
           .filter((d) => {
             const data = d.data() as Record<string, unknown>;
             const empId = String(data.employeeId ?? "");
             return ids.has(empId) || ids.has(d.id);
           })
-          .map((d) => {
+          .map((d: any) => {
             const data = d.data() as Record<string, unknown>;
             return {
               id: d.id,

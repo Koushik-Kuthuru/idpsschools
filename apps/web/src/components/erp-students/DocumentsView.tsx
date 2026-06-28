@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import { 
   FileText, 
   Download, 
@@ -39,21 +40,18 @@ export default function DocumentsView() {
   };
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
-      {/* Header */}
-      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Documents & Certificates</h2>
-          <p className="text-xs font-medium text-gray-500 mt-0.5">Official transcripts, fee receipts, and examination credentials</p>
-        </div>
-      </div>
+    <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
+      <AdminPageHeader
+        title="Documents"
+        description="Official transcripts, fee receipts, and examination credentials"
+      />
 
       {/* Hero Banner */}
       <div className="relative rounded-[16px] overflow-hidden bg-gradient-to-r from-[#144835] to-[#0f3628] p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
         <div className="absolute top-[-20%] right-[-10%] w-80 h-80 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 max-w-2xl">
-          <h3 className="text-white text-xl md:text-2xl font-bold uppercase tracking-wide">Central Document Repository</h3>
+          <h3 className="text-white/95 text-xl md:text-2xl font-semibold tracking-tight">Central Document Repository</h3>
           <p className="text-emerald-100 text-xs font-semibold mt-2 leading-relaxed">
             Access, view, and download all your official school transcripts, fee receipts, and term credentials in one secure interface.
           </p>

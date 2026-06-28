@@ -21,10 +21,13 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
 import { useBranch } from "@/components/admin/BranchContext";
+import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
+import { buildPath, subscribeData, sortBy, buildQuery, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -70,6 +73,7 @@ function eventColor(type: EventType) {
 
 export default function AcademicCalendarPage() {
  const { activeBranch } = useBranch();
+ const teacherPortal = useTeacherPortalScope();
  const schoolId = activeBranch?.id;
  const [currentDate, setCurrentDate] = useState(() => new Date());
  const [activeFilter, setActiveFilter] = useState("all");
@@ -85,9 +89,9 @@ export default function AcademicCalendarPage() {
 
  useEffect(() => {
  if (!schoolId) return;
- const eventsRef = query(collection(db, "schools", schoolId, "events"), orderBy("date", "asc"));
- const holidaysRef = query(collection(db, "schools", schoolId, "holidays"), orderBy("date", "asc"));
- const examsRef = collection(db, "schools", schoolId, "exams");
+ const eventsRef = buildQuery(buildPath(db, "schools", schoolId, "events"), sortBy("date", "asc"));
+ const holidaysRef = buildQuery(buildPath(db, "schools", schoolId, "holidays"), sortBy("date", "asc"));
+ const examsRef = buildPath(db, "schools", schoolId, "exams");
  let currentEvents: Array<{ id: string; title: string; date: string; type: EventType; description?: string; location?: string }> = [];
  let currentHolidays: Array<{ id: string; title: string; date: string; type: EventType; description?: string; location?: string }> = [];
  let currentExams: Array<{ id: string; title: string; date: string; type: EventType; description?: string; location?: string }> = [];
@@ -99,13 +103,13 @@ export default function AcademicCalendarPage() {
    const key = `${item.type}|${item.date}|${item.title.toLowerCase()}`;
    if (!deduped.has(key)) deduped.set(key, item);
   }
-  setEvents(Array.from(deduped.values()).filter((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.date)));
+  setEvents(Array.from(deduped.values()).filter((e: any) => /^\d{4}-\d{2}-\d{2}$/.test(e.date)));
  };
 
- const unsubEvents = onSnapshot(
+ const unsubEvents = subscribeData(
   eventsRef,
-  (snap) => {
-   currentEvents = snap.docs.map((d) => {
+  (snap: any) => {
+   currentEvents = snap.docs.map((d: any) => {
     const data = d.data() as any;
     const type = (["academic", "holiday", "exam", "event", "meeting"] as const).includes(data.type) ? (data.type as EventType) : ("event" as EventType);
     return {
@@ -122,10 +126,10 @@ export default function AcademicCalendarPage() {
   () => setEvents([])
  );
 
- const unsubHolidays = onSnapshot(
+ const unsubHolidays = subscribeData(
   holidaysRef,
-  (snap) => {
-   currentHolidays = snap.docs.map((d) => {
+  (snap: any) => {
+   currentHolidays = snap.docs.map((d: any) => {
     const data = d.data() as any;
     return {
      id: d.id,
@@ -144,11 +148,11 @@ export default function AcademicCalendarPage() {
   }
  );
 
- const unsubExams = onSnapshot(
+ const unsubExams = subscribeData(
   examsRef,
-  (snap) => {
+  (snap: any) => {
    currentExams = [];
-   snap.docs.forEach((d) => {
+   snap.docs.forEach((d: any) => {
     const data = d.data() as any;
     const term = data.term || "Exam";
     const grade = data.grade || "";
@@ -195,7 +199,7 @@ export default function AcademicCalendarPage() {
  const upcomingEvents = useMemo(() => {
  const now = new Date();
  const todayKey = dateKey(now);
- return events.filter((e) => e.date >= todayKey).slice(0, 4);
+ return events.filter((e: any) => e.date >= todayKey).slice(0, 4);
  }, [events]);
 
  const filters = [
@@ -210,16 +214,18 @@ export default function AcademicCalendarPage() {
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
  <AdminPageHeader
   title="Academic Calendar"
-  description="Manage school events, holidays, and examination schedules"
+  description={teacherPortal ? "View school events, holidays, and examination schedules" : "Manage school events, holidays, and examination schedules"}
   actions={
    <>
  <ExportButton data={events} filename="Export" className="h-9 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 transition-colors" iconSize={14} />
+ {!teacherPortal ? (
  <SafeLink
  href={`/schools/${schoolId}/admin/academic/calendar/new`}
  className="h-9 inline-flex items-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 transition-colors"
  >
  <Plus size={14} /> Add Event
  </SafeLink>
+ ) : null}
    </>
   }
  />

@@ -9,8 +9,10 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, Receipt, IndianRupee } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, upsertData, getTimestamp, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -55,10 +57,10 @@ export default function NewExpensePage() {
  date: form.date,
  status: form.status,
  vendor: form.vendor,
- createdAt: serverTimestamp(),
+ createdAt: getTimestamp(),
  };
 
- await setDoc(doc(db, "schools", schoolId, "expenses", form.id), payload);
+ await upsertData(buildPath(db, "schools", schoolId, "expenses", form.id), payload);
  
  router.push(`/schools/${schoolId}/admin/finance/expenses`);
  } catch (err: any) {

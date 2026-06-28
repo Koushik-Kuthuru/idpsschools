@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { Coffee, Plus, RotateCw, Save, Settings2, Trash2 } from "lucide-react";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { useSchoolId } from "@/hooks/useSchoolId";
 import TimetableTemplatePanel from "./TimetableTemplatePanel";
 import {
@@ -20,6 +20,8 @@ import {
   type PeriodGrid,
   type TimetableDay,
 } from "./timetablePeriodGrid";
+import { buildPath, fetchOne, fetchMany, upsertData, db, auth } from "@/lib/db-client";
+import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
 import {
   buildTableColumns,
   defaultTimetableTemplate,
@@ -119,12 +121,12 @@ function columnKey(col: TableColumn) {
 
 export default function AddUpdateTimetableTab() {
   const schoolId = useSchoolId();
+  const { grades: classOptionsFromHook, sectionsByClass } = useBranchClassOptions(schoolId);
   const [template, setTemplate] = useState<TimetableTemplate>(defaultTimetableTemplate);
   const [grade, setGrade] = useState("");
   const [section, setSection] = useState("");
   const [grid, setGrid] = useState<PeriodGrid>(() => emptyPeriodGrid(defaultTimetableTemplate));
-  const [classOptions, setClassOptions] = useState<string[]>([]);
-  const [sectionsByClass, setSectionsByClass] = useState<Record<string, string[]>>({});
+  const classOptions = classOptionsFromHook;
   const [subjectOptions, setSubjectOptions] = useState<string[]>([]);
   const [teacherOptions, setTeacherOptions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -137,45 +139,15 @@ export default function AddUpdateTimetableTab() {
   const columns = useMemo(() => buildTableColumns(template), [template]);
 
   useEffect(() => {
-    async function loadMeta() {
-      try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "classes"));
-        const grades = new Set<string>();
-        const byClass: Record<string, Set<string>> = {};
-        snap.docs.forEach((d) => {
-          const data = d.data();
-          const g = String(data.grade ?? data.name ?? "").trim();
-          const s = String(data.section ?? "").trim().toUpperCase();
-          if (!g) return;
-          grades.add(g);
-          if (!byClass[g]) byClass[g] = new Set();
-          if (s) byClass[g].add(s);
-        });
-        const sortedGrades = Array.from(grades).sort((a, b) =>
-          a.localeCompare(b, undefined, { numeric: true })
-        );
-        const mapped: Record<string, string[]> = {};
-        sortedGrades.forEach((g) => {
-          mapped[g] = Array.from(byClass[g] ?? []).sort();
-        });
-        setClassOptions(sortedGrades);
-        setSectionsByClass(mapped);
-        if (sortedGrades.length > 0) {
-          setGrade(sortedGrades[0]);
-          setSection(mapped[sortedGrades[0]]?.[0] ?? "");
-        }
-      } catch {
-        setError("Failed to load classes.");
-      }
-    }
-    loadMeta();
-  }, []);
+    if (!classOptions.length) return;
+    setGrade((prev) => (classOptions.includes(prev) ? prev : classOptions[0]));
+  }, [classOptions]);
 
   useEffect(() => {
     async function loadTemplate() {
       try {
-        const ref = doc(db, "schools", schoolId, "settings", TIMETABLE_TEMPLATE_DOC);
-        const snap = await getDoc(ref);
+        const ref = buildPath(db, "schools", schoolId, "settings", TIMETABLE_TEMPLATE_DOC);
+        const snap = await fetchOne(ref);
         const next = snap.exists()
           ? normalizeTimetableTemplate(snap.data())
           : defaultTimetableTemplate;
@@ -186,6 +158,7 @@ export default function AddUpdateTimetableTab() {
       }
     }
     loadTemplate();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sectionOptions = useMemo(
@@ -202,14 +175,15 @@ export default function AddUpdateTimetableTab() {
   useEffect(() => {
     async function loadTeachers() {
       try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "teaching_staff"));
-        const names = snap.docs.map((d) => teacherName(d.data())).filter(Boolean);
-        setTeacherOptions(Array.from(new Set(names)).sort((a, b) => a.localeCompare(b)));
+        const snap = await fetchMany(buildPath(db, "schools", schoolId, "teaching_staff"));
+        const names = snap.docs.map((d: any) => teacherName(d.data())).filter(Boolean);
+        setTeacherOptions(Array.from(new Set(names)).sort((a: any, b: any) => a.localeCompare(b)));
       } catch {
         setTeacherOptions([]);
       }
     }
     loadTeachers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -219,9 +193,9 @@ export default function AddUpdateTimetableTab() {
         return;
       }
       try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "subjects"));
+        const snap = await fetchMany(buildPath(db, "schools", schoolId, "subjects"));
         const names = snap.docs
-          .map((d) => d.data())
+          .map((d: any) => d.data())
           .filter(
             (s) =>
               String(s.classId ?? "").trim() === grade &&
@@ -229,12 +203,13 @@ export default function AddUpdateTimetableTab() {
           )
           .map((s) => String(s.name ?? "").trim())
           .filter(Boolean);
-        setSubjectOptions(Array.from(new Set(names)).sort((a, b) => a.localeCompare(b)));
+        setSubjectOptions(Array.from(new Set(names)).sort((a: any, b: any) => a.localeCompare(b)));
       } catch {
         setSubjectOptions([]);
       }
     }
     loadSubjects();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grade, section]);
 
   const loadSchedule = useCallback(async () => {
@@ -246,8 +221,8 @@ export default function AddUpdateTimetableTab() {
     setError(null);
     setSaveMessage(null);
     try {
-      const ref = doc(db, "schools", schoolId, "timetables", timetableDocId(DEFAULT_TERM_KEY, grade, section));
-      const snap = await getDoc(ref);
+      const ref = buildPath(db, "schools", schoolId, "timetables", timetableDocId(DEFAULT_TERM_KEY, grade, section));
+      const snap = await fetchOne(ref);
       if (!snap.exists()) {
         setGrid(emptyPeriodGrid(template));
         return;
@@ -260,6 +235,7 @@ export default function AddUpdateTimetableTab() {
     } finally {
       setIsLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grade, section, template]);
 
   useEffect(() => {
@@ -280,8 +256,8 @@ export default function AddUpdateTimetableTab() {
     setError(null);
     setSaveMessage(null);
     try {
-      const ref = doc(db, "schools", schoolId, "timetables", timetableDocId(DEFAULT_TERM_KEY, grade, section));
-      await setDoc(
+      const ref = buildPath(db, "schools", schoolId, "timetables", timetableDocId(DEFAULT_TERM_KEY, grade, section));
+      await upsertData(
         ref,
         {
           scope: "term",
@@ -305,8 +281,8 @@ export default function AddUpdateTimetableTab() {
     setIsSavingTemplate(true);
     setError(null);
     try {
-      const ref = doc(db, "schools", schoolId, "settings", TIMETABLE_TEMPLATE_DOC);
-      await setDoc(ref, { ...next, updatedAt: new Date().toISOString() }, { merge: true });
+      const ref = buildPath(db, "schools", schoolId, "settings", TIMETABLE_TEMPLATE_DOC);
+      await upsertData(ref, { ...next, updatedAt: new Date().toISOString() }, { merge: true });
       setTemplate(next);
       setGrid((prev) => remapPeriodGrid(prev, next));
       setTemplateOpen(false);

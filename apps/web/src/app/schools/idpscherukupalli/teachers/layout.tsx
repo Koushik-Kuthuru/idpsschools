@@ -7,71 +7,70 @@ import { twMerge } from "tailwind-merge";
 import Sidebar from "@/components/erp-teachers/Sidebar";
 import Header from "@/components/erp-teachers/Header";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { BranchProvider } from "@/components/admin/BranchContext";
+import { TeacherPortalScopeProvider } from "@/contexts/TeacherPortalScopeContext";
+import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
+import { AcademicYearProvider } from "@/contexts/AcademicYearContext";
 
 function cn(...inputs: ClassValue[]) {
- return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs));
 }
 
-export default function AdminLayout({
- children,
+export default function TeacherLayout({
+  children,
 }: {
- children: React.ReactNode;
+  children: React.ReactNode;
 }) {
- const pathname = usePathname();
- const [isSidebarOpen, setIsSidebarOpen] = useState(true);
- const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
- const [isSidebarHovered, setIsSidebarHovered] = useState(false);
- const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+  const isProfileRoute = /\/teachers\/profile(?:\/|$)/.test(pathname || "");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isProfileRoute);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
- // Handle initial hydration state mismatch
- useEffect(() => {
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    if (isProfileRoute) {
+      setIsSidebarOpen(false);
+    }
+  }, [pathname, isProfileRoute]);
 
- setMounted(true);
- }, []);
+  return (
+    <ProtectedRoute allowedRoles={["super_admin", "teacher"]} requiredSchoolId="idpscherukupalli">
+      <BranchProvider>
+      <AcademicYearProvider schoolSlug="idpscherukupalli">
+      <TeacherPortalScopeProvider schoolId="idpscherukupalli">
+      <AdminNotificationsProvider>
+      <div className="min-h-screen bg-[#F8FAFB] flex">
+        {isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
 
- // Close mobile menu on route change
- useEffect(() => {
- setIsMobileMenuOpen(false);
- }, [pathname]);
+        <Sidebar
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+        />
 
- if (!mounted) {
- return null; // Prevent hydration mismatch
- }
+        <div
+          className={cn(
+            "flex-1 flex flex-col min-h-screen min-w-0 w-full transition-all duration-300 ease-in-out",
+            isSidebarOpen ? "lg:ml-72" : "lg:ml-20"
+          )}
+        >
+          <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
- return (
- <ProtectedRoute allowedRoles={["super_admin", "teacher"]} requiredSchoolId="idpscherukupalli">
- <div className="min-h-screen bg-[#F8FAFB] flex">
- {/* Mobile Sidebar Overlay */}
- {isMobileMenuOpen && (
- <div 
- className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
- onClick={() => setIsMobileMenuOpen(false)}
- />
- )}
-
- <Sidebar 
- isSidebarOpen={isSidebarOpen} 
- setIsSidebarOpen={setIsSidebarOpen}
- isMobileMenuOpen={isMobileMenuOpen}
- setIsMobileMenuOpen={setIsMobileMenuOpen}
- setIsHoveredProps={setIsSidebarHovered}
- />
-
- {/* Main Content Area */}
- <div 
- className={cn(
- "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out",
- (isSidebarOpen || isSidebarHovered) ? "lg:ml-72" : "lg:ml-20"
- )}
- >
- <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
-
- {/* Page Content */}
- <main className="erp-portal flex-1 p-4 sm:p-4 lg:p-8">
- {children}
- </main>
- </div>
- </div>
- </ProtectedRoute>
- );
+          <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-hidden p-4 sm:p-4 lg:p-8">
+            {children}
+          </main>
+        </div>
+      </div>
+      </AdminNotificationsProvider>
+      </TeacherPortalScopeProvider>
+      </AcademicYearProvider>
+      </BranchProvider>
+    </ProtectedRoute>
+  );
 }

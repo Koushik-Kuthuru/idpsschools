@@ -4,8 +4,8 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 
 import { clsx, type ClassValue } from "clsx";
 import Link from "next/link";
@@ -16,6 +16,8 @@ import { Download, Eye, Pencil, Search, UserCheck, UserMinus, UserPlus, UserX, P
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -62,12 +64,12 @@ export default function AdminAdmissionLeadsPage() {
  useEffect(() => {
  setLoading(true);
  setLoadError(null);
- const qRef = query(collection(db, "schools", schoolId, "leads"), orderBy("createdAt", "desc"));
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const list: LeadRow[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "leads"), sortBy("createdAt", "desc"));
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const list: LeadRow[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  studentName: data.studentName || data.name || "Unknown",
  parentName: data.parentName || "Unknown",
  phone: data.phone || "-",
@@ -78,7 +80,7 @@ export default function AdminAdmissionLeadsPage() {
  });
  setLeads(list);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading leads:", err);
  setLoadError("Failed to load leads.");
  setLoading(false);
@@ -109,7 +111,7 @@ export default function AdminAdmissionLeadsPage() {
 
  const sourceOptions = useMemo(() => {
  const sources = Array.from(new Set(leads.map((l) => l.source).filter(Boolean)));
- sources.sort((a, b) => a.localeCompare(b));
+ sources.sort((a: any, b: any) => a.localeCompare(b));
  return ["All Sources", ...sources];
  }, [leads]);
 

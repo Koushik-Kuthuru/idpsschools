@@ -9,8 +9,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, addDoc, getDocs, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, insertData, fetchMany, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -63,14 +65,14 @@ export default function AdminNewSubjectPage() {
  useEffect(() => {
  async function loadMeta() {
  try {
- const q = query(collection(db, "schools", schoolId, "classes"), orderBy("name", "asc"));
- const snapshot = await getDocs(q);
+ const q = buildQuery(buildPath(db, "schools", schoolId, "classes"), sortBy("name", "asc"));
+ const snapshot = await fetchMany(q);
  
  const catalogSet = new Set<string>();
  const map: Record<string, string[]> = {};
  
- snapshot.docs.forEach(doc => {
- const data = doc.data();
+ snapshot.docs.forEach((buildPath: any) => {
+ const data = buildPath.data();
  const g = data.name;
  const s = data.section;
  
@@ -81,14 +83,14 @@ export default function AdminNewSubjectPage() {
  }
  });
 
- const catalog = Array.from(catalogSet).sort((a, b) => {
+ const catalog = Array.from(catalogSet).sort((a: any, b: any) => {
  const numA = parseInt(a);
  const numB = parseInt(b);
  if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
  return a.localeCompare(b);
  });
 
- if (catalog.length) setGradeCatalog(catalog);
+ if (catalog.length) setGradeCatalog(catalog as string[]);
  setSectionsByGrade(map);
  } catch (err) {
  console.error("Failed to load classes meta:", err);
@@ -122,7 +124,7 @@ export default function AdminNewSubjectPage() {
  }))
  .filter((p) => p.title || p.chapters || p.from || p.to);
 
- const docRef = await addDoc(collection(db, "schools", schoolId, "subjects"), {
+ const docRef = await insertData(buildPath(db, "schools", schoolId, "subjects"), {
  classId: form.grade,
  section: String(form.section).toUpperCase(),
  name: form.name.trim(),

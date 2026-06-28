@@ -24,8 +24,10 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import FranchiseGrowthChart from "@/components/super-admin/FranchiseGrowthChart";
-import { collection, getDocs, query, limit, orderBy, where, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchMany, buildQuery, limitTo, sortBy, filterBy, subscribeData, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -65,8 +67,8 @@ export default function SuperAdminDashboard() {
     // ── 1. Fetch schools list once (for stats, table, pending actions) ──────
     async function fetchStatsAndPending() {
       try {
-        const schoolsSnapshot = await getDocs(query(collection(db, "schools"), limit(10)));
-        const schoolsData = schoolsSnapshot.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
+        const schoolsSnapshot = await fetchMany(buildQuery(buildPath(db, "schools"), limitTo(10)));
+        const schoolsData = schoolsSnapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...(buildPath.data() as any) }));
         setSchools(schoolsData);
 
         // Stats
@@ -77,8 +79,8 @@ export default function SuperAdminDashboard() {
         let totalRevenue = 0;
         for (const school of schoolsData) {
           try {
-            const txSnap = await getDocs(collection(db, "schools", school.id, "transactions"));
-            txSnap.docs.forEach(d => {
+            const txSnap = await fetchMany(buildPath(db, "schools", school.id, "transactions"));
+            txSnap.docs.forEach((d: any) => {
               const raw = d.data().amount;
               // amount may be a number or a string like "₹45,000"
               const num = typeof raw === "number" ? raw : parseFloat(String(raw).replace(/[^0-9.]/g, ""));
@@ -98,10 +100,10 @@ export default function SuperAdminDashboard() {
         const pending: any[] = [];
         for (const school of schoolsData) {
           try {
-            const leavesSnap = await getDocs(
-              query(collection(db, "schools", school.id, "leaves"), where("status", "==", "Pending"), limit(2))
+            const leavesSnap = await fetchMany(
+              buildQuery(buildPath(db, "schools", school.id, "leaves"), filterBy("status", "==", "Pending"), limitTo(2))
             );
-            leavesSnap.docs.forEach(d => {
+            leavesSnap.docs.forEach((d: any) => {
               const data = d.data();
               pending.push({
                 type: "leave",
@@ -113,10 +115,10 @@ export default function SuperAdminDashboard() {
               });
             });
 
-            const expSnap = await getDocs(
-              query(collection(db, "schools", school.id, "expenses"), where("status", "==", "Pending"), limit(2))
+            const expSnap = await fetchMany(
+              buildQuery(buildPath(db, "schools", school.id, "expenses"), filterBy("status", "==", "Pending"), limitTo(2))
             );
-            expSnap.docs.forEach(d => {
+            expSnap.docs.forEach((d: any) => {
               const data = d.data();
               pending.push({
                 type: "expense",
@@ -128,10 +130,10 @@ export default function SuperAdminDashboard() {
               });
             });
 
-            const appSnap = await getDocs(
-              query(collection(db, "schools", school.id, "applications"), where("status", "==", "Pending"), limit(1))
+            const appSnap = await fetchMany(
+              buildQuery(buildPath(db, "schools", school.id, "applications"), filterBy("status", "==", "Pending"), limitTo(1))
             );
-            appSnap.docs.forEach(d => {
+            appSnap.docs.forEach((d: any) => {
               const data = d.data();
               pending.push({
                 type: "application",
@@ -167,7 +169,7 @@ export default function SuperAdminDashboard() {
       // Merge all schools' activities, sort newest-first, keep top 8
       const merged = Object.entries(schoolActivities)
         .flatMap(([schoolId, docs]) => docs.map(a => ({ ...a, schoolId })))
-        .sort((a, b) => {
+        .sort((a: any, b: any) => {
           const ta = a._ts ?? 0;
           const tb = b._ts ?? 0;
           return tb - ta;
@@ -178,14 +180,14 @@ export default function SuperAdminDashboard() {
 
     for (const school of schools) {
       schoolActivities[school.id] = [];
-      const unsub = onSnapshot(
-        query(
-          collection(db, "schools", school.id, "activity"),
-          orderBy("createdAt", "desc"),
-          limit(5),
+      const unsub = subscribeData(
+        buildQuery(
+          buildPath(db, "schools", school.id, "activity"),
+          sortBy("createdAt", "desc"),
+          limitTo(5),
         ),
-        (snap) => {
-          schoolActivities[school.id] = snap.docs.map(d => {
+        (snap: any) => {
+          schoolActivities[school.id] = snap.docs.map((d: any) => {
             const data = d.data();
             const ts = data.createdAt?.toDate
               ? data.createdAt.toDate().getTime()
@@ -203,7 +205,7 @@ export default function SuperAdminDashboard() {
           });
           rebuild();
         },
-        (err) => console.warn(`activity listener error for ${school.id}:`, err),
+        (err: any) => console.warn(`activity listener error for ${school.id}:`, err),
       );
       unsubs.push(unsub);
     }

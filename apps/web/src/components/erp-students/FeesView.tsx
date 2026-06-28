@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import { 
   Wallet, 
   Download, 
@@ -41,21 +42,21 @@ export default function FeesView() {
   ];
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
-      {/* Header */}
-      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Finance & Fees</h2>
-          <p className="text-xs font-medium text-gray-500 mt-0.5">Fee balances, billing ledgers, and payment history</p>
-        </div>
-        <button 
-          onClick={() => setIsPayModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#144835] text-white hover:bg-[#144835]/90 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors shadow-md shadow-[#144835]/20"
-        >
-          <CreditCard size={14} />
-          Pay Online Now
-        </button>
-      </div>
+    <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
+      <AdminPageHeader
+        title="Fees"
+        description="Fee balances, billing ledgers, and payment history"
+        actions={
+          <button
+            type="button"
+            onClick={() => setIsPayModalOpen(true)}
+            className="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all"
+          >
+            <CreditCard size={14} />
+            Pay Online Now
+          </button>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

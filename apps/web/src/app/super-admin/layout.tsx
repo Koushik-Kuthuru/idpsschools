@@ -21,22 +21,10 @@ export default function SuperAdminLayout({
  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
- const [mounted, setMounted] = useState(false);
 
- // Handle initial hydration state mismatch
- useEffect(() => {
-
- setMounted(true);
- }, []);
-
- // Close mobile menu on route change
  useEffect(() => {
  setIsMobileMenuOpen(false);
  }, [pathname]);
-
- if (!mounted) {
- return null; // Prevent hydration mismatch
- }
 
  return (
  <ProtectedRoute allowedRoles={["super_admin"]}>

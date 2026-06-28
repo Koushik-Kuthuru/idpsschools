@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, query, getDocs, doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { Search, RotateCw, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
 import { updateGuide } from "./attendanceGuidePresets";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, buildQuery, fetchMany, upsertData, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -46,9 +48,9 @@ export default function UpdateTab({ schoolId, classOptions, sectionOptions }: Up
     setSuccessMessage("");
     setErrorMessage("");
     try {
-      const q = query(collection(db, "schools", schoolId, "students"));
-      const snapshot = await getDocs(q);
-      const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+      const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
+      const snapshot = await fetchMany(q);
+      const students = snapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() as any }));
 
       const filtered = students.filter(s => {
         const classId = String(s.classId || "").trim();
@@ -74,7 +76,7 @@ export default function UpdateTab({ schoolId, classOptions, sectionOptions }: Up
         };
       });
 
-      rosterData.sort((a, b) => a.name.localeCompare(b.name));
+      rosterData.sort((a: any, b: any) => a.name.localeCompare(b.name));
       setRoster(rosterData);
       setHasFetched(true);
     } catch (err: any) {
@@ -97,9 +99,9 @@ export default function UpdateTab({ schoolId, classOptions, sectionOptions }: Up
       // Create updates using batch or simple setDocs
       // To keep it simple without complex batching for now, we'll do sequential promises (since it's an update tool for a few students)
       const promises = roster.map(async (student) => {
-        const studentRef = doc(db, "schools", schoolId, "students", student.id);
-        const sDoc = await getDocs(query(collection(db, "schools", schoolId, "students"))); // actually we should fetch current attendance to update safely without overwriting
-        // It's better to fetch the doc individually
+        const studentRef = buildPath(db, "schools", schoolId, "students", student.id);
+        const sDoc = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "students"))); // actually we should fetch current attendance to update safely without overwriting
+        // It's better to fetch the buildPath individually
         const getStudent = sDoc.docs.find(d => d.id === student.id);
         if (!getStudent) return;
         
@@ -118,7 +120,7 @@ export default function UpdateTab({ schoolId, classOptions, sectionOptions }: Up
           absentDates.push(date);
         }
         
-        await setDoc(studentRef, {
+        await upsertData(studentRef, {
           attendance: {
             ...data.attendance,
             presentDates,

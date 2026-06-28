@@ -9,8 +9,10 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, IndianRupee, FileText } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, doc, getDocs, query, setDoc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchMany, buildQuery, upsertData, patchData, incrementValue, getTimestamp, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -37,8 +39,8 @@ export default function RecordPaymentPage() {
  useEffect(() => {
  async function loadInvoices() {
  try {
- const snap = await getDocs(query(collection(db, "schools", schoolId, "invoices")));
- const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+ const snap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "invoices")));
+ const list = snap.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }));
  setInvoices(list);
  } catch (err) {
  console.error("Error loading invoices", err);
@@ -84,15 +86,15 @@ export default function RecordPaymentPage() {
  mode: form.method,
  date: form.date,
  status: form.status,
- createdAt: serverTimestamp(),
+ createdAt: getTimestamp(),
  };
- await setDoc(doc(db, "schools", schoolId, "payments", form.id), payload);
+ await upsertData(buildPath(db, "schools", schoolId, "payments", form.id), payload);
 
  // 2. Update invoice amountPaid
  if (form.status === "Completed") {
- const invRef = doc(db, "schools", schoolId, "invoices", form.invoiceId);
- await updateDoc(invRef, {
- amountPaid: increment(form.amount),
+ const invRef = buildPath(db, "schools", schoolId, "invoices", form.invoiceId);
+ await patchData(invRef, {
+ amountPaid: incrementValue(form.amount),
  status: "Paid" // Simplified logic: you might want to check if amountPaid >= amount
  });
  }
@@ -115,7 +117,7 @@ export default function RecordPaymentPage() {
  </SafeLink>
  <div>
  <h1 className="text-xl font-extrabold text-gray-900">Record Payment</h1>
- <p className="text-xs font-bold text-gray-500 mt-1">Log an incoming payment or fee collection</p>
+ <p className="text-xs font-bold text-gray-500 mt-1">Log an incoming payment or fee buildPath</p>
  </div>
  </div>
 

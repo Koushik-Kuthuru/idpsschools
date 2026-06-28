@@ -9,8 +9,10 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, Building2, Users, UserCheck } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, getTimestamp, upsertData, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -44,19 +46,18 @@ export default function NewDepartmentPage() {
  try {
  const id = String(form.id || "").trim();
  const name = String(form.name || "").trim();
- if (!id) throw new Error("Department ID is required");
  if (!name) throw new Error("Department Name is required");
 
- await setDoc(
- doc(db, "schools", schoolId, "departments", id),
+ await upsertData(
+ buildPath(db, "schools", schoolId, "departments", id || name),
  {
  name,
  subtitle: String(form.subtitle || "").trim(),
  hodName: String(form.hodName || "").trim() || null,
  staffCount: Number.isFinite(form.staffCount) ? form.staffCount : 0,
  status: form.status,
- updatedAt: serverTimestamp(),
- createdAt: serverTimestamp(),
+ updatedAt: getTimestamp(),
+ createdAt: getTimestamp(),
  },
  { merge: true }
  );
@@ -104,11 +105,10 @@ export default function NewDepartmentPage() {
  </div>
  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
  <div className="space-y-1.5">
- <label className="text-xs font-bold text-gray-700">Department ID <span className="text-rose-500">*</span></label>
+ <label className="text-xs font-bold text-gray-700">Department ID <span className="text-gray-400 font-medium">(optional)</span></label>
  <input
  name="id"
- required
- placeholder="e.g. DEPT-01"
+ placeholder="Auto-generated from name if empty"
  value={form.id}
  onChange={handleChange}
  className="w-full h-9 bg-white border border-gray-200 rounded-lg px-4 text-xs font-semibold text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all shadow-sm"

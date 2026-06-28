@@ -4,8 +4,8 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -31,6 +31,8 @@ import {
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, patchData, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -70,12 +72,12 @@ export default function AdminEnquiriesPage() {
   useEffect(() => {
     setLoading(true);
     setLoadError(null);
-    const qRef = query(collection(db, "schools", schoolId, "enquiries"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(qRef, (snapshot) => {
-      const list: EnquiryRow[] = snapshot.docs.map(doc => {
-        const data = doc.data();
+    const qRef = buildQuery(buildPath(db, "schools", schoolId, "enquiries"), sortBy("createdAt", "desc"));
+    const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+      const list: EnquiryRow[] = snapshot.docs.map((buildPath: any) => {
+        const data = buildPath.data();
         return {
-          id: doc.id,
+          id: buildPath.id,
           parentName: data.parentName || "Unknown",
           studentName: data.studentName || "Unknown",
           grade: data.grade || "-",
@@ -88,7 +90,7 @@ export default function AdminEnquiriesPage() {
       });
       setEnquiries(list);
       setLoading(false);
-    }, (err) => {
+    }, (err: any) => {
       console.error("Error loading enquiries:", err);
       setLoadError("Failed to load enquiries.");
       setLoading(false);
@@ -97,8 +99,8 @@ export default function AdminEnquiriesPage() {
   }, [schoolId]);
 
   const gradeOptions = useMemo(() => {
-    const grades = Array.from(new Set(enquiries.map((e) => e.grade).filter(Boolean)));
-    grades.sort((a, b) => a.localeCompare(b));
+    const grades = Array.from(new Set(enquiries.map((e: any) => e.grade).filter(Boolean)));
+    grades.sort((a: any, b: any) => a.localeCompare(b));
     return ["All", ...grades];
   }, [enquiries]);
 
@@ -108,7 +110,7 @@ export default function AdminEnquiriesPage() {
 
   const filteredEnquiries = useMemo(() => {
     const q = queryInput.trim().toLowerCase();
-    return enquiries.filter((e) => {
+    return enquiries.filter((e: any) => {
       const matchQ =
         !q ||
         e.id.toLowerCase().includes(q) ||
@@ -135,17 +137,17 @@ export default function AdminEnquiriesPage() {
 
   const stats = useMemo(() => {
     const total = enquiries.length;
-    const pending = enquiries.filter((e) => e.status === "Pending").length;
-    const scheduled = enquiries.filter((e) => e.status === "Scheduled").length;
-    const converted = enquiries.filter((e) => e.status === "Converted").length;
+    const pending = enquiries.filter((e: any) => e.status === "Pending").length;
+    const scheduled = enquiries.filter((e: any) => e.status === "Scheduled").length;
+    const converted = enquiries.filter((e: any) => e.status === "Converted").length;
     const conversionRate = total ? `${Math.round((converted / total) * 100)}%` : "0%";
     return { total, pending, scheduled, converted, conversionRate, session: "2024-25" };
   }, [enquiries]);
 
   const handleUpdateStatus = async (id: string, newStatus: EnquiryStatus) => {
     try {
-      const docRef = doc(db, "schools", schoolId, "enquiries", id);
-      await updateDoc(docRef, { status: newStatus });
+      const docRef = buildPath(db, "schools", schoolId, "enquiries", id);
+      await patchData(docRef, { status: newStatus });
     } catch (err) {
       console.error("Failed to update status", err);
     }
@@ -311,7 +313,7 @@ export default function AdminEnquiriesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {paginatedItems.map((e) => (
+                {paginatedItems.map((e: any) => (
                   <tr key={e.id} className="hover:bg-gray-50/50 transition-colors group">
                     <td className="px-4 py-2.5">
                       <p className="text-xs font-bold text-gray-900">{e.studentName}</p>

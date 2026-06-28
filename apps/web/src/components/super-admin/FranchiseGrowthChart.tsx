@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
-import { collection, getDocs, query } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchMany, buildQuery, db, auth } from "@/lib/db-client";
+
+
+
 
 type TimePeriod = "30 Days" | "This Year" | "5 Years";
 
@@ -41,7 +43,7 @@ export default function FranchiseGrowthChart() {
         setLoading(true);
         
         // Fetch all schools with their student counts
-        const schoolsSnapshot = await getDocs(collection(db, "schools"));
+        const schoolsSnapshot = await fetchMany(buildPath(db, "schools"));
         
         // Aggregate student admissions and inquiries by time period
         const dataByPeriod: { [key: string]: { admissions: number; inquiries: number } } = {};
@@ -56,7 +58,7 @@ export default function FranchiseGrowthChart() {
           
           // Count students in this school
           try {
-            const studentsSnapshot = await getDocs(collection(db, "schools", schoolId, "students"));
+            const studentsSnapshot = await fetchMany(buildPath(db, "schools", schoolId, "students"));
             totalStudents += studentsSnapshot.size;
             
             // Track students by admission date if available
@@ -81,12 +83,12 @@ export default function FranchiseGrowthChart() {
               dataByPeriod[periodKey].admissions++;
             });
           } catch (e) {
-            console.log(`No students collection for ${schoolId}`);
+            console.log(`No students buildPath for ${schoolId}`);
           }
           
           // Count applications/inquiries
           try {
-            const applicationsSnapshot = await getDocs(collection(db, "schools", schoolId, "applications"));
+            const applicationsSnapshot = await fetchMany(buildPath(db, "schools", schoolId, "applications"));
             totalApplications += applicationsSnapshot.size;
             
             applicationsSnapshot.docs.forEach(appDoc => {
@@ -109,7 +111,7 @@ export default function FranchiseGrowthChart() {
               dataByPeriod[periodKey].inquiries++;
             });
           } catch (e) {
-            console.log(`No applications collection for ${schoolId}`);
+            console.log(`No applications buildPath for ${schoolId}`);
           }
         }
         
@@ -125,9 +127,8 @@ export default function FranchiseGrowthChart() {
             
             generatedData.push({
               label: monthLabel,
-              // Add baseline if no real data to show growth trend
-              admissions: data.admissions || Math.floor(Math.random() * 50 + 20),
-              inquiries: data.inquiries || Math.floor(Math.random() * 30 + 10)
+              admissions: data.admissions,
+              inquiries: data.inquiries,
             });
           }
         } else if (timePeriod === "30 Days") {
@@ -137,8 +138,8 @@ export default function FranchiseGrowthChart() {
             
             generatedData.push({
               label: dayLabel,
-              admissions: data.admissions || Math.floor(Math.random() * 15 + 5),
-              inquiries: data.inquiries || Math.floor(Math.random() * 10 + 3)
+              admissions: data.admissions,
+              inquiries: data.inquiries,
             });
           }
         } else {
@@ -150,9 +151,8 @@ export default function FranchiseGrowthChart() {
             
             generatedData.push({
               label: yearLabel,
-              // Add realistic baseline for years with no data
-              admissions: data.admissions || Math.floor(Math.random() * 200 + (i + 1) * 100),
-              inquiries: data.inquiries || Math.floor(Math.random() * 150 + (i + 1) * 80)
+              admissions: data.admissions,
+              inquiries: data.inquiries,
             });
           }
         }
@@ -160,8 +160,7 @@ export default function FranchiseGrowthChart() {
         setChartData(generatedData);
       } catch (error) {
         console.error("Error fetching chart data:", error);
-        // Fallback to mock data
-        setChartData(generateMockData(timePeriod));
+        setChartData([]);
       } finally {
         setLoading(false);
       }
@@ -169,42 +168,6 @@ export default function FranchiseGrowthChart() {
 
     fetchData();
   }, [timePeriod]);
-
-  function generateMockData(period: TimePeriod): DataPoint[] {
-    const dataSets = {
-      "30 Days": [
-        { label: "1", admissions: 12, inquiries: 5 },
-        { label: "5", admissions: 15, inquiries: 8 },
-        { label: "10", admissions: 8, inquiries: 12 },
-        { label: "15", admissions: 22, inquiries: 15 },
-        { label: "20", admissions: 18, inquiries: 10 },
-        { label: "25", admissions: 25, inquiries: 18 },
-        { label: "30", admissions: 20, inquiries: 14 },
-      ],
-      "This Year": [
-        { label: "Jan", admissions: 65, inquiries: 28 },
-        { label: "Feb", admissions: 59, inquiries: 48 },
-        { label: "Mar", admissions: 80, inquiries: 40 },
-        { label: "Apr", admissions: 81, inquiries: 19 },
-        { label: "May", admissions: 56, inquiries: 86 },
-        { label: "Jun", admissions: 55, inquiries: 27 },
-        { label: "Jul", admissions: 40, inquiries: 90 },
-        { label: "Aug", admissions: 75, inquiries: 65 },
-        { label: "Sep", admissions: 92, inquiries: 82 },
-        { label: "Oct", admissions: 110, inquiries: 55 },
-        { label: "Nov", admissions: 120, inquiries: 95 },
-        { label: "Dec", admissions: 135, inquiries: 100 },
-      ],
-      "5 Years": [
-        { label: "2021", admissions: 450, inquiries: 300 },
-        { label: "2022", admissions: 520, inquiries: 450 },
-        { label: "2023", admissions: 680, inquiries: 550 },
-        { label: "2024", admissions: 850, inquiries: 720 },
-        { label: "2025", admissions: 920, inquiries: 800 },
-      ]
-    };
-    return dataSets[period];
-  }
 
   return (
     <div ref={containerRef} className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 w-full relative z-10 transition-all hover:shadow-md">
@@ -260,7 +223,7 @@ export default function FranchiseGrowthChart() {
         const graphHeight = height - padding.top - padding.bottom;
 
         // Scales
-        const maxValue = Math.max(...chartData.map(d => Math.max(d.admissions, d.inquiries)));
+        const maxValue = Math.max(...chartData.map((d: any) => Math.max(d.admissions, d.inquiries)));
         const maxY = Math.ceil(maxValue * 1.2); // Add 20% buffer
         
         const xScale = (index: number) => padding.left + (index / (chartData.length - 1)) * graphWidth;

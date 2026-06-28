@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Camera, X, Smartphone, Monitor, RefreshCw, Check } from 'lucide-react';
 import Webcam from 'react-webcam';
 import QRCode from 'react-qr-code';
-import { doc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { buildPath, upsertData, subscribeData, getTimestamp, db, auth } from "@/lib/db-client";
+
+
+
 
 const SafeWebcam = Webcam as any;
 const SafeQRCode = QRCode as any;
@@ -57,17 +59,17 @@ export default function CapturePhotoModal({ isOpen, onClose, onCapture, schoolId
       const newSessionId = Math.random().toString(36).substring(2, 15);
       setSessionId(newSessionId);
       
-      const sessionRef = doc(db, 'photo_sessions', newSessionId);
+      const sessionRef = buildPath(db, 'photo_sessions', newSessionId);
       
-      setDoc(sessionRef, {
+      upsertData(sessionRef, {
         status: 'waiting',
         schoolId,
         studentId,
         photoType,
-        createdAt: serverTimestamp()
+        createdAt: getTimestamp()
       }).catch(console.error);
 
-      const unsubscribe = onSnapshot(sessionRef, (docSnap) => {
+      const unsubscribe = subscribeData(sessionRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.status === 'completed' && data.photoUrl) {

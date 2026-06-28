@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import {
   Search,
   RotateCw,
@@ -16,6 +16,10 @@ import AttendanceTabGuide from "@/components/admin/attendance/AttendanceTabGuide
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, fetchMany, db, auth } from "@/lib/db-client";
+import { uniqueGradesFromClasses, uniqueSectionsFromClasses } from "@/lib/classSectionOptions";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -57,6 +61,7 @@ type ReportCardsPanelProps = {
 
 export default function ReportCardsPanel({ initialTab = "report-card" }: ReportCardsPanelProps) {
   const schoolId = useSchoolId();
+  const { currentYear } = useAcademicYear();
   const [activeTab, setActiveTab] = useState<ReportCardTabId>(initialTab);
   const [classOptions, setClassOptions] = useState<string[]>([]);
   const [sectionOptions, setSectionOptions] = useState<string[]>([]);
@@ -73,16 +78,13 @@ export default function ReportCardsPanel({ initialTab = "report-card" }: ReportC
     async function loadMeta() {
       try {
         const [classSnap, examSnap] = await Promise.all([
-          getDocs(collection(db, "schools", schoolId, "classes")),
-          getDocs(collection(db, "schools", schoolId, "exam_types")),
+          fetchMany(buildPath(db, "schools", schoolId, "classes")),
+          fetchMany(buildPath(db, "schools", schoolId, "exam_types")),
         ]);
-        const grades = Array.from(
-          new Set(classSnap.docs.map((d) => String(d.data().grade ?? d.data().name ?? "").trim()).filter(Boolean))
-        ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-        const sections = Array.from(
-          new Set(classSnap.docs.map((d) => String(d.data().section ?? "").trim().toUpperCase()).filter(Boolean))
-        ).sort();
-        const exams = examSnap.docs.map((d) => String(d.data().name ?? d.id).trim()).filter(Boolean);
+        const raw = classSnap.docs.map((d: any) => d.data());
+        const grades = uniqueGradesFromClasses(raw);
+        const sections = uniqueSectionsFromClasses(raw);
+        const exams = examSnap.docs.map((d: any) => String(d.data().name ?? d.id).trim()).filter(Boolean);
         setClassOptions(grades);
         setSectionOptions(sections);
         setExamOptions(exams);
@@ -94,7 +96,7 @@ export default function ReportCardsPanel({ initialTab = "report-card" }: ReportC
       }
     }
     loadMeta();
-  }, [schoolId]);
+  }, [schoolId, currentYear?.name]);
 
   const handleTabChange = (tabId: ReportCardTabId) => {
     setActiveTab(tabId);
@@ -165,7 +167,7 @@ export default function ReportCardsPanel({ initialTab = "report-card" }: ReportC
               className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all"
             >
               <option value="">Select exam</option>
-              {examOptions.map((e) => (
+              {examOptions.map((e: any) => (
                 <option key={e} value={e}>{e}</option>
               ))}
             </select>

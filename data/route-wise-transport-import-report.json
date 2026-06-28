@@ -1,0 +1,261 @@
+{
+  "generatedAt": "2026-06-28T08:45:09.367Z",
+  "academicYear": "2026-27",
+  "pdfPath": "/Users/koushik/idps-schools/data/route-wise students data 2026-2027.pdf",
+  "mode": "apply",
+  "totals": {
+    "pdfStudents": 162,
+    "pdfRoutes": 20,
+    "updated": 2,
+    "createdStudents": 2,
+    "alreadyCorrect": 160,
+    "missingInDb": 0,
+    "mismatches": 7,
+    "dbOnlyTransport": 0,
+    "duplicateAdmInPdf": 0
+  },
+  "pdfRoutes": [
+    {
+      "route": "R1",
+      "driverName": "ANAND TEJA ARUMBAKA",
+      "driverMobile": "9121908567",
+      "studentCount": 9
+    },
+    {
+      "route": "R10",
+      "driverName": "RAVI BUSSA",
+      "driverMobile": "7416742036",
+      "studentCount": 9
+    },
+    {
+      "route": "R11",
+      "driverName": "KARTHEEK KOKKILLAGADA",
+      "driverMobile": "9030757511",
+      "studentCount": 9
+    },
+    {
+      "route": "R12",
+      "driverName": "SUBBA REDDY MUTCHU",
+      "driverMobile": "9666222940",
+      "studentCount": 9
+    },
+    {
+      "route": "R13",
+      "driverName": "VENGALA RAO BORRA",
+      "driverMobile": "9550220884",
+      "studentCount": 9
+    },
+    {
+      "route": "R14",
+      "driverName": "SWAMY BABU PERAM",
+      "driverMobile": "7386875863",
+      "studentCount": 9
+    },
+    {
+      "route": "R15",
+      "driverName": "SURESH BABU KONDAVEETI",
+      "driverMobile": "9959486954",
+      "studentCount": 9
+    },
+    {
+      "route": "R16",
+      "driverName": "SRINIVASA REDDY D",
+      "driverMobile": "9959305664",
+      "studentCount": 8
+    },
+    {
+      "route": "R17",
+      "driverName": "BHAGYA RAO DASARI",
+      "driverMobile": "6309771929",
+      "studentCount": 1
+    },
+    {
+      "route": "R18",
+      "driverName": "VENKATAPATHI",
+      "driverMobile": "7674957939",
+      "studentCount": 9
+    },
+    {
+      "route": "R19",
+      "driverName": "GOPIREDDY MARUPROLU",
+      "driverMobile": "9160764929",
+      "studentCount": 8
+    },
+    {
+      "route": "R2",
+      "driverName": "JANI",
+      "driverMobile": "8790335252",
+      "studentCount": 9
+    },
+    {
+      "route": "R20",
+      "driverName": "SWAMY BABU PERAM",
+      "driverMobile": "7386875863",
+      "studentCount": 3
+    },
+    {
+      "route": "R3",
+      "driverName": "NANCHARAIAH KARUMURU",
+      "driverMobile": "9959608697",
+      "studentCount": 9
+    },
+    {
+      "route": "R4",
+      "driverName": "NAMCHARAIAH MANNEM",
+      "driverMobile": "8109025234",
+      "studentCount": 9
+    },
+    {
+      "route": "R5",
+      "driverName": "INAMUL SAYYAD",
+      "driverMobile": "9912568832",
+      "studentCount": 9
+    },
+    {
+      "route": "R6",
+      "driverName": "BIKSHALLU YARAGALLA",
+      "driverMobile": "9912502927",
+      "studentCount": 8
+    },
+    {
+      "route": "R7",
+      "driverName": "TIRUPATHI KARRA",
+      "driverMobile": "9491030005",
+      "studentCount": 9
+    },
+    {
+      "route": "R8",
+      "driverName": "TIRUPATHI KARRA",
+      "driverMobile": "9491030005",
+      "studentCount": 8
+    },
+    {
+      "route": "R9",
+      "driverName": "RAJA VISWANATH DEVARAJUGATTU",
+      "driverMobile": "9652664088",
+      "studentCount": 9
+    }
+  ],
+  "missingInDb": [],
+  "createdStudents": [
+    {
+      "admissionNo": "1160",
+      "name": "Myla Geetha Lahari",
+      "route": "R5",
+      "classLabel": "I - LILY"
+    },
+    {
+      "admissionNo": "1166",
+      "name": "Pamidiboina",
+      "route": "R6",
+      "classLabel": "I - LILY"
+    }
+  ],
+  "mismatches": [
+    {
+      "admissionNo": "906",
+      "name": "Dhulipalla Tejaswi",
+      "route": "R10",
+      "issues": [
+        {
+          "field": "class",
+          "pdf": "VII",
+          "db": "VI - BACH(CO-SPARK)"
+        },
+        {
+          "field": "contact",
+          "pdf": "9295656667",
+          "db": "9246467720"
+        }
+      ]
+    },
+    {
+      "admissionNo": "1031",
+      "name": "Chimakurthi Rahul Kumar",
+      "route": "R20",
+      "issues": [
+        {
+          "field": "contact",
+          "pdf": "9246944944",
+          "db": "9032944946"
+        }
+      ]
+    },
+    {
+      "admissionNo": "746",
+      "name": "Praneetha Bethapudi",
+      "route": "R4",
+      "issues": [
+        {
+          "field": "contact",
+          "pdf": "9581314909",
+          "db": "7569355794"
+        }
+      ]
+    },
+    {
+      "admissionNo": "1257",
+      "name": "Damarla Sanvika Lakshmi",
+      "route": "R6",
+      "issues": [
+        {
+          "field": "fatherName",
+          "pdf": "Sanvika Lakshmi DAMARLASRINIVAS",
+          "db": "DAMARLASRINIVAS / hema"
+        }
+      ]
+    },
+    {
+      "admissionNo": "154",
+      "name": "Ishanavi Majjiga",
+      "route": "R6",
+      "issues": [
+        {
+          "field": "name",
+          "pdf": "Ishanvi",
+          "db": "Ishanavi Majjiga"
+        }
+      ]
+    },
+    {
+      "admissionNo": "1186",
+      "name": "Redrouthu Venkata Siva Saravana Kumar",
+      "route": "R8",
+      "issues": [
+        {
+          "field": "fatherName",
+          "pdf": "Saravana Kumar r.srikanth",
+          "db": "r.srikanth / k.siva parvathi"
+        }
+      ]
+    },
+    {
+      "admissionNo": "1276",
+      "name": "Sanaka Bhuvvan Chharan",
+      "route": "R9",
+      "issues": [
+        {
+          "field": "contact",
+          "pdf": "8919263144",
+          "db": "9705780295"
+        }
+      ]
+    }
+  ],
+  "dbUsingTransport": [],
+  "duplicateAdmInPdf": [],
+  "updated": [
+    {
+      "admissionNo": "1160",
+      "name": "Myla Geetha Lahari",
+      "route": "R5",
+      "busNo": "AP39TT3166"
+    },
+    {
+      "admissionNo": "1166",
+      "name": "Pamidiboina",
+      "route": "R6",
+      "busNo": "AP39UA7757"
+    }
+  ]
+}

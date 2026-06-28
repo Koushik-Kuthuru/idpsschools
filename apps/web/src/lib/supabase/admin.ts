@@ -1,11 +1,12 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
+import { bridgeSupabaseEnv } from "./env";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const env = bridgeSupabaseEnv();
 
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+/** Service-role client that bypasses RLS. Prefer `ctx.supabaseAdmin` in route handlers. */
+export const supabaseAdmin = createClient(env.url!, env.secretKeys!.default!, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false
-  }
-})
+    persistSession: false,
+  },
+});

@@ -7,8 +7,10 @@ const SafeLink = Link as any;
 ;
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Plus, Trash2, FileText, User, Calendar, CreditCard } from "lucide-react";
-import { collection, doc, getDocs, query, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchMany, buildQuery, upsertData, getTimestamp, db, auth } from "@/lib/db-client";
+
+
+
 
 export default function AdminGenerateInvoicePage() {
  const router = useRouter();
@@ -27,11 +29,11 @@ export default function AdminGenerateInvoicePage() {
  useEffect(() => {
  async function loadStudents() {
  try {
- const snap = await getDocs(query(collection(db, "schools", schoolId, "students")));
- const list = snap.docs.map(doc => {
- const data = doc.data();
+ const snap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "students")));
+ const list = snap.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- key: doc.id,
+ key: buildPath.id,
  name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || "Unknown",
  grade: data.classId || "Unknown",
  section: data.section || "A"
@@ -86,10 +88,10 @@ export default function AdminGenerateInvoicePage() {
  dueDate,
  status: "Pending",
  items: items.map(i => ({ description: i.description, amount: i.amount })),
- createdAt: serverTimestamp(),
+ createdAt: getTimestamp(),
  };
 
- await setDoc(doc(db, "schools", schoolId, "invoices", id), payload);
+ await upsertData(buildPath(db, "schools", schoolId, "invoices", id), payload);
 
  router.push(`/schools/${schoolId}/admin/finance/invoices`);
  } catch (e: any) {

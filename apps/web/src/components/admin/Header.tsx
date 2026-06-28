@@ -9,10 +9,14 @@ import { Bell, CheckCheck, ChevronDown, ChevronRight, CircleHelp, LogOut, Menu, 
 import AdminGlobalSearch from "@/components/admin/AdminGlobalSearch";
 import { notificationIcon, notificationIconStyles } from "@/components/admin/notificationStyles";
 import { getActiveNavGroup } from "./navigation";
-import { auth } from "@/lib/firebase";
+
 import { useAuth } from "@/contexts/AuthContext";
+import { useAcademicYearOptional } from "@/contexts/AcademicYearContext";
+import { getActiveAcademicYear } from "@/lib/activeAcademicYear";
 import { useAdminNotifications } from "@/contexts/AdminNotificationsContext";
 import { formatRelativeTime } from "@/lib/adminNotifications";
+import { auth, db } from "@/lib/db-client";
+
 
 interface HeaderProps {
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -45,6 +49,11 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, role } = useAuth();
+  const academicYear = useAcademicYearOptional();
+  const cachedYearLabel = useMemo(
+    () => getActiveAcademicYear(schoolId),
+    [schoolId]
+  );
   const { notifications, unreadCount, markAllRead, openNotification } = useAdminNotifications();
 
   const handleOpenNotification = (notification: (typeof notifications)[number]) => {
@@ -64,7 +73,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
     return role ? role.charAt(0).toUpperCase() + role.slice(1) : "Staff";
   }, [user?.designation, role]);
 
-  const avatarSrc = user?.photoURL || user?.photo || null;
+  const avatarSrc = user?.photoURL || (user as any)?.photo || null;
 
   const userInitials = useMemo(() => {
     return userDisplayName
@@ -136,6 +145,11 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
             <h2 className="text-sm sm:text-lg font-bold text-[#1A1A1A] truncate">
               {headerTitle}
             </h2>
+            {(academicYear?.currentYear?.name ?? cachedYearLabel) ? (
+              <span className="hidden shrink-0 rounded-full bg-[#144835]/10 px-2 py-0.5 text-[10px] font-bold text-[#144835] sm:inline">
+                {academicYear?.currentYear?.name ?? cachedYearLabel}
+              </span>
+            ) : null}
           </div>
 
           <div className="hidden md:flex w-full min-w-0 justify-center px-2">

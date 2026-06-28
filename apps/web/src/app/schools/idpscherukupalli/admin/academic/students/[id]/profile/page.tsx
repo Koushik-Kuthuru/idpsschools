@@ -7,11 +7,13 @@ import { useSearchParams } from "next/navigation";
 import { useRouteParam } from "@/hooks/useRouteParams";
 import { ArrowLeft, Pencil, User, AlertCircle, Users, BookOpen, Heart, Building, Home, FileText, Printer, MessageSquare, IndianRupee, Award, Bus, Camera, Calendar, TrendingUp, Ticket, List, Library, Wallet, MapPin, Clock, Phone, History, UploadCloud, FileCheck, FileMinus, Eye, Trash2, Camera as CameraIcon, CheckCircle2, XCircle, AlertTriangle, Smartphone, Bell, Check, Send, BarChart3, ChevronDown, Download, ShieldCheck, ShieldAlert, UserCheck, Clock4, Activity, Key, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import { doc, getDoc, collection, query, where, getDocs, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "@/lib/firebase";
+
+
+
 import CapturePhotoModal from "@/components/ui/CapturePhotoModal";
 import { calculateAttendanceStats, AttendanceStats } from "@/utils/attendance";
+import { buildPath, fetchOne, buildQuery, filterBy, fetchMany, patchData, db, uploadFile } from "@/lib/db-client";
+
 
 const InfoSection = ({ title, icon: Icon, children }: any) => (
  <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden flex flex-col mb-4">
@@ -68,19 +70,6 @@ export default function AdminStudentProfilePage({
   const [showPassword, setShowPassword] = useState(false);
   const [isGeneratingCreds, setIsGeneratingCreds] = useState(false);
 
-  useEffect(() => {
-    if (student && (!student.username || !student.portalPassword)) {
-      const generatedUsername = `std_${student.admissionNo || studentId.slice(0, 6)}`.toLowerCase();
-      
-      const docRef = doc(db, "schools", schoolId, "students", studentId);
-      updateDoc(docRef, {
-        username: generatedUsername,
-        portalPassword: generatedUsername,
-      }).catch(console.error);
-      
-      setStudent((prev: any) => ({ ...prev, username: generatedUsername, portalPassword: generatedUsername }));
-    }
-  }, [student?.username, student?.portalPassword, student?.admissionNo, studentId, schoolId]);
  const [photos, setPhotos] = useState({
  student: "",
  father: "",
@@ -147,9 +136,9 @@ export default function AdminStudentProfilePage({
  
  const handleUpdatePhotos = async () => {
  try {
- const docRef = doc(db, "schools", schoolId, "students", studentId);
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
  // We also update the main student.photo field for backward compatibility with other parts of the app
- await updateDoc(docRef, { 
+ await patchData(docRef, { 
  photos,
  ...(photos.student ? { photo: photos.student } : {})
  });
@@ -166,23 +155,14 @@ export default function AdminStudentProfilePage({
  if (!file) return;
 
  if (file.size > 10 * 1024 * 1024) {
- alert("File size exceeds 10MB limit.");
+ alert("File size exceeds 10MB limitTo.");
  return;
  }
 
  setUploadingPhoto(type);
  try {
- const fileRef = ref(storage, `schools/schools/${schoolId}/students/${studentId}/photos/${type}_${Date.now()}`);
- 
- // Increased timeout/retry logic internally handled by Firebase, but we add a safety timeout
- const uploadTask = uploadBytes(fileRef, file);
- 
- const timeoutPromise = new Promise((_, reject) => 
- setTimeout(() => reject(new Error("Upload timed out. Please check your internet connection or try a smaller image.")), 30000)
- );
-
- const snapshot = await Promise.race([uploadTask, timeoutPromise]) as any;
- const url = await getDownloadURL(snapshot.ref);
+ const path = `schools/${schoolId}/students/${studentId}/photos/${type}_${Date.now()}`;
+ const url = await uploadFile(path, file);
  
  const newPhotos = { ...photos, [type]: url };
  setPhotos(newPhotos);
@@ -192,8 +172,8 @@ export default function AdminStudentProfilePage({
  }
 
  // Auto save to database
- const docRef = doc(db, "schools", schoolId, "students", studentId);
- await updateDoc(docRef, { 
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
+ await patchData(docRef, { 
  photos: newPhotos,
  ...(type === 'student' ? { photo: url } : {})
  });
@@ -218,15 +198,8 @@ export default function AdminStudentProfilePage({
  if (typeof fileOrUrl === 'string') {
  url = fileOrUrl;
  } else {
- const fileRef = ref(storage, `schools/schools/${schoolId}/students/${studentId}/photos/${type}_${Date.now()}`);
- 
- const uploadTask = uploadBytes(fileRef, fileOrUrl);
- const timeoutPromise = new Promise((_, reject) => 
- setTimeout(() => reject(new Error("Upload timed out. Please check your internet connection.")), 30000)
- );
-
- const snapshot = await Promise.race([uploadTask, timeoutPromise]) as any;
- url = await getDownloadURL(snapshot.ref);
+ const path = `schools/${schoolId}/students/${studentId}/photos/${type}_${Date.now()}`;
+ url = await uploadFile(path, fileOrUrl as File);
  }
  
  const newPhotos = { ...photos, [type]: url };
@@ -237,8 +210,8 @@ export default function AdminStudentProfilePage({
  }
 
  // Auto save to database
- const docRef = doc(db, "schools", schoolId, "students", studentId);
- await updateDoc(docRef, { 
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
+ await patchData(docRef, { 
  photos: newPhotos,
  ...(type === 'student' ? { photo: url } : {})
  });
@@ -262,8 +235,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  }
 
  try {
- const docRef = doc(db, "schools", schoolId, "students", studentId);
- await updateDoc(docRef, { 
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
+ await patchData(docRef, { 
  photos: newPhotos,
  ...(type === 'student' ? { photo: "" } : {})
  });
@@ -274,8 +247,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
 
  const handleUpdateCertificates = async () => {
  try {
- const docRef = doc(db, "schools", schoolId, "students", studentId);
- await updateDoc(docRef, { certificates });
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
+ await patchData(docRef, { certificates });
  alert("Certificate information updated successfully!");
  } catch (err) {
  console.error("Error saving certificates:", err);
@@ -297,7 +270,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
 
  const handleUpdateTransportInfo = async () => {
   try {
-   const docRef = doc(db, "schools", schoolId, "students", studentId);
+   const docRef = buildPath(db, "schools", schoolId, "students", studentId);
    const newLog = {
     id: Date.now().toString(),
     message: "updated transport details",
@@ -305,7 +278,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
     date: new Date().toLocaleString()
    };
    
-   await updateDoc(docRef, {
+   await patchData(docRef, {
     transportDetails: {
      facility: transportFacility,
      busNo,
@@ -353,8 +326,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
 
  const handleUpdateFeeStructure = async () => {
  try {
- const docRef = doc(db, "schools", schoolId, "students", studentId);
- await updateDoc(docRef, {
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
+ await patchData(docRef, {
  feeDetails: {
  feeCategory,
  feeTypeFilter,
@@ -398,8 +371,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  if (!studentId) return;
  try {
  setLoading(true);
- const docRef = doc(db, "schools", schoolId, "students", studentId);
- const snap = await getDoc(docRef);
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
+ const snap = await fetchOne(docRef);
  if (snap.exists()) {
  const studentData = { id: snap.id, ...(snap.data() as any) };
  setStudent(studentData);
@@ -457,8 +430,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  // Try to fetch fee structure for the student's class
  if (studentData.classId || studentData.grade) {
  const gradeToSearch = studentData.classId || studentData.grade;
- const feeQuery = query(collection(db, "schools", schoolId, "fee_structures"), where("grade", "==", gradeToSearch));
- const feeSnap = await getDocs(feeQuery);
+ const feeQuery = buildQuery(buildPath(db, "schools", schoolId, "fee_structures"), filterBy("grade", "==", gradeToSearch));
+ const feeSnap = await fetchMany(feeQuery);
  if (!feeSnap.empty) {
  setFeeStructure(feeSnap.docs[0].data());
  }
@@ -508,9 +481,9 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-6 pt-2">
- <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 relative">
- {/* Left Column: Summary Card */}
- <div className="xl:col-span-3 space-y-6 sticky top-6 h-fit max-h-[calc(100vh-3rem)] overflow-y-auto hide-scrollbar">
+ <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:items-start">
+ {/* Left Column: Summary Card — sticks below admin header while scrolling detail tabs */}
+ <div className="xl:col-span-3 space-y-6 xl:sticky xl:top-24 xl:self-start">
  <SafeLink href={`/schools/${schoolId}/admin/academic/students`} className="inline-flex items-center gap-2 px-1 text-gray-500 hover:text-gray-900 transition-colors mb-1 text-sm font-bold">
  <ArrowLeft size={16} /> Back to Students
  </SafeLink>
@@ -564,12 +537,12 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  <div>
  <p className="text-xs text-emerald-100/70 font-bold uppercase tracking-wider">Attendance</p>
  <div className="flex items-end gap-2 mt-1">
- <span className="text-2xl font-bold">92%</span>
+ <span className="text-2xl font-bold">{attendanceStats?.percentage ?? "—"}{attendanceStats ? "%" : ""}</span>
  <span className="text-xs text-emerald-200 mb-1">present</span>
  </div>
  </div>
  <div className="w-full bg-black/20 rounded-full h-1.5">
- <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: '92%' }}></div>
+ <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: attendanceStats ? `${attendanceStats.percentage}%` : '0%' }}></div>
  </div>
  </div>
  </div>

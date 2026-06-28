@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { collection, query, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { Search, RotateCw, Users, AlertCircle, LayoutGrid, List } from "lucide-react";
 import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
 import { classwiseGuide } from "./attendanceGuidePresets";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, buildQuery, fetchMany, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -47,9 +49,9 @@ export default function ClasswiseStatusTab({ schoolId }: ClasswiseStatusTabProps
     setStatusData(null);
     setErrorMessage("");
     try {
-      const q = query(collection(db, "schools", schoolId, "students"));
-      const snapshot = await getDocs(q);
-      const students = snapshot.docs.map(doc => doc.data() as any);
+      const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
+      const snapshot = await fetchMany(q);
+      const students = snapshot.docs.map((buildPath: any) => buildPath.data() as any);
 
       // Group by Class and Section
       const groups: Record<string, { classId: string, section: string, total: number, present: number, absent: number }> = {};
@@ -76,7 +78,7 @@ export default function ClasswiseStatusTab({ schoolId }: ClasswiseStatusTabProps
       const results = Object.values(groups);
       
       // Sort by classId numeric value if possible, then section
-      results.sort((a, b) => {
+      results.sort((a: any, b: any) => {
         const aNum = parseInt(a.classId);
         const bNum = parseInt(b.classId);
         if (!isNaN(aNum) && !isNaN(bNum) && aNum !== bNum) return aNum - bNum;

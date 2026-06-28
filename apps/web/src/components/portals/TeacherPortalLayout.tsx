@@ -21,17 +21,10 @@ export default function TeacherPortalLayout({ children }: { children: React.Reac
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
-
-  if (!mounted) return null;
 
   return (
     <SchoolRouteGuard schoolId={schoolId}>

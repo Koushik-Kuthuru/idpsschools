@@ -1,10 +1,12 @@
-import { deleteDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { removeData, buildPath, db, auth } from "@/lib/db-client";
+
+
+
 
 export async function deleteSchoolDocument(
   schoolId: string,
   collectionName: string,
   documentId: string
 ) {
-  await deleteDoc(doc(db, "schools", schoolId, collectionName, documentId));
+  await removeData(buildPath(db, "schools", schoolId, collectionName, documentId));
 }

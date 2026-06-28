@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
+import { buildPath, fetchMany, db, auth } from "@/lib/db-client";
 import {
   AdminSearchResult,
   buildApplicationResult,
@@ -25,8 +26,8 @@ import {
 
 async function loadCollection(schoolId: string, collectionName: string) {
   try {
-    const snapshot = await getDocs(collection(db, "schools", schoolId, collectionName));
-    return snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() as Record<string, unknown> }));
+    const snapshot = await fetchMany(buildPath(db, "schools", schoolId, collectionName));
+    return snapshot.docs.map((buildPath) => ({ id: buildPath.id, data: buildPath.data() as Record<string, unknown> }));
   } catch (error) {
     console.error(`Admin search failed for ${collectionName}:`, error);
     return [];
@@ -93,8 +94,8 @@ export function useAdminSearch(schoolId: string) {
   const allResults = useMemo(() => [...pageIndex, ...records], [pageIndex, records]);
 
   const search = useCallback(
-    (query: string, options?: { scope?: SearchScopeFilter }): AdminSearchGroup[] => {
-      const normalized = normalizeSearchQuery(query);
+    (buildQuery: string, options?: { scope?: SearchScopeFilter }): AdminSearchGroup[] => {
+      const normalized = normalizeSearchQuery(buildQuery);
       if (!normalized) return [];
 
       const matched = allResults.filter((result) => matchesSearch(result, normalized));

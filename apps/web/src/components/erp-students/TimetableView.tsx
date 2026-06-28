@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import { 
   Clock, 
   MapPin, 
@@ -27,29 +28,29 @@ export default function TimetableView() {
   ];
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
-      {/* Header */}
-      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Class Timetable</h2>
-          <p className="text-xs font-medium text-gray-500 mt-0.5">Daily schedule, class timings, and session details</p>
-        </div>
-        <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
-          {days.map((day) => (
-            <button
-              key={day}
-              onClick={() => setActiveDay(day)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-                activeDay === day 
-                  ? "bg-[#144835] text-white shadow-sm" 
-                  : "text-gray-500 hover:text-gray-900"
-              }`}
-            >
-              {day}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
+      <AdminPageHeader
+        title="Timetable"
+        description="Daily schedule, class timings, and session details"
+        actions={
+          <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+            {days.map((day) => (
+              <button
+                key={day}
+                type="button"
+                onClick={() => setActiveDay(day)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                  activeDay === day
+                    ? "bg-[#144835] text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-900"
+                }`}
+              >
+                {day}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {/* Happening Now Banner */}
       <div className="bg-gradient-to-r from-[#144835] to-[#0f3628] text-white p-6 rounded-[16px] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md relative overflow-hidden">
@@ -58,7 +59,7 @@ export default function TimetableView() {
           <span className="bg-[#a2c144]/20 text-[#a2c144] border border-[#a2c144]/10 px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">
             Happening Now
           </span>
-          <h3 className="text-xl md:text-2xl font-bold uppercase tracking-wide mt-2">Mathematics Session</h3>
+          <h3 className="text-white/95 text-xl md:text-2xl font-semibold tracking-tight mt-2">Mathematics Session</h3>
           <div className="flex items-center gap-4 mt-2 text-xs font-bold text-emerald-100">
             <span className="flex items-center gap-1"><Clock size={14} /> 08:30 AM - 09:20 AM</span>
             <span className="flex items-center gap-1"><MapPin size={14} /> Block A, Room 302</span>

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import AdminPageHeader from "@/components/admin/PageHeader";
 import { 
   ClipboardList, 
   Award, 
@@ -40,29 +41,29 @@ export default function MarksView() {
   const averagePct = Math.round(activeMarks.reduce((sum: number, val: any) => sum + val.marksObtained, 0) / activeMarks.length);
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
-      {/* Header */}
-      <div className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight uppercase">Academics & Marks</h2>
-          <p className="text-xs font-medium text-gray-500 mt-0.5">Detailed grades and marks report card cards</p>
-        </div>
-        <div className="flex gap-2">
-          {["Term 1", "Term 2"].map((term) => (
-            <button
-              key={term}
-              onClick={() => setSelectedTerm(term)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all border ${
-                selectedTerm === term 
-                  ? "bg-[#144835] text-white border-[#144835]" 
-                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-              }`}
-            >
-              {term}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
+      <AdminPageHeader
+        title="Marks"
+        description="Detailed grades and report card for each term"
+        actions={
+          <div className="flex gap-2">
+            {["Term 1", "Term 2"].map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => setSelectedTerm(term)}
+                className={`h-10 px-4 rounded-lg text-xs font-bold transition-all border ${
+                  selectedTerm === term
+                    ? "bg-[#144835] text-white border-[#144835]"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                {term}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {/* Bento Stats Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

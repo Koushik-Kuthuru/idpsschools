@@ -8,6 +8,7 @@ import Sidebar from "@/components/admin/Sidebar";
 import Header from "@/components/admin/Header";
 import AdminStandaloneShell from "@/components/admin/AdminStandaloneShell";
 import { BranchProvider } from "@/components/admin/BranchContext";
+import { AcademicYearProvider } from "@/contexts/AcademicYearContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { ADMIN_LAYOUT_ALLOWED_ROLES } from "@/lib/auth/admin-portal-roles";
 import { isAdminStandaloneRoute } from "@/lib/admin-layout";
@@ -26,25 +27,13 @@ export default function AdminLayout({
  const isSettingsRoute = /\/admin\/.*settings(?:\/|$)/.test(pathname || "");
  const [isSidebarOpen, setIsSidebarOpen] = useState(!isSettingsRoute);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
- const [mounted, setMounted] = useState(false);
 
- // Handle initial hydration state mismatch
- useEffect(() => {
-
- setMounted(true);
- }, []);
-
- // Close mobile menu on route change
  useEffect(() => {
  setIsMobileMenuOpen(false);
  if (isSettingsRoute) {
  setIsSidebarOpen(false);
  }
  }, [pathname, isSettingsRoute]);
-
- if (!mounted) {
- return null; // or a very minimal loading state matching the server HTML
- }
 
  const isStandalone = isAdminStandaloneRoute(pathname);
 
@@ -61,6 +50,7 @@ export default function AdminLayout({
  return (
  <ProtectedRoute allowedRoles={ADMIN_LAYOUT_ALLOWED_ROLES} requiredSchoolId="idpskalaburagi">
  <BranchProvider>
+ <AcademicYearProvider schoolSlug="idpskalaburagi">
  <AdminNotificationsProvider>
  <div className="min-h-screen bg-[#F8FAFB] flex">
  {isMobileMenuOpen && (
@@ -90,6 +80,7 @@ export default function AdminLayout({
  </div>
  </div>
  </AdminNotificationsProvider>
+ </AcademicYearProvider>
  </BranchProvider>
  </ProtectedRoute>
  );

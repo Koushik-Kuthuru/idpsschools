@@ -23,8 +23,23 @@ interface SidebarProps {
   setIsHoveredProps?: (hovered: boolean) => void;
 }
 
-function isItemActive(pathname: string, href: string, dashboardHref: string) {
-  return pathname === href || (href !== dashboardHref && pathname.startsWith(href));
+function isItemActive(
+  pathname: string,
+  href: string,
+  dashboardHref: string,
+  siblingHrefs: string[] = []
+) {
+  if (pathname === href) return true;
+  if (href === dashboardHref) return false;
+  if (!pathname.startsWith(`${href}/`)) return false;
+
+  const longerSibling = siblingHrefs.find(
+    (sibling) =>
+      sibling !== href &&
+      sibling.startsWith(`${href}/`) &&
+      (pathname === sibling || pathname.startsWith(`${sibling}/`))
+  );
+  return !longerSibling;
 }
 
 function NavIconBox({
@@ -195,7 +210,8 @@ export default function Sidebar({
           <div className="ml-5 border-l border-white/10 py-1 pl-3">
             <div className="space-y-0.5">
               {group.items.map((item) => {
-                const isActive = isItemActive(pathname, item.href, dashboardHref);
+                const siblingHrefs = group.items.map((entry) => entry.href);
+                const isActive = isItemActive(pathname, item.href, dashboardHref, siblingHrefs);
                 return (
                   <SafeLink
                     key={item.href}

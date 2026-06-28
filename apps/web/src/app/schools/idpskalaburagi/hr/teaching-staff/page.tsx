@@ -5,23 +5,22 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 
 import Link from "next/link";
 const SafeLink = Link as any;
-;
+
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarX2, ChevronRight, Download, Eye, EyeOff, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
+import { Building2, CalendarX2, ChevronRight, Eye, EyeOff, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
-import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
-import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
+import { type StaffDisplayRecord } from "@/lib/staffRecord";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
+import { useBranchStaff } from "@/hooks/useBranchStaff";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
 }
 
-type EmployeeRow = StaffDisplayRecord;
+interface EmployeeRow extends StaffDisplayRecord {}
 
 function staffBase(schoolId: string) {
  return `/schools/${schoolId}/admin/hr/teaching-staff`;
@@ -29,105 +28,66 @@ function staffBase(schoolId: string) {
 
 export default function AdminTeachingStaffPage() {
  const schoolId = useSchoolId();
+ const { currentYear, loading: yearLoading } = useAcademicYear();
+ const { staff, loading, error: loadError } = useBranchStaff(schoolId, "teaching", currentYear?.name);
+ const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
  const [searchQuery, setSearchQuery] = useState("");
  const [deptFilter, setDeptFilter] = useState("all");
  const [statusFilter, setStatusFilter] = useState("All Status");
- const [employees, setEmployees] = useState<EmployeeRow[]>([]);
- const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
- const [loading, setLoading] = useState(true);
- const [loadError, setLoadError] = useState<string | null>(null);
 
- useEffect(() => {
- const qRef = query(collection(db, "schools", schoolId, "departments"), orderBy("name", "asc"));
- const unsubscribe = onSnapshot(
- qRef,
- (snapshot) => {
- const list = snapshot.docs.map((d) => {
- const data = d.data() as any;
- return { id: d.id, name: String(data.name || "").trim() || d.id };
- });
- setDepartments(list);
- },
- () => setDepartments([])
- );
- return () => unsubscribe();
- }, [schoolId]);
-
- useEffect(() => {
- setLoading(true);
- setLoadError(null);
- 
- // We filter for role === "teacher" directly in the query
- const qRef = query(
- collection(db, "schools", schoolId, "teachers"),
- orderBy("firstName", "asc")
+ const employees = useMemo(
+   () => staff.filter((row) => !removedIds.has(row.id)),
+   [staff, removedIds]
  );
 
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const list: EmployeeRow[] = snapshot.docs.map((doc) =>
-  mapStaffDoc(doc.id, doc.data() as Record<string, unknown>)
- );
- setEmployees(list);
- setLoading(false);
- }, (err) => {
- console.error("Error loading teachers:", err);
- setLoadError("Failed to load teaching staff. Check permissions.");
- setLoading(false);
- });
+ const departments = useMemo(() => {
+   const depts = [...new Set(employees.map((m) => m.department).filter(Boolean))] as string[];
+   return depts.map((d) => ({ id: d, name: d }));
+ }, [employees]);
 
- return () => unsubscribe();
- }, [schoolId]);
-
- const departmentNameById = useMemo(() => {
- const map: Record<string, string> = {};
- departments.forEach((d) => {
- map[d.id] = d.name;
- });
- return map;
- }, [departments]);
+ const listLoading = (loading && employees.length === 0) || (yearLoading && !currentYear);
 
  const departmentOptions = useMemo(() => {
- const base = [{ id: "General", name: "General" }, ...departments];
- const seen = new Set<string>();
- return base.filter((d) => {
- if (seen.has(d.id)) return false;
- seen.add(d.id);
- return true;
- });
+   const base = [{ id: "General", name: "General" }, ...departments];
+   const seen = new Set<string>();
+   return base.filter((d) => {
+     if (seen.has(d.id)) return false;
+     seen.add(d.id);
+     return true;
+   });
  }, [departments]);
 
  useEffect(() => {
- if (deptFilter === "all") return;
- if (deptFilter === "General") return;
- if (!departmentOptions.some((d) => d.id === deptFilter)) setDeptFilter("all");
+   if (deptFilter === "all" || deptFilter === "General") return;
+   if (!departmentOptions.some((d) => d.id === deptFilter)) setDeptFilter("all");
  }, [departmentOptions, deptFilter]);
 
  const stats = useMemo(() => {
- const totalStaff = employees.length;
- const onLeave = employees.filter((e) => e.status === "On Leave").length;
- const active = employees.filter((e) => e.status === "Active").length;
- return { totalStaff, onLeave, active };
+   const totalStaff = employees.length;
+   const onLeave = employees.filter((e: any) => e.status === "On Leave").length;
+   const active = employees.filter((e: any) => e.status === "Active").length;
+   return { totalStaff, onLeave, active };
  }, [employees]);
 
  const filtered = useMemo(() => {
- const q = searchQuery.toLowerCase();
- return employees.filter((e) => {
- const matchQ =
-  !q ||
-  e.name.toLowerCase().includes(q) ||
-  e.employeeId.toLowerCase().includes(q) ||
-  e.designation.toLowerCase().includes(q) ||
-  e.mobile.toLowerCase().includes(q) ||
-  e.classes.toLowerCase().includes(q) ||
-  e.subjects.toLowerCase().includes(q);
- const matchDept = deptFilter === "all" || e.department === deptFilter;
- const matchStatus = statusFilter === "All Status" || e.status === statusFilter;
- return matchQ && matchDept && matchStatus;
- });
+   const q = searchQuery.toLowerCase();
+   return employees.filter((e: any) => {
+     const matchQ =
+       !q ||
+       e.name.toLowerCase().includes(q) ||
+       e.employeeId.toLowerCase().includes(q) ||
+       e.designation.toLowerCase().includes(q) ||
+       e.mobile.toLowerCase().includes(q);
+     const matchDept = deptFilter === "all" || e.department === deptFilter;
+     const matchStatus = statusFilter === "All Status" || e.status === statusFilter;
+     return matchQ && matchDept && matchStatus;
+   });
  }, [searchQuery, deptFilter, statusFilter, employees]);
 
- const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
- const togglePassword = (id: string) => setShowPasswords(prev => ({ ...prev, [id]: !prev[id] }));
+ const handleDelete = async (id: string) => {
+   if (!confirm("Delete this staff member?")) return;
+   setRemovedIds((prev) => new Set(prev).add(id));
+ };
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
@@ -208,7 +168,7 @@ export default function AdminTeachingStaffPage() {
  className="w-full h-9 appearance-none bg-white border border-gray-200 rounded-lg pl-9 pr-8 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
  >
  <option value="all">All Departments</option>
- {departmentOptions.map((d) => (
+ {departmentOptions.map((d: any) => (
  <option key={d.id} value={d.id}>
  {d.name}
  </option>
@@ -234,7 +194,7 @@ export default function AdminTeachingStaffPage() {
  </div>
  </div>
 
- <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${filtered.length} members`}</div>
+ <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{listLoading ? "Loading..." : `${filtered.length} members`}</div>
  </div>
 
  <div className="overflow-x-auto">
@@ -245,8 +205,6 @@ export default function AdminTeachingStaffPage() {
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Department</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Designation</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Username</th>
- <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Password</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Mobile</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Classes</th>
  <th className="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Subjects</th>
@@ -254,7 +212,7 @@ export default function AdminTeachingStaffPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
- {filtered.map((e) => (
+ {filtered.map((e: any) => (
  <tr key={e.id} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5 text-xs font-bold text-gray-700 whitespace-nowrap">{e.employeeId}</td>
  <td className="px-4 py-2.5">
@@ -265,25 +223,8 @@ export default function AdminTeachingStaffPage() {
  <p className="text-xs font-bold text-gray-900">{e.name}</p>
  </div>
  </td>
- <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{departmentNameById[e.department] || e.department}</td>
+ <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{e.department}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700">{e.designation}</td>
- <td className="px-4 py-2.5 text-xs font-bold text-gray-900 bg-gray-50/50 rounded-md border border-gray-100 px-2 my-1.5 inline-block">{e.username || "—"}</td>
- <td className="px-4 py-2.5">
-   <div className="flex items-center gap-2">
-     <span className="text-xs font-mono font-bold text-gray-900 bg-gray-50/50 rounded-md border border-gray-100 px-2 py-0.5 min-w-[70px] inline-block tracking-wider">
-       {e.portalPassword ? (showPasswords[e.id] ? e.portalPassword : "••••••••") : "—"}
-     </span>
-     {e.portalPassword && (
-       <button
-         type="button"
-         onClick={() => togglePassword(e.id)}
-         className="text-gray-400 hover:text-gray-600 focus:outline-none"
-       >
-         {showPasswords[e.id] ? <EyeOff size={14} /> : <Eye size={14} />}
-       </button>
-     )}
-   </div>
- </td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 whitespace-nowrap">{e.mobile}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 max-w-[180px] truncate" title={e.classes}>{e.classes}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 max-w-[180px] truncate" title={e.subjects}>{e.subjects}</td>
@@ -298,14 +239,14 @@ export default function AdminTeachingStaffPage() {
  destructive: true,
  dividerBefore: true,
  confirmMessage: `Delete ${e.name}? This cannot be undone.`,
- onClick: () => deleteSchoolDocument(schoolId, "teachers", e.id),
+ onClick: () => handleDelete(e.id),
  },
  ]}
  />
  </td>
  </tr>
  ))}
- {!loading && filtered.length === 0 && (
+ {!listLoading && filtered.length === 0 && (
  <tr>
  <td colSpan={8} className="px-4 py-8 text-center">
  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 mb-2">

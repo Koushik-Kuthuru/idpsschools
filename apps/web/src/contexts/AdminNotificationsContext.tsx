@@ -2,13 +2,14 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
+import { buildPath, subscribeData, sortBy, buildQuery, db, auth } from "@/lib/db-client";
 import {
   AdminNotification,
   buildDefaultNotifications,
   loadReadIds,
-  mapFirestoreNotification,
+  mapNotificationRecord,
   saveReadIds,
   withReadState,
 } from "@/lib/adminNotifications";
@@ -35,31 +36,24 @@ export function AdminNotificationsProvider({ children }: { children: React.React
   const [remoteNotifications, setRemoteNotifications] = useState<Omit<AdminNotification, "unread">[] | null>(null);
 
   useEffect(() => {
-    const existing = loadReadIds(schoolId);
-    if (existing.size === 0) {
-      const seeded = new Set(["staff-attendance-sync", "maintenance-notice"]);
-      saveReadIds(schoolId, seeded);
-      setReadIds(seeded);
-      return;
-    }
-    setReadIds(existing);
+    setReadIds(loadReadIds(schoolId));
   }, [schoolId]);
 
   useEffect(() => {
-    const qRef = query(
-      collection(db, "schools", schoolId, "notifications"),
-      orderBy("createdAt", "desc")
+    const qRef = buildQuery(
+      buildPath(db, "schools", schoolId, "notifications"),
+      sortBy("createdAt", "desc")
     );
 
-    const unsubscribe = onSnapshot(
+    const unsubscribe = subscribeData(
       qRef,
-      (snapshot) => {
+      (snapshot: any) => {
         if (snapshot.empty) {
           setRemoteNotifications(null);
           return;
         }
         setRemoteNotifications(
-          snapshot.docs.map((doc) => mapFirestoreNotification(doc.id, doc.data(), schoolId))
+          snapshot.docs.map((buildPath: any) => mapNotificationRecord(buildPath.id, buildPath.data(), schoolId))
         );
       },
       () => {

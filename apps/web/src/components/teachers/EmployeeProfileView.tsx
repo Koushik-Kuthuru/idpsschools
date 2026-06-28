@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { AdminEmployee } from "../../data/adminEmployees";
+type AdminEmployee = any;
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -62,8 +62,8 @@ export default function EmployeeProfileView({
   backLabel?: string;
   variant?: "teaching" | "nonTeaching";
 }) {
-  const totalWeeklyHours = employee.classLoads.reduce((sum, c) => sum + c.weeklyHours, 0);
-  const initials = employee.name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
+  const totalWeeklyHours = employee.classLoads.reduce((sum: number, c: any) => sum + c.weeklyHours, 0);
+  const initials = employee.name.split(" ").filter(Boolean).slice(0, 2).map((p: any) => p[0]?.toUpperCase()).join("");
   const avatarColor = getAvatarColor(employee.name);
   const showAcademicLoad = variant === "teaching";
 
@@ -217,7 +217,7 @@ export default function EmployeeProfileView({
                 <div className="mt-8 pt-6 border-t border-gray-100">
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">Qualifications</p>
                   <div className="flex flex-wrap gap-2">
-                    {employee.qualifications.map((q) => (
+                    {employee.qualifications.map((q: any) => (
                       <span key={q} className="inline-flex rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-bold text-gray-700 shadow-sm">
                         {q}
                       </span>
@@ -239,7 +239,7 @@ export default function EmployeeProfileView({
               </div>
 
               <div className="p-4 flex-1 flex flex-col justify-center space-y-6">
-                {employee.leaveBalances.map((b) => {
+                {employee.leaveBalances.map((b: any) => {
                   const pct = b.total === 0 ? 0 : Math.min(100, Math.round((b.availed / b.total) * 100));
                   const isLow = b.total - b.availed <= 2;
                   
@@ -297,7 +297,7 @@ export default function EmployeeProfileView({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {employee.classLoads.map((c) => (
+                  {employee.classLoads.map((c: any) => (
                     <tr key={`${c.classSection}-${c.subject}`} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-4 py-2.5">
                         <span className="text-xs font-bold text-gray-800 bg-gray-100/80 px-2.5 py-1 rounded-md">{c.classSection}</span>

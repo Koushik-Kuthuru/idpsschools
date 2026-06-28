@@ -22,9 +22,11 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
+import { buildPath, subscribeData, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -57,7 +59,7 @@ export default function UsersPage() {
  let roles: any[] = [];
 
  const sync = () => {
- const merged = [...superAdmins, ...roles].sort((a, b) => {
+ const merged = [...superAdmins, ...roles].sort((a: any, b: any) => {
  const roleCompare = String(a.role ?? "").localeCompare(String(b.role ?? ""));
  if (roleCompare !== 0) return roleCompare;
  return String(a.email ?? "").localeCompare(String(b.email ?? ""));
@@ -66,11 +68,11 @@ export default function UsersPage() {
  if (superAdminsLoaded && rolesLoaded) setLoading(false);
  };
 
- const unsubSuperAdmins = onSnapshot(
- collection(db, "super_admin_users"),
- (snap) => {
+ const unsubSuperAdmins = subscribeData(
+ buildPath(db, "super_admin_users"),
+ (snap: any) => {
  superAdminsLoaded = true;
- superAdmins = snap.docs.map((d) => {
+ superAdmins = snap.docs.map((d: any) => {
  const data = d.data() as any;
  return {
  id: d.id,
@@ -82,18 +84,18 @@ export default function UsersPage() {
  });
  sync();
  },
- (err) => {
+ (err: any) => {
  console.error("Error listening super_admin_users:", err);
  superAdminsLoaded = true;
  sync();
  }
  );
 
- const unsubRoles = onSnapshot(
- collection(db, "user_roles"),
- (snap) => {
+ const unsubRoles = subscribeData(
+ buildPath(db, "user_roles"),
+ (snap: any) => {
  rolesLoaded = true;
- roles = snap.docs.map((d) => {
+ roles = snap.docs.map((d: any) => {
  const data = d.data() as any;
  return {
  id: d.id,
@@ -103,7 +105,7 @@ export default function UsersPage() {
  });
  sync();
  },
- (err) => {
+ (err: any) => {
  console.error("Error listening user_roles:", err);
  rolesLoaded = true;
  sync();

@@ -22,11 +22,16 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import * as XLSX from "xlsx";
-import { collection, doc, getDoc, getDocs, setDoc, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { useSchoolId } from "@/hooks/useSchoolId";
 import ExportButton from "@/components/ui/ExportButton";
+import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
+import { filterGradesByScope, filterSectionsByScope, matchesClassScope } from "@/lib/teacherClassScope";
 import Link from "next/link";
+import { buildPath, fetchOne, fetchMany, upsertData, subscribeData, db, auth } from "@/lib/db-client";
+import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
+
 const SafeLink = Link as any;
 ;
 
@@ -96,6 +101,8 @@ function getAvatarColor(name: string) {
 
 export default function MarksFeedingTab() {
  const schoolId = useSchoolId();
+ const teacherPortal = useTeacherPortalScope();
+ const { grades: branchGrades, sections: branchSections } = useBranchClassOptions(schoolId);
  const allClassesKey = "All";
  const allSectionsKey = "All";
  const allSubjectsKey = "All";
@@ -114,20 +121,32 @@ export default function MarksFeedingTab() {
  const [cls, setCls] = useState(allClassesKey);
  const [sec, setSec] = useState(allSectionsKey);
  const [subject, setSubject] = useState(allSubjectsKey);
- const [classOptions, setClassOptions] = useState<string[]>([]);
- const [sectionOptions, setSectionOptions] = useState<string[]>([]);
  const [subjectsForClass, setSubjectsForClass] = useState<string[]>([]);
  const [rows, setRows] = useState<MarksRow[]>([]);
  const [isLoading, setIsLoading] = useState(false);
- const [query, setQuery] = useState("");
+ const [buildQuery, setQuery] = useState("");
  const [isSaving, setIsSaving] = useState(false);
  const [banner, setBanner] = useState<{ type: "success" | "error"; text: string } | null>(null);
  const fileRef = useRef<HTMLInputElement | null>(null);
 
+ const classOptions = useMemo(() => {
+  const scopedGrades = teacherPortal?.allowedClassKeys.size
+   ? filterGradesByScope(branchGrades, teacherPortal.allowedClassKeys)
+   : branchGrades;
+  return [allClassesKey, ...scopedGrades];
+ }, [branchGrades, allClassesKey, teacherPortal?.allowedClassKeys]);
+
+ const sectionOptions = useMemo(() => {
+  const scopedSections = teacherPortal?.allowedClassKeys.size
+   ? filterSectionsByScope(branchSections, allClassesKey, teacherPortal.allowedClassKeys, allClassesKey)
+   : branchSections;
+  return [allSectionsKey, ...scopedSections];
+ }, [branchSections, allSectionsKey, allClassesKey, teacherPortal?.allowedClassKeys]);
+
  // Load Exam Types
  useEffect(() => {
-  const unsub = onSnapshot(collection(db, "schools", schoolId, "exam_types"), (snap) => {
-   const names = snap.docs.map(d => String(d.data().name || "").trim()).filter(Boolean);
+  const unsub = subscribeData(buildPath(db, "schools", schoolId, "exam_types"), (snap: any) => {
+   const names = snap.docs.map((d: any) => String(d.data().name || "").trim()).filter(Boolean);
    setExamOptions(names);
    if (names.length && !exam) setExam(names[0]);
   });
@@ -138,9 +157,9 @@ export default function MarksFeedingTab() {
  try {
  setIsLoading(true);
  setBanner(null);
- const snap = await getDocs(collection(db, "schools", schoolId, "students"));
+ const snap = await fetchMany(buildPath(db, "schools", schoolId, "students"));
  const allStudents = snap.docs
- .map((d) => ({ id: d.id, ...d.data() }))
+ .map((d: any) => ({ id: d.id, ...d.data() }))
  .map((s: any) => {
  const grade = String(s.classId || "").trim();
  const section = String(s.section || "").trim().toUpperCase();
@@ -151,7 +170,10 @@ export default function MarksFeedingTab() {
  const selectedStudents = allStudents.filter((s: any) => {
  const matchClass = nextCls === allClassesKey || s.grade === nextCls;
  const matchSection = nextSec === allSectionsKey || s.section === nextSec;
- return matchClass && matchSection;
+ const inScope = teacherPortal?.allowedClassKeys.size
+  ? matchesClassScope(s.grade, s.section, teacherPortal.allowedClassKeys)
+  : true;
+ return matchClass && matchSection && inScope;
  });
 
  const baseRows: MarksRow[] = selectedStudents.map((s: any, idx) => ({
@@ -183,8 +205,8 @@ export default function MarksFeedingTab() {
  })
  .filter(Boolean)
  .map(async ({ grade, sec }: any) => {
- const savedRef = doc(db, "schools", schoolId, "marks", marksDocId(exam, grade, sec, subject));
- const savedSnap = await getDoc(savedRef);
+ const savedRef = buildPath(db, "schools", schoolId, "marks", marksDocId(exam, grade, sec, subject));
+ const savedSnap = await fetchOne(savedRef);
  if (savedSnap.exists()) {
  const saved = savedSnap.data() as StoredMarks;
  (saved?.rows || []).forEach((r) => {
@@ -209,12 +231,13 @@ export default function MarksFeedingTab() {
   } finally {
    setIsLoading(false);
   }
+ // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [exam, schoolId, subject, allClassesKey, allSectionsKey, allSubjectsKey]);
 
  const loadSubjects = useCallback(async (nextCls: string, nextSec: string) => {
   try {
-   const snap = await getDocs(collection(db, "schools", schoolId, "subjects"));
-   const raw = snap.docs.map((d) => d.data());
+   const snap = await fetchMany(buildPath(db, "schools", schoolId, "subjects"));
+   const raw = snap.docs.map((d: any) => d.data());
 
    const list = raw.filter((s: any) => {
     const matchClass = nextCls === allClassesKey || String(s.classId || "").trim() === nextCls;
@@ -222,42 +245,11 @@ export default function MarksFeedingTab() {
     return matchClass && matchSection;
    });
 
-   const names = Array.from(new Set(list.map((s: any) => String(s.name || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+   const names = Array.from(new Set(list.map((s: any) => String(s.name || "").trim()).filter(Boolean))).sort((a: any, b: any) => a.localeCompare(b));
    setSubjectsForClass(names);
   } catch {
    setSubjectsForClass([]);
   }
- }, [allClassesKey, allSectionsKey, schoolId]);
-
- useEffect(() => {
-  let cancelled = false;
-  async function loadAll() {
-   try {
-    const snap = await getDocs(collection(db, "schools", schoolId, "classes"));
-    const raw = snap.docs.map((d) => d.data());
-    
-    const grades = raw.map(c => String(c.grade ?? c.name ?? "").trim()).filter(Boolean);
-    const sections = raw.map(c => String(c.section ?? "").trim().toUpperCase()).filter(Boolean);
-
-    const uniqueGrades = Array.from(new Set(grades)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-    const uniqueSections = Array.from(new Set(sections)).sort((a, b) => a.localeCompare(b));
-
-    if (!cancelled) {
-     setClassOptions([allClassesKey, ...uniqueGrades]);
-     setSectionOptions([allSectionsKey, ...uniqueSections]);
-    }
-   } catch (e: any) {
-    if (!cancelled) {
-     setClassOptions([]);
-     setSectionOptions([]);
-     setBanner({ type: "error", text: e?.message || "Failed to load classes" });
-    }
-   }
-  }
-  loadAll();
-  return () => {
-   cancelled = true;
-  };
  }, [allClassesKey, allSectionsKey, schoolId]);
 
  useEffect(() => {
@@ -306,10 +298,10 @@ export default function MarksFeedingTab() {
  }, [rows]);
 
  const filtered = useMemo(() => {
- const q = query.trim().toLowerCase();
+ const q = buildQuery.trim().toLowerCase();
  if (!q) return rows;
  return rows.filter((r) => `${r.name} ${r.roll} ${r.grade}-${r.section}`.toLowerCase().includes(q));
- }, [query, rows]);
+ }, [buildQuery, rows]);
 
  const distribution = useMemo(() => {
  const buckets: Record<string, number> = { "A+": 0, A: 0, B: 0, C: 0, D: 0, F: 0, "-": 0 };
@@ -346,8 +338,8 @@ export default function MarksFeedingTab() {
  })),
  updatedAt: new Date().toISOString(),
  };
- const ref = doc(db, "schools", schoolId, "marks", marksDocId(exam, grade, targetSec, subject));
- await setDoc(ref, payload, { merge: true });
+ const ref = buildPath(db, "schools", schoolId, "marks", marksDocId(exam, grade, targetSec, subject));
+ await upsertData(ref, payload, { merge: true });
  })
  );
  return;
@@ -365,8 +357,8 @@ export default function MarksFeedingTab() {
  })),
  updatedAt: new Date().toISOString(),
  };
- const ref = doc(db, "schools", schoolId, "marks", marksDocId(exam, cls, sec, subject));
- await setDoc(ref, payload, { merge: true });
+ const ref = buildPath(db, "schools", schoolId, "marks", marksDocId(exam, cls, sec, subject));
+ await upsertData(ref, payload, { merge: true });
  }
 
  const handleSave = async () => {
@@ -463,7 +455,7 @@ export default function MarksFeedingTab() {
  className="w-full h-9 appearance-none rounded-lg border border-gray-200 bg-gray-50/50 pl-3 pr-8 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50 cursor-pointer"
  >
  {examOptions.length ? (
-  examOptions.map((e) => <option key={e} value={e}>{e}</option>)
+  examOptions.map((e: any) => <option key={e} value={e}>{e}</option>)
  ) : (
   <option value="" disabled>No exams defined</option>
  )}
@@ -689,7 +681,7 @@ export default function MarksFeedingTab() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No students found</p>
- <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search buildQuery.</p>
  <button 
  onClick={() => setQuery("")}
  className="mt-2 text-xs font-bold text-[#144835] hover:underline"

@@ -7,10 +7,11 @@ import Link from "next/link";
 const SafeLink = Link as any;
 ;
 import { useMemo, useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
 import {
  Archive,
  Bell,
@@ -134,12 +135,12 @@ export default function AdminMessagesPage() {
  
  useEffect(() => {
  setLoading(true);
- const qRef = query(collection(db, "schools", schoolId, "messages"), orderBy("createdAt", "desc"));
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const list: MessageRow[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "messages"), sortBy("createdAt", "desc"));
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const list: MessageRow[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  senderName: data.sender || "Admin",
  senderDept: data.recipient || "General",
  subject: data.subject || "No Subject",

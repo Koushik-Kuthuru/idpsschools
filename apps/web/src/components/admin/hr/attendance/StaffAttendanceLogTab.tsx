@@ -27,6 +27,7 @@ export default function StaffAttendanceLogTab({ presentDates = [], absentDates =
   }, [presentDates, absentDates]);
 
   // Generate calendar dates for the current month
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
@@ -35,7 +36,15 @@ export default function StaffAttendanceLogTab({ presentDates = [], absentDates =
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
 
   const calendarDays = useMemo(() => {
-    const days = [];
+    type CalendarDay =
+      | {
+          day: number;
+          date: string;
+          status: string;
+          isToday: boolean;
+        }
+      | null;
+    const days: CalendarDay[] = [];
     for (let i = 0; i < firstDayOfMonth; i++) {
       days.push(null);
     }
@@ -100,7 +109,7 @@ export default function StaffAttendanceLogTab({ presentDates = [], absentDates =
       <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
         <h3 className="text-base font-bold text-gray-900 mb-4">{monthName} Overview</h3>
         <div className="grid grid-cols-7 gap-2">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d: any) => (
             <div key={d} className="text-center text-xs font-bold text-gray-500 py-2">
               {d}
             </div>

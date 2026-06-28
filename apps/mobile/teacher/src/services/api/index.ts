@@ -1,13 +1,9 @@
 export { apiClient } from './client';
 export * from './mockData';
 import { mockApi as originalMockApi } from './mockApi';
-import { fbAuth } from '../../lib/firebase';
-import { signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { clearCurrentUserEmail, setCurrentUserEmail } from './userProfile';
-
-import { collection, getDocs, query, doc, setDoc } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { clearCurrentUserEmail } from './userProfile';
+import { buildPath, fetchMany, buildQuery, upsertData, db } from '@/lib/db-client';
 import type { AttendanceStatus } from '@/types';
 
 const useMock = false;
@@ -15,20 +11,9 @@ const useMock = false;
 export const authService = {
   login: async (email: string, password: string) => {
     return originalMockApi.auth.login(email, password);
-    
-    try {
-      const userCredential = await signInWithEmailAndPassword(fbAuth, email, password);
-      const token = await userCredential.user.getIdToken();
-      await AsyncStorage.setItem('auth_token', token);
-      await setCurrentUserEmail(email.toLowerCase());
-      return { token, requiresOtp: false };
-    } catch (error: any) {
-      throw new Error(error.message || 'Invalid credentials');
-    }
   },
   logout: async () => {
     if (useMock) return originalMockApi.auth.logout();
-    await signOut(fbAuth);
     await AsyncStorage.removeItem('auth_token');
     await clearCurrentUserEmail();
   },
@@ -46,10 +31,10 @@ export const mockApi = {
     ...originalMockApi.attendance,
     getSession: async () => {
       try {
-        const q = query(collection(db, "schools", "idpscherukupalli", "students"));
-        const snap = await getDocs(q);
-        return snap.docs.map(doc => {
-          const data = doc.data();
+        const q = buildQuery(buildPath(db, "schools", "idpscherukupalli", "students"));
+        const snap = await fetchMany(q);
+        return snap.docs.map((docSnap) => {
+          const data = docSnap.data() as Record<string, any>;
           const date = new Date().toISOString().split('T')[0];
           let status: AttendanceStatus = 'present';
           if (data.attendance?.absentDates?.includes(date)) {
@@ -58,7 +43,7 @@ export const mockApi = {
             status = 'late';
           }
           return {
-            id: doc.id,
+            id: docSnap.id,
             name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || data.username || 'Unnamed',
             rollNo: String(data.rollNumber || '-'),
             className: data.classId || '10-A',
@@ -75,13 +60,13 @@ export const mockApi = {
     submit: async (records: { studentId: string; status: AttendanceStatus }[], classId?: string) => {
       try {
         const date = new Date().toISOString().split('T')[0];
-        const studentDoc = await getDocs(query(collection(db, "schools", "idpscherukupalli", "students")));
+        const studentDoc = await fetchMany(buildQuery(buildPath(db, "schools", "idpscherukupalli", "students")));
         
         const promises = records.map(async (record) => {
-          const studentRef = doc(db, "schools", "idpscherukupalli", "students", record.studentId);
-          const docSnapshot = studentDoc.docs.find(d => d.id === record.studentId);
+          const studentRef = buildPath(db, "schools", "idpscherukupalli", "students", record.studentId);
+          const docSnapshot = studentDoc.docs.find((d) => d.id === record.studentId);
           if (!docSnapshot) return;
-          const data = docSnapshot.data();
+          const data = docSnapshot.data() as Record<string, any>;
           
           let presentDates: string[] = data.attendance?.presentDates || [];
           let absentDates: string[] = data.attendance?.absentDates || [];
@@ -99,15 +84,15 @@ export const mockApi = {
             lateDates.push(date);
           }
           
-          await setDoc(studentRef, {
+          await upsertData(studentRef, {
             attendance: {
-              ...data.attendance,
+              ...(data.attendance as Record<string, unknown>),
               presentDates,
               absentDates,
               lateDates,
-              lastUpdated: new Date().toISOString()
-            }
-          }, { merge: true });
+              lastUpdated: new Date().toISOString(),
+            },
+          });
         });
         
         await Promise.all(promises);

@@ -16,8 +16,10 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, getDocs, query, orderBy, limit, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchMany, buildQuery, sortBy, limitTo, filterBy, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -33,14 +35,14 @@ export default function AuditLogsPage() {
   useEffect(() => {
     async function fetchLogs() {
       try {
-        const logsSnapshot = await getDocs(
-          query(collection(db, "audit_logs"), orderBy("createdAt", "desc"), limit(100))
+        const logsSnapshot = await fetchMany(
+          buildQuery(buildPath(db, "audit_logs"), sortBy("createdAt", "desc"), limitTo(100))
         );
-        const logsData = logsSnapshot.docs.map((doc) => {
-          const data = doc.data();
+        const logsData = logsSnapshot.docs.map((buildPath) => {
+          const data = buildPath.data();
           const timestamp = data.createdAt?.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
           return {
-            id: doc.id,
+            id: buildPath.id,
             action: data.action || "Unknown Action",
             entity: data.entity || "N/A",
             user: data.userName || "System",

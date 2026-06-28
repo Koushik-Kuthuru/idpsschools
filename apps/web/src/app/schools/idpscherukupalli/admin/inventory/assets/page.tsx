@@ -4,8 +4,8 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { Download, Search, Filter, Plus, FileText, ChevronRight, CheckCircle2, AlertCircle, Laptop, Projector, BookOpen, Sofa, CalendarDays, ShieldCheck , Trash2, Eye} from "lucide-react";
 import Link from "next/link";
 const SafeLink = Link as any;
@@ -15,6 +15,8 @@ import { twMerge } from "tailwind-merge";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -84,12 +86,12 @@ export default function AdminAssetsPage() {
  useEffect(() => {
  setLoading(true);
  setLoadError(null);
- const qRef = query(collection(db, "schools", schoolId, "assets"), orderBy("createdAt", "desc"));
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const mapped: AssetRecord[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "assets"), sortBy("createdAt", "desc"));
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const mapped: AssetRecord[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  name: data.name || "Unknown",
  category: data.category || "Unknown",
  location: data.location || "-",
@@ -100,7 +102,7 @@ export default function AdminAssetsPage() {
  });
  setRecords(mapped);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading assets:", err);
  setLoadError("Failed to load assets.");
  setLoading(false);
@@ -128,7 +130,7 @@ export default function AdminAssetsPage() {
 
  const categoryOptions = useMemo(() => {
  const cats = Array.from(new Set(assets.map((a) => a.category).filter(Boolean)));
- cats.sort((a, b) => a.localeCompare(b));
+ cats.sort((a: any, b: any) => a.localeCompare(b));
  return ["All Categories", ...cats];
  }, [assets]);
 
@@ -138,7 +140,7 @@ export default function AdminAssetsPage() {
 
  const filteredAssets = useMemo(() => {
  const q = queryInput.trim().toLowerCase();
- return assets.filter((a) => {
+ return assets.filter((a: any) => {
  const matchQ = !q || a.name.toLowerCase().includes(q) || a.id.toLowerCase().includes(q);
  const matchCategory = categoryFilter === "All Categories" || a.category === categoryFilter;
  const matchStatus = statusFilter === "All Status" || a.status === statusFilter;
@@ -160,8 +162,8 @@ export default function AdminAssetsPage() {
  const stats = useMemo(() => {
  const totalAssets = assets.length;
  const totalValue = assets.reduce((sum, a) => sum + Number(String(a.cost).replace(/[^\d.]/g, "") || 0), 0);
- const activeAssets = assets.filter((a) => a.status === "Active").length;
- const disposedAssets = assets.filter((a) => a.status === "Disposed").length;
+ const activeAssets = assets.filter((a: any) => a.status === "Active").length;
+ const disposedAssets = assets.filter((a: any) => a.status === "Disposed").length;
  return {
  totalAssets,
  totalValue: `₹${totalValue.toLocaleString("en-IN")}`,

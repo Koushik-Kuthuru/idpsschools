@@ -2,6 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { Search, Bell, Menu } from "lucide-react";
 import { navigation } from "./navigation";
 
@@ -11,6 +12,7 @@ interface HeaderProps {
 
 export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   const pathname = usePathname();
+  const { user, role } = useAuth();
 
   return (
     <header className="h-20 bg-white/95 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-30 px-6 flex items-center justify-between transition-all duration-300">
@@ -49,8 +51,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
 
             <div className="hidden sm:flex items-center gap-3 cursor-pointer group">
                  <div className="text-right">
-                    <p className="text-xs font-bold text-gray-800 group-hover:text-[#144835] transition-colors">James Anderson</p>
-                    <p className="text-xs text-gray-500">School Admin</p>
+                    <p className="text-xs font-bold text-gray-800 group-hover:text-[#144835] transition-colors">{user?.displayName || "Admin"}</p>
+                    <p className="text-xs text-gray-500 uppercase">{role === "teacher" ? "Teacher" : "Staff"}</p>
                 </div>
                 <div className="relative">
                      <div className="h-10 w-10 rounded-full bg-[#144835] text-white flex items-center justify-center font-bold border-2 border-white shadow-sm group-hover:border-[#a2c144] transition-colors">

@@ -1,7 +1,9 @@
 "use client";
+import { insertData, buildPath, getTimestamp, db, auth } from "@/lib/db-client";
 
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+
+
+
 
 export type AuditLogStatus = "Success" | "Failed" | "Warning";
 
@@ -28,9 +30,9 @@ export async function logAuditEvent(event: AuditLogEvent) {
     userEmail: user?.email ?? "Unknown",
     role: event.role ?? null,
     metadata: event.metadata ?? {},
-    createdAt: serverTimestamp(),
+    createdAt: getTimestamp(),
   };
 
-  await addDoc(collection(db, "audit_logs"), payload);
+  await insertData(buildPath(db, "audit_logs"), payload);
 }
 

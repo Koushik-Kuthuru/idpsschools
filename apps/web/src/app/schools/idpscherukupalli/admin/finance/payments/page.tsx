@@ -10,9 +10,11 @@ const SafeLink = Link as any;
 import { Plus, Search, Filter, Download, CreditCard, Banknote, History, CheckCircle2, TrendingUp, IndianRupee, ChevronRight } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -53,12 +55,12 @@ export default function AdminPaymentsPage() {
  setLoading(true);
  setLoadError(null);
 
- const qRef = query(collection(db, "schools", schoolId, "payments"), orderBy("createdAt", "desc"));
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const list: PaymentRow[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "payments"), sortBy("createdAt", "desc"));
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const list: PaymentRow[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  date: data.date ? new Date(data.date).toLocaleDateString('en-IN') : "-",
  student: data.studentName || "Unknown Student",
  invoiceId: data.invoiceId || "-",
@@ -69,7 +71,7 @@ export default function AdminPaymentsPage() {
  });
  setPayments(list);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading payments:", err);
  setLoadError("Failed to load payments. Check permissions.");
  setLoading(false);
@@ -236,7 +238,7 @@ export default function AdminPaymentsPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No payment records found</p>
- <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search buildQuery.</p>
  </td>
  </tr>
  )}

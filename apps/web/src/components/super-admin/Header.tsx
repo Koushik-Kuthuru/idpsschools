@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, Bell, Menu, LogOut } from "lucide-react";
 import { navigation } from "./navigation";
-import { auth, db } from "@/lib/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+
+
 import { useAuth } from "@/contexts/AuthContext";
+import { auth, db, buildPath, subscribeData } from "@/lib/db-client";
+
 
 interface HeaderProps {
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -32,10 +34,10 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
       setDisplayName("");
       return;
     }
-    const ref = doc(db, "super_admin_users", user.uid);
-    const unsub = onSnapshot(
+    const ref = buildPath(db, "super_admin_users", user.uid);
+    const unsub = subscribeData(
       ref,
-      (snap) => {
+      (snap: any) => {
         const data = snap.exists() ? (snap.data() as any) : {};
         setDisplayName(String(data.name ?? user.displayName ?? user.email ?? ""));
       },

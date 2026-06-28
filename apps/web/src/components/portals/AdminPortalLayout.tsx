@@ -9,6 +9,7 @@ import Sidebar from "@/components/admin/Sidebar";
 import Header from "@/components/admin/Header";
 import AdminStandaloneShell from "@/components/admin/AdminStandaloneShell";
 import { BranchProvider } from "@/components/admin/BranchContext";
+import { AcademicYearProvider } from "@/contexts/AcademicYearContext";
 import { isAdminStandaloneRoute } from "@/lib/admin-layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import SchoolRouteGuard from "@/components/auth/SchoolRouteGuard";
@@ -26,11 +27,6 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
   const isSettingsRoute = /\/admin\/.*settings(?:\/|$)/.test(pathname || "");
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isSettingsRoute);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -39,15 +35,11 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
     }
   }, [pathname, isSettingsRoute]);
 
-  if (!mounted) return null;
-
-  // The standalone shell check has been removed as the user requested
-  // the real sidebar to be present (but default minimized) on settings pages.
-
   return (
     <SchoolRouteGuard schoolId={schoolId}>
       <ProtectedRoute allowedRoles={ADMIN_LAYOUT_ALLOWED_ROLES} requiredSchoolId={schoolId}>
         <BranchProvider>
+          <AcademicYearProvider schoolSlug={schoolId}>
           <AdminNotificationsProvider>
             <div className="min-h-screen bg-[#F8FAFB] flex">
               {isMobileMenuOpen && (
@@ -71,12 +63,13 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
                 )}
               >
                 <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
-                <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-hidden p-4 sm:p-4 lg:p-8">
+                <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-clip p-4 sm:p-4 lg:p-8">
                   {children}
                 </main>
               </div>
             </div>
           </AdminNotificationsProvider>
+          </AcademicYearProvider>
         </BranchProvider>
       </ProtectedRoute>
     </SchoolRouteGuard>

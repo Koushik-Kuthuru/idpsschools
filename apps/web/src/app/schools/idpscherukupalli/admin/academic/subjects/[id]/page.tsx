@@ -9,8 +9,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Edit3, ListChecks } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchOne, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -59,8 +61,8 @@ export default function AdminSubjectDetailPage({
  try {
  setError(null);
  setLoading(true);
- const docRef = doc(db, "schools", schoolId, "subjects", id);
- const snap = await getDoc(docRef);
+ const docRef = buildPath(db, "schools", schoolId, "subjects", id);
+ const snap = await fetchOne(docRef);
  
  if (snap.exists()) {
  const data = snap.data();

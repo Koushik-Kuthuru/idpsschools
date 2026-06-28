@@ -6,11 +6,7 @@
     "apps/mobile/student",
     "apps/mobile/teacher"
   ],
-  "dependencies": {
-    "patch-package": "^8.0.1"
-  },
   "scripts": {
-    "postinstall": "patch-package",
     "predev": "node scripts/clear-expo-cache.mjs",
     "dev": "turbo dev",
     "dev:web": "turbo dev --filter=educational-erp-web",
@@ -19,7 +15,12 @@
     "dev:student:native": "npm run dev:native --workspace=erp-school-app",
     "dev:teacher": "npm run dev:all --workspace=idps-management-erp",
     "ios": "turbo ios",
-    "android": "turbo android"
+    "android": "turbo android",
+    "import:abc-students-2026-27": "node scripts/import-abc-students.mjs --year 2026-27 --file \"data/abc-2.xlsx\"",
+    "import:abc-students-2022-23": "node scripts/import-abc-students.mjs --year 2022-23 --file \"data/abc-3.xlsx\"",
+    "import:abc-students-2023-24": "node scripts/import-abc-students.mjs --year 2023-24 --file \"data/abc-4.xlsx\"",
+    "import:abc-students-2024-25": "node scripts/import-abc-students.mjs --year 2024-25 --file \"data/abc-5.xlsx\"",
+    "import:abc-students-2025-26": "node scripts/import-abc-students.mjs --year 2025-26 --file \"data/abc-6.xlsx\""
   },
   "devDependencies": {
     "supabase": "^2.106.0",

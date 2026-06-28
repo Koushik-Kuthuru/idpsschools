@@ -6,10 +6,12 @@ import Link from "next/link";
 const SafeLink = Link as any;
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { ArrowLeft, Save, User, Heart, Building, Users, Home, BookOpen, HelpCircle, Upload, CheckCircle2 } from "lucide-react";
-import { collection, addDoc, getDocs, query, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { provisionPortalUser } from "@/lib/auth/provision-client";
 import { studentLoginEmail } from "@/lib/auth/roles";
+import { buildPath, insertData, fetchMany, buildQuery, patchData, db, auth } from "@/lib/db-client";
+
 
 // Tooltip Component
 const TooltipIcon = ({ text }: { text?: string }) => {
@@ -103,9 +105,16 @@ const Checkbox = ({ label, checked, onChange, tooltip }: any) => (
   </label>
 );
 
-export default function NewStudentForm() {
+type NewStudentFormProps = {
+  listHref?: string;
+  allowedClassKeys?: string[];
+};
+
+export default function NewStudentForm({ listHref, allowedClassKeys }: NewStudentFormProps = {}) {
     const schoolId = useSchoolId();
   const router = useRouter();
+  const studentsListHref = listHref ?? `/schools/${schoolId}/admin/academic/students`;
+  const restrictClasses = Boolean(allowedClassKeys?.length);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [provisionInfo, setProvisionInfo] = useState<string | null>(null);
@@ -162,24 +171,33 @@ export default function NewStudentForm() {
   useEffect(() => {
     async function loadClasses() {
       try {
-        const snap = await getDocs(query(collection(db, "schools", schoolId, "classes")));
+        const snap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "classes")));
         const map = new Map<string, Set<string>>();
-        snap.forEach(doc => {
-          const d = doc.data();
+        snap.forEach((buildPath: any) => {
+          const d = buildPath.data();
           const g = d.grade || d.name;
           if (g) {
             if (!map.has(g)) map.set(g, new Set());
             if (d.section) map.get(g)!.add(d.section);
           }
         });
-        const clsList = Array.from(map.entries()).map(([g, s]) => ({ grade: g, sections: Array.from(s) }));
+        let clsList = Array.from(map.entries()).map(([g, s]) => ({ grade: g, sections: Array.from(s) }));
+        if (restrictClasses && allowedClassKeys?.length) {
+          const allowed = new Set(allowedClassKeys);
+          clsList = clsList
+            .map((c) => ({
+              grade: c.grade,
+              sections: c.sections.filter((sec) => allowed.has(`${c.grade}__${String(sec).toUpperCase()}`)),
+            }))
+            .filter((c) => c.sections.length > 0);
+        }
         setClasses(clsList);
       } catch (e) {
         console.error("Failed to load classes", e);
       }
     }
     loadClasses();
-  }, [schoolId]);
+  }, [schoolId, restrictClasses, allowedClassKeys]);
 
   const currentSections = useMemo(() => {
     return classes.find(c => c.grade === formData.grade)?.sections || [];
@@ -214,6 +232,14 @@ export default function NewStudentForm() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+    if (restrictClasses && allowedClassKeys?.length) {
+      const selectedKey = `${formData.grade}__${String(formData.section || "").toUpperCase()}`;
+      if (!allowedClassKeys.includes(selectedKey)) {
+        setError("You can only add students to your assigned class sections.");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    }
     try {
       setSaving(true);
       const username = `std_${formData.formNo || formData.registrationNo}`.toLowerCase();
@@ -233,7 +259,7 @@ export default function NewStudentForm() {
         createdAt: new Date().toISOString()
       };
 
-      const docRef = await addDoc(collection(db, "schools", schoolId, "students"), payload);
+      const docRef = await insertData(buildPath(db, "schools", schoolId, "students"), payload);
 
       const provision = await provisionPortalUser({
         type: "student",
@@ -246,7 +272,7 @@ export default function NewStudentForm() {
       });
 
       if (provision.ok && provision.uid) {
-        await updateDoc(doc(db, "schools", schoolId, "students", docRef.id), {
+        await patchData(buildPath(db, "schools", schoolId, "students", docRef.id), {
           authUid: provision.uid,
           loginEmail: provision.loginEmail || provision.email,
           portalProvisioned: true,
@@ -258,7 +284,7 @@ export default function NewStudentForm() {
         setProvisionInfo(`Student saved. Portal auto-login pending: ${provision.error}`);
       }
 
-      router.push(`/schools/${schoolId}/admin/academic/students`);
+      router.push(studentsListHref);
     } catch (e: any) {
       setError(e.message || "Unknown error occurred while adding student.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -310,7 +336,7 @@ export default function NewStudentForm() {
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
         <div>
-          <SafeLink href={`/schools/${schoolId}/admin/academic/students`} className="inline-flex items-center gap-2 px-1 text-gray-500 hover:text-gray-900 transition-colors mb-2 text-xs font-bold uppercase tracking-wider">
+          <SafeLink href={studentsListHref} className="inline-flex items-center gap-2 px-1 text-gray-500 hover:text-gray-900 transition-colors mb-2 text-xs font-bold uppercase tracking-wider">
             <ArrowLeft size={14} /> Back to Student List
           </SafeLink>
           <h1 className="text-xl font-bold tracking-tight text-gray-900 uppercase">New Admission</h1>

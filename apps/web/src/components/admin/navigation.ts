@@ -1,6 +1,7 @@
 import { ROLE_NAV_GROUPS, type UserRole } from "@/lib/auth/roles";
 import {
   BookOpen,
+  Bus,
   CalendarCheck,
   Calendar,
   CalendarDays,
@@ -10,6 +11,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   Receipt,
+  User,
   Users,
   Wallet,
 } from "lucide-react";
@@ -49,6 +51,17 @@ export function buildNavGroups(schoolId: string): NavGroup[] {
         { name: "Classes",    href: `${base}/academic/classes`,    icon: BookOpen },
         { name: "Timetable",  href: `${base}/academic/timetable`,  icon: Calendar },
         { name: "Calendar",   href: `${base}/academic/calendar`,   icon: CalendarDays },
+      ],
+    },
+    {
+      id: "transport",
+      name: "Transport",
+      icon: Bus,
+      items: [
+        { name: "Buses & Routes", href: `${base}/transport`, icon: Bus },
+        { name: "Student List", href: `${base}/transport/students`, icon: Users },
+        { name: "Drivers", href: `${base}/transport/drivers`, icon: User },
+        { name: "Student Attendance", href: `${base}/transport/attendance`, icon: CalendarCheck },
       ],
     },
     {

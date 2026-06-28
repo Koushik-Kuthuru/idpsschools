@@ -26,8 +26,8 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, doc, limit, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import {
   computeStudentAttendancePercent,
   computeTodayStudentAttendancePercent,
@@ -48,6 +48,11 @@ import {
   type LiveActivity,
 } from "@/lib/adminDashboardLive";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
+import { useBranchTransportBuses } from "@/hooks/useBranchTransportBuses";
+import { useBranchTransportStudents } from "@/hooks/useBranchTransportStudents";
+import { buildPath, limitTo, subscribeData, sortBy, buildQuery, patchData, filterBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -107,7 +112,12 @@ type AdminDashboardProps = {
 export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const base = `/schools/${schoolId}/admin`;
   const { user } = useAuth();
+  const { currentYear } = useAcademicYear();
+  const { buses } = useBranchTransportBuses(schoolId);
+  const { usingTransport } = useBranchTransportStudents(schoolId, currentYear?.name);
   const [now, setNow] = useState(() => new Date());
+  const [transportAttendHasMarks, setTransportAttendHasMarks] = useState(false);
+  const [transportDriversPresent, setTransportDriversPresent] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -164,11 +174,46 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   }, [studentDocs, holidays]);
 
   useEffect(() => {
+    const yearName = currentYear?.name;
+    if (!schoolId || !yearName) {
+      setTransportAttendHasMarks(false);
+      setTransportDriversPresent(0);
+      return;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const params = new URLSearchParams({ schoolId, academicYear: yearName, date: today });
+    let cancelled = false;
+
+    fetch(`/api/admin/transport/driver-attendance?${params.toString()}`)
+      .then((res) => res.json().catch(() => ({})))
+      .then((data) => {
+        if (cancelled) return;
+        const marks = (data.marks ?? {}) as Record<string, { status?: string }>;
+        const hasMarks = Object.values(marks).some(
+          (m) => m?.status === "P" || m?.status === "A" || m?.status === "HD"
+        );
+        setTransportAttendHasMarks(hasMarks);
+        setTransportDriversPresent(Object.values(marks).filter((m) => m?.status === "P").length);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setTransportAttendHasMarks(false);
+          setTransportDriversPresent(0);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [schoolId, currentYear?.name]);
+
+  useEffect(() => {
     const unsubs: (() => void)[] = [];
     const today = new Date().toISOString().split("T")[0];
 
     unsubs.push(
-      onSnapshot(doc(db, "schools", schoolId), (snap) => {
+      subscribeData(buildPath(db, "schools", schoolId), (snap: any) => {
         const facilities = snap.data()?.facilities;
         setSchoolFacilities(Array.isArray(facilities) ? (facilities as string[]) : []);
         setDataReady(true);
@@ -176,17 +221,17 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        collection(db, "schools", schoolId, "buses"),
-        (snap) => setFleetBusCount(snap.size),
+      subscribeData(
+        buildPath(db, "schools", schoolId, "buses"),
+        (snap: any) => setFleetBusCount(snap.size),
         () => setFleetBusCount(0)
       )
     );
 
     unsubs.push(
-      onSnapshot(
-        collection(db, "schools", schoolId, "routes"),
-        (snap) => {
+      subscribeData(
+        buildPath(db, "schools", schoolId, "routes"),
+        (snap: any) => {
           const active = snap.docs.filter(
             (d) => String((d.data() as Record<string, unknown>).status ?? "Active") !== "Inactive"
           ).length;
@@ -197,12 +242,12 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        collection(db, "schools", schoolId, "drivers"),
-        (snap) => {
+      subscribeData(
+        buildPath(db, "schools", schoolId, "drivers"),
+        (snap: any) => {
           const total = snap.size;
           let present = 0;
-          snap.docs.forEach((d) => {
+          snap.docs.forEach((d: any) => {
             const data = d.data() as Record<string, unknown>;
             if (
               data.presentToday === true ||
@@ -223,12 +268,12 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        collection(db, "schools", schoolId, "hostel_rooms"),
-        (snap) => {
+      subscribeData(
+        buildPath(db, "schools", schoolId, "hostel_rooms"),
+        (snap: any) => {
           let total = 0;
           let occupied = 0;
-          snap.docs.forEach((d) => {
+          snap.docs.forEach((d: any) => {
             const data = d.data() as Record<string, unknown>;
             const beds = Number(data.totalBeds ?? data.capacity ?? data.beds ?? 0);
             const occ = Number(data.occupiedBeds ?? data.occupied ?? 0);
@@ -246,50 +291,50 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(collection(db, "schools", schoolId, "students"), (snap) => {
+      subscribeData(buildPath(db, "schools", schoolId, "students"), (snap: any) => {
         setStudentCount(snap.size);
-        setStudentDocs(snap.docs.map((d) => d.data() as Record<string, unknown>));
+        setStudentDocs(snap.docs.map((d: any) => d.data() as Record<string, unknown>));
         const studentFeed = snap.docs
-          .map((d) => mapStudentDoc(d.id, d.data() as Record<string, unknown>, base))
+          .map((d: any) => mapStudentDoc(d.id, d.data() as Record<string, unknown>, base))
           .filter((x): x is LiveActivity => x !== null)
-          .sort((a, b) => b.ts - a.ts)
+          .sort((a: any, b: any) => b.ts - a.ts)
           .slice(0, 3);
         setFeedBucket("students", studentFeed);
       })
     );
 
     unsubs.push(
-      onSnapshot(collection(db, "schools", schoolId, "teachers"), (snap) => setTeacherCount(snap.size), () => setTeacherCount(0))
+      subscribeData(buildPath(db, "schools", schoolId, "teachers"), (snap: any) => setTeacherCount(snap.size), () => setTeacherCount(0))
     );
     unsubs.push(
-      onSnapshot(
-        collection(db, "schools", schoolId, "teaching_staff"),
-        (snap) => setTeachingStaffCount(snap.size),
+      subscribeData(
+        buildPath(db, "schools", schoolId, "teaching_staff"),
+        (snap: any) => setTeachingStaffCount(snap.size),
         () => setTeachingStaffCount(0)
       )
     );
     unsubs.push(
-      onSnapshot(
-        collection(db, "schools", schoolId, "non_teaching_staff"),
-        (snap) => setNonTeachingCount(snap.size),
+      subscribeData(
+        buildPath(db, "schools", schoolId, "non_teaching_staff"),
+        (snap: any) => setNonTeachingCount(snap.size),
         () => setNonTeachingCount(0)
       )
     );
-    unsubs.push(onSnapshot(collection(db, "schools", schoolId, "classes"), (snap) => setClassCount(snap.size)));
+    unsubs.push(subscribeData(buildPath(db, "schools", schoolId, "classes"), (snap: any) => setClassCount(snap.size)));
 
     unsubs.push(
-      onSnapshot(collection(db, "schools", schoolId, "holidays"), (snap) => {
-        setHolidays(snap.docs.map((d) => String((d.data() as Record<string, unknown>).date ?? "")).filter(Boolean));
+      subscribeData(buildPath(db, "schools", schoolId, "holidays"), (snap: any) => {
+        setHolidays(snap.docs.map((d: any) => String((d.data() as Record<string, unknown>).date ?? "")).filter(Boolean));
       })
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "payments"), orderBy("createdAt", "desc"), limit(15)),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "payments"), sortBy("createdAt", "desc"), limitTo(15)),
+        (snap: any) => {
           let monthTotal = 0;
           let allTime = 0;
-          snap.docs.forEach((d) => {
+          snap.docs.forEach((d: any) => {
             const data = d.data() as Record<string, unknown>;
             const amount = Number(data.amount) || 0;
             const status = String(data.status ?? "Completed");
@@ -303,7 +348,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
           setFeedBucket(
             "payments",
             snap.docs
-              .map((d) => mapPaymentDoc(d.id, d.data() as Record<string, unknown>, base))
+              .map((d: any) => mapPaymentDoc(d.id, d.data() as Record<string, unknown>, base))
               .filter((x): x is LiveActivity => x !== null)
               .slice(0, 5)
           );
@@ -317,12 +362,12 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "invoices"), orderBy("createdAt", "desc"), limit(50)),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "invoices"), sortBy("createdAt", "desc"), limitTo(50)),
+        (snap: any) => {
           let due = 0;
           let target = 0;
-          snap.docs.forEach((d) => {
+          snap.docs.forEach((d: any) => {
             const data = d.data() as Record<string, unknown>;
             const amount = Number(data.amount) || 0;
             const paid = Number(data.amountPaid) || 0;
@@ -340,10 +385,10 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(collection(db, "schools", schoolId, "fee_collections"), (snap) => {
+      subscribeData(buildPath(db, "schools", schoolId, "fee_collections"), (snap: any) => {
         let collected = 0;
         let expected = 0;
-        snap.docs.forEach((d) => {
+        snap.docs.forEach((d: any) => {
           const data = d.data() as Record<string, unknown>;
           collected += Number(data.collected) || 0;
           expected += Number(data.expected) || 0;
@@ -357,18 +402,18 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "events"), orderBy("date", "asc"), limit(20)),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "events"), sortBy("date", "asc"), limitTo(20)),
+        (snap: any) => {
           const upcoming = snap.docs
-            .map((d) => ({ id: d.id, ...d.data() } as { id: string; date?: unknown }))
+            .map((d: any) => ({ id: d.id, ...d.data() } as { id: string; date?: unknown }))
             .filter((ev) => isUpcomingEvent(ev.date, today))
             .slice(0, 3);
           setEvents(upcoming);
           setFeedBucket(
             "events",
             snap.docs
-              .map((d) => mapEventCreatedDoc(d.id, d.data() as Record<string, unknown>, base))
+              .map((d: any) => mapEventCreatedDoc(d.id, d.data() as Record<string, unknown>, base))
               .filter((x): x is LiveActivity => x !== null)
               .slice(0, 5)
           );
@@ -381,13 +426,13 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "leaves"), orderBy("createdAt", "desc"), limit(15)),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "leaves"), sortBy("createdAt", "desc"), limitTo(15)),
+        (snap: any) => {
           setFeedBucket(
             "leaves",
             snap.docs
-              .map((d) => mapLeaveDoc(d.id, d.data() as Record<string, unknown>, base))
+              .map((d: any) => mapLeaveDoc(d.id, d.data() as Record<string, unknown>, base))
               .filter((x): x is LiveActivity => x !== null)
               .slice(0, 5)
           );
@@ -401,7 +446,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                 return start <= today && end >= today;
               })
               .slice(0, 5)
-              .map((d) => {
+              .map((d: any) => {
                 const data = d.data() as Record<string, string>;
                 const name = data.employeeName ?? data.name ?? "Staff";
                 return {
@@ -426,11 +471,11 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "leaves"), where("status", "==", "Pending")),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "leaves"), filterBy("status", "==", "Pending")),
+        (snap: any) => {
           const items = snap.docs
-            .map((d) => {
+            .map((d: any) => {
               const data = d.data() as Record<string, unknown>;
               return {
                 id: d.id,
@@ -440,7 +485,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                 ts: toMillis(data.createdAt),
               };
             })
-            .sort((a, b) => b.ts - a.ts);
+            .sort((a: any, b: any) => b.ts - a.ts);
           setPendingLeaveQueue(items);
           setPendingLeaves(snap.size);
         },
@@ -452,13 +497,13 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "expenses"), orderBy("createdAt", "desc"), limit(15)),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "expenses"), sortBy("createdAt", "desc"), limitTo(15)),
+        (snap: any) => {
           setFeedBucket(
             "expenses",
             snap.docs
-              .map((d) => mapExpenseDoc(d.id, d.data() as Record<string, unknown>, base))
+              .map((d: any) => mapExpenseDoc(d.id, d.data() as Record<string, unknown>, base))
               .filter((x): x is LiveActivity => x !== null)
               .slice(0, 5)
           );
@@ -468,11 +513,11 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "expenses"), where("status", "==", "Pending")),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "expenses"), filterBy("status", "==", "Pending")),
+        (snap: any) => {
           const items = snap.docs
-            .map((d) => {
+            .map((d: any) => {
               const data = d.data() as Record<string, unknown>;
               const amount = Number(data.amount) || 0;
               return {
@@ -483,7 +528,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                 ts: toMillis(data.createdAt),
               };
             })
-            .sort((a, b) => b.ts - a.ts);
+            .sort((a: any, b: any) => b.ts - a.ts);
           setPendingExpenseQueue(items);
           setPendingExpenses(snap.size);
         },
@@ -495,13 +540,13 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "applications"), orderBy("createdAt", "desc"), limit(15)),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "applications"), sortBy("createdAt", "desc"), limitTo(15)),
+        (snap: any) => {
           setFeedBucket(
             "applications",
             snap.docs
-              .map((d) => mapApplicationDoc(d.id, d.data() as Record<string, unknown>, base))
+              .map((d: any) => mapApplicationDoc(d.id, d.data() as Record<string, unknown>, base))
               .filter((x): x is LiveActivity => x !== null)
               .slice(0, 5)
           );
@@ -511,15 +556,15 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "applications"), orderBy("createdAt", "desc")),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "applications"), sortBy("createdAt", "desc")),
+        (snap: any) => {
           const items = snap.docs
             .filter((d) => {
               const status = String((d.data() as Record<string, unknown>).status ?? "");
               return status === "Submitted" || status === "Verification";
             })
-            .map((d) => {
+            .map((d: any) => {
               const data = d.data() as Record<string, unknown>;
               const status = String(data.status) as "Submitted" | "Verification";
               return {
@@ -531,7 +576,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                 ts: toMillis(data.createdAt),
               };
             })
-            .sort((a, b) => b.ts - a.ts);
+            .sort((a: any, b: any) => b.ts - a.ts);
           setPendingApplicationQueue(items);
           setPendingApplications(items.length);
         },
@@ -543,13 +588,13 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     );
 
     unsubs.push(
-      onSnapshot(
-        query(collection(db, "schools", schoolId, "messages"), orderBy("createdAt", "desc"), limit(10)),
-        (snap) => {
+      subscribeData(
+        buildQuery(buildPath(db, "schools", schoolId, "messages"), sortBy("createdAt", "desc"), limitTo(10)),
+        (snap: any) => {
           setFeedBucket(
             "messages",
             snap.docs
-              .map((d) => mapMessageDoc(d.id, d.data() as Record<string, unknown>, base))
+              .map((d: any) => mapMessageDoc(d.id, d.data() as Record<string, unknown>, base))
               .filter((x): x is LiveActivity => x !== null)
               .slice(0, 5)
           );
@@ -576,11 +621,42 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
 
   const transportHostel = useMemo(() => {
     const derived = computeTransportHostelMetrics(studentDocs, now.getMonth());
-    const totalBuses = fleetBusCount || derived.busNos.size;
-    const activeRoutes = fleetRouteCount || derived.routeNames.size;
-    const driversAssigned = driverTotal || derived.driversAssigned;
+    const monthIndex = now.getMonth();
+
+    const activeFleetBuses = buses.filter((b) => b.status === "Active");
+    const fleetRoutes = new Set(activeFleetBuses.map((b) => b.route).filter(Boolean));
+    const fleetDrivers = new Set(
+      usingTransport.map((s) => s.driverName?.trim()).filter((n): n is string => Boolean(n && n !== "—"))
+    );
+
+    const totalBuses =
+      activeFleetBuses.length > 0 ? activeFleetBuses.length : fleetBusCount || derived.busNos.size;
+    const activeRoutes =
+      fleetRoutes.size > 0 ? fleetRoutes.size : fleetRouteCount || derived.routeNames.size;
+    const studentsUsingTransport =
+      usingTransport.length > 0 ? usingTransport.length : derived.studentsUsingTransport;
+    const driversAssigned =
+      fleetDrivers.size > 0 ? fleetDrivers.size : driverTotal || derived.driversAssigned;
+
+    const driverPresentCount =
+      fleetDrivers.size > 0 && transportAttendHasMarks
+        ? transportDriversPresent
+        : transportAttendHasMarks
+          ? 0
+          : driverPresent;
     const driverAttendancePct =
-      driversAssigned > 0 ? Math.round((driverPresent / driversAssigned) * 100) : 0;
+      driversAssigned > 0 && (transportAttendHasMarks || driverPresent > 0)
+        ? Math.round((driverPresentCount / driversAssigned) * 100)
+        : 0;
+
+    const supabaseTransportFeePending = usingTransport.reduce((sum, student) => {
+      const fees = student.transportFees;
+      if (!Array.isArray(fees) || fees.length === 0) return sum;
+      return sum + (fees[monthIndex] || 0);
+    }, 0);
+    const transportFeePending =
+      usingTransport.length > 0 ? supabaseTransportFeePending : derived.transportFeePending;
+
     const totalBeds = hostelBedTotal || derived.hostelStudents;
     const occupiedBeds = hostelBedOccupied || derived.hostelStudents;
     const vacantBeds = Math.max(0, totalBeds - occupiedBeds);
@@ -589,10 +665,11 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     return {
       totalBuses,
       activeRoutes,
-      studentsUsingTransport: derived.studentsUsingTransport,
+      studentsUsingTransport,
       driversAssigned,
       driverAttendancePct,
-      transportFeePending: derived.transportFeePending,
+      driverAttendanceKnown: transportAttendHasMarks || driverPresent > 0,
+      transportFeePending,
       hostelStudents: derived.hostelStudents,
       totalBeds,
       occupiedBeds,
@@ -603,10 +680,14 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   }, [
     studentDocs,
     now,
+    buses,
+    usingTransport,
     fleetBusCount,
     fleetRouteCount,
     driverTotal,
     driverPresent,
+    transportAttendHasMarks,
+    transportDriversPresent,
     hostelBedTotal,
     hostelBedOccupied,
   ]);
@@ -658,7 +739,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const pendingApprovalItems = useMemo(
     () =>
       [...pendingLeaveQueue, ...pendingExpenseQueue, ...pendingApplicationQueue]
-        .sort((a, b) => b.ts - a.ts)
+        .sort((a: any, b: any) => b.ts - a.ts)
         .slice(0, 8),
     [pendingLeaveQueue, pendingExpenseQueue, pendingApplicationQueue]
   );
@@ -666,7 +747,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const handleLeaveAction = async (id: string, status: "Approved" | "Rejected") => {
     setApprovalActionId(id);
     try {
-      await updateDoc(doc(db, "schools", schoolId, "leaves", id), { status, updatedAt: new Date() });
+      await patchData(buildPath(db, "schools", schoolId, "leaves", id), { status, updatedAt: new Date() });
     } catch (err) {
       console.error("Failed to update leave", err);
     } finally {
@@ -677,7 +758,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const handleExpenseApprove = async (id: string) => {
     setApprovalActionId(id);
     try {
-      await updateDoc(doc(db, "schools", schoolId, "expenses", id), { status: "Paid", updatedAt: new Date() });
+      await patchData(buildPath(db, "schools", schoolId, "expenses", id), { status: "Paid", updatedAt: new Date() });
     } catch (err) {
       console.error("Failed to approve expense", err);
     } finally {
@@ -689,7 +770,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     setApprovalActionId(id);
     try {
       const next = current === "Submitted" ? "Verification" : "Selected";
-      await updateDoc(doc(db, "schools", schoolId, "applications", id), { status: next, updatedAt: new Date() });
+      await patchData(buildPath(db, "schools", schoolId, "applications", id), { status: next, updatedAt: new Date() });
     } catch (err) {
       console.error("Failed to update application", err);
     } finally {
@@ -852,7 +933,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                     <Wallet size={18} strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="erp-section-title text-gray-900">Fee collection</h3>
+                    <h3 className="erp-section-title text-gray-900">Fee buildPath</h3>
                     <p className="text-xs text-gray-500">{currentMonth}</p>
                   </div>
                 </div>
@@ -902,7 +983,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                   {
                     label: "Driver Attend.",
                     value:
-                      transportHostel.driversAssigned > 0
+                      transportHostel.driversAssigned > 0 && transportHostel.driverAttendanceKnown
                         ? `${transportHostel.driverAttendancePct}%`
                         : "—",
                     icon: CalendarCheck

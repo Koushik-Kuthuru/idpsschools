@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import ExportButton from "@/components/ui/ExportButton";
@@ -31,10 +31,12 @@ import ImportExcelButton from "@/components/ui/ImportExcelButton";
 import SelectMenu from "@/components/ui/SelectMenu";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { useSchoolId } from "@/hooks/useSchoolId";
-import { importStudentsToFirestore } from "@/lib/importStudentsFromExcel";
-import { calculateAttendanceStats } from "@/utils/attendance";
+import { useBranchStudents } from "@/hooks/useBranchStudents";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
+import { importStudents } from "@/lib/importStudentsFromExcel";
 
-// Define local AdminStudent type based on what we expect from Firestore
+
+// Define local AdminStudent type based on what we expect from the database
 export interface AdminStudent {
  id: string;
  name: string;
@@ -76,90 +78,41 @@ function getAvatarColor(name: string) {
 
 export default function AdminStudentsPage() {
   const schoolId = useSchoolId();
+  const { currentYear, loading: yearLoading } = useAcademicYear();
  const allClassesKey = "all";
  const allSectionsKey = "all";
- const [students, setStudents] = useState<AdminStudent[]>([]);
- const [classOptions, setClassOptions] = useState<string[]>([]);
- const [sectionOptions, setSectionOptions] = useState<string[]>([]);
- const [loading, setLoading] = useState(true);
- const [loadError, setLoadError] = useState<string | null>(null);
+ const {
+   students: branchStudents,
+   classOptions,
+   sectionOptions,
+   loading,
+   error: loadError,
+   refresh: refreshStudents,
+ } = useBranchStudents(schoolId, currentYear?.name);
  const [searchQuery, setSearchQuery] = useState("");
  const [classFilter, setClassFilter] = useState<string>(allClassesKey);
  const [sectionFilter, setSectionFilter] = useState<string>(allSectionsKey);
  const [statusFilter, setStatusFilter] = useState<"all" | "Active" | "Inactive">("all");
  const [selected, setSelected] = useState<Record<string, boolean>>({});
 
- useEffect(() => {
- setLoading(true);
- setLoadError(null);
- 
- const q = query(
- collection(db, "schools", schoolId, "students"),
- orderBy("firstName", "asc")
+ const students = useMemo<AdminStudent[]>(
+   () =>
+     branchStudents.map((s) => ({
+       id: s.id,
+       name: s.name,
+       className: s.className,
+       section: s.section,
+       roll: s.roll,
+       admissionNo: s.admissionNo,
+       status: s.status,
+       attendance: 0,
+       username: s.admissionNo,
+       portalPassword: "—",
+     })),
+   [branchStudents]
  );
 
- const unsubscribe = onSnapshot(
- q,
- (snapshot) => {
- const studentData: AdminStudent[] = snapshot.docs.map(doc => {
- const data = doc.data();
- 
- // Calculate real attendance percentage
- const stats = calculateAttendanceStats(
- data.attendance?.presentDates || [],
- data.attendance?.absentDates || [],
- data.attendance?.lateDates || []
- );
-
- return {
- id: doc.id,
- name: `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'Unnamed',
- className: data.classId || '-',
- section: data.section || '-',
- roll: data.rollNumber || '-',
- admissionNo: data.admissionNo || data.registrationNo || data.formNo || '-',
- status: data.status === "Inactive" ? "Inactive" : "Active",
- attendance: stats.percentage,
- username: data.username || '-',
- portalPassword: data.portalPassword || '-'
- };
- });
- setStudents(studentData);
- setLoading(false);
- },
- (err) => {
- console.error("Error loading students:", err);
- setLoadError("Failed to load students. Please ensure you have correct permissions.");
- setLoading(false);
- }
- );
-
- return () => unsubscribe();
- }, [schoolId]);
-
- useEffect(() => {
- const q = query(collection(db, "schools", schoolId, "classes"));
- const unsub = onSnapshot(
- q,
- (snapshot) => {
- const raw = snapshot.docs.map((d) => d.data() as any);
- 
- const grades = raw.map(c => String(c.grade ?? c.name ?? "").trim()).filter(Boolean);
- const sections = raw.map(c => String(c.section ?? "").trim().toUpperCase()).filter(Boolean);
-
- const uniqueGrades = Array.from(new Set(grades)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
- const uniqueSections = Array.from(new Set(sections)).sort((a, b) => a.localeCompare(b));
-
- setClassOptions(uniqueGrades);
- setSectionOptions(uniqueSections);
- },
- () => {
- setClassOptions([]);
- setSectionOptions([]);
- }
- );
- return () => unsub();
- }, [schoolId]);
+ const isLoading = (loading && branchStudents.length === 0) || (yearLoading && !currentYear);
 
  useEffect(() => {
  if (classFilter !== allClassesKey && classOptions.length && !classOptions.includes(classFilter)) setClassFilter(allClassesKey);
@@ -233,7 +186,11 @@ export default function AdminStudentsPage() {
 
  <AdminPageHeader
   title="Enrollment & Student Records"
-  description="Profiles, status, and quick actions across classes & sections"
+  description={
+   currentYear
+    ? `Showing students for academic year ${currentYear.name} (${stats.total.toLocaleString()} enrolled)`
+    : "Profiles, status, and quick actions across classes & sections"
+  }
   actions={
    <>
  <ImportExcelButton
@@ -241,7 +198,8 @@ export default function AdminStudentsPage() {
  className="h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors disabled:opacity-60"
  iconSize={14}
  onImport={async (rows) => {
- const count = await importStudentsToFirestore(schoolId, rows);
+ const count = await importStudents(schoolId, rows);
+ await refreshStudents();
  alert(`Imported ${count} student${count === 1 ? "" : "s"} successfully.`);
  }}
  />
@@ -480,7 +438,7 @@ export default function AdminStudentsPage() {
  )}
 
  <div className="overflow-x-auto">
- {loading ? (
+ {isLoading ? (
  <div className="p-8 flex items-center justify-center">
  <div className="w-6 h-6 border-2 border-[#144835] border-t-transparent rounded-full animate-spin" />
  </div>
@@ -617,7 +575,7 @@ export default function AdminStudentsPage() {
  <Search size={20} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No students found</p>
- <p className="text-xs text-gray-500 mt-0.5">Try adjusting your filters or search query.</p>
+ <p className="text-xs text-gray-500 mt-0.5">Try adjusting your filters or search buildQuery.</p>
  <button
  type="button"
  onClick={clearFilters}

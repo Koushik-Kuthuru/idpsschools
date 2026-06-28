@@ -1,4 +1,6 @@
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/db-client";
+
+
 
 export type ProvisionStudentPayload = {
   type: "student";

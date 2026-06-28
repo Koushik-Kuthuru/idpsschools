@@ -4,8 +4,8 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -29,6 +29,8 @@ import {
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, patchData, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -68,12 +70,12 @@ export default function AdminAdmissionApplicationsPage() {
   useEffect(() => {
     setLoading(true);
     setLoadError(null);
-    const qRef = query(collection(db, "schools", schoolId, "applications"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(qRef, (snapshot) => {
-      const list: ApplicationRow[] = snapshot.docs.map(doc => {
-        const data = doc.data();
+    const qRef = buildQuery(buildPath(db, "schools", schoolId, "applications"), sortBy("createdAt", "desc"));
+    const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+      const list: ApplicationRow[] = snapshot.docs.map((buildPath: any) => {
+        const data = buildPath.data();
         return {
-          id: doc.id,
+          id: buildPath.id,
           name: data.studentName || data.name || "Unknown",
           grade: data.grade || "-",
           parentName: data.parentName || "Unknown",
@@ -86,7 +88,7 @@ export default function AdminAdmissionApplicationsPage() {
       });
       setApplications(list);
       setLoading(false);
-    }, (err) => {
+    }, (err: any) => {
       console.error("Error loading applications:", err);
       setLoadError("Failed to load applications.");
       setLoading(false);
@@ -96,7 +98,7 @@ export default function AdminAdmissionApplicationsPage() {
 
   const gradeOptions = useMemo(() => {
     const grades = Array.from(new Set(applications.map((a) => a.grade).filter(Boolean)));
-    grades.sort((a, b) => a.localeCompare(b));
+    grades.sort((a: any, b: any) => a.localeCompare(b));
     return ["All", ...grades];
   }, [applications]);
 
@@ -106,7 +108,7 @@ export default function AdminAdmissionApplicationsPage() {
 
   const filtered = useMemo(() => {
     const q = queryInput.trim().toLowerCase();
-    return applications.filter((a) => {
+    return applications.filter((a: any) => {
       const matchQ =
         !q ||
         a.id.toLowerCase().includes(q) ||
@@ -132,17 +134,17 @@ export default function AdminAdmissionApplicationsPage() {
 
   const stats = useMemo(() => {
     const total = applications.length;
-    const selected = applications.filter((a) => a.status === "Selected").length;
-    const verification = applications.filter((a) => a.status === "Verification").length;
-    const submitted = applications.filter((a) => a.status === "Submitted").length;
+    const selected = applications.filter((a: any) => a.status === "Selected").length;
+    const verification = applications.filter((a: any) => a.status === "Verification").length;
+    const submitted = applications.filter((a: any) => a.status === "Submitted").length;
     const successRate = total ? `${Math.round((selected / total) * 100)}%` : "0%";
     return { session: "2025-26", total, selected, verification, submitted, successRate };
   }, [applications]);
 
   const handleUpdateStatus = async (id: string, newStatus: AppStatus) => {
     try {
-      const docRef = doc(db, "schools", schoolId, "applications", id);
-      await updateDoc(docRef, { status: newStatus });
+      const docRef = buildPath(db, "schools", schoolId, "applications", id);
+      await patchData(docRef, { status: newStatus });
     } catch (err) {
       console.error("Failed to update application status", err);
     }

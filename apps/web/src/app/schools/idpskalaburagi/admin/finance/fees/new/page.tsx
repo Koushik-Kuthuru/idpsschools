@@ -9,8 +9,10 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, FileSpreadsheet, IndianRupee } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, doc, getDocs, query, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchMany, buildQuery, upsertData, getTimestamp, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -46,7 +48,7 @@ export default function NewFeeStructurePage() {
  const list = [...defaults, ...gradeCatalog].map((g) => String(g).trim()).filter(Boolean);
  const unique = Array.from(new Set(list));
  const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
- unique.sort((a, b) => collator.compare(a, b));
+ unique.sort((a: any, b: any) => collator.compare(a, b));
  return unique;
  }, [gradeCatalog]);
 
@@ -54,14 +56,14 @@ export default function NewFeeStructurePage() {
  let cancelled = false;
  async function loadGrades() {
  try {
- const snap = await getDocs(query(collection(db, "schools", schoolId, "classes")));
+ const snap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "classes")));
  const set = new Set<string>();
- snap.docs.forEach((d) => {
+ snap.docs.forEach((d: any) => {
  const data = d.data() as any;
  const g = String(data.grade ?? data.name ?? "").trim();
  if (g) set.add(g);
  });
- const catalog = Array.from(set).sort((a, b) => {
+ const catalog = Array.from(set).sort((a: any, b: any) => {
  const numA = parseInt(a);
  const numB = parseInt(b);
  if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
@@ -99,8 +101,8 @@ export default function NewFeeStructurePage() {
  if (!grade) throw new Error("Grade is required");
 
  const docId = grade.replaceAll("/", "-");
- await setDoc(
- doc(db, "schools", schoolId, "fee_structures", docId),
+ await upsertData(
+ buildPath(db, "schools", schoolId, "fee_structures", docId),
  {
  grade,
  academicYear: String(form.academicYear || "").trim(),
@@ -109,8 +111,8 @@ export default function NewFeeStructurePage() {
  transport: Number(form.transport || 0),
  others: Number(form.others || 0),
  status: form.status,
- createdAt: serverTimestamp(),
- updatedAt: serverTimestamp(),
+ createdAt: getTimestamp(),
+ updatedAt: getTimestamp(),
  },
  { merge: true }
  );

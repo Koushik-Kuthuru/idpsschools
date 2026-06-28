@@ -2,8 +2,8 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useState } from "react";
-import { collection, doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 
 
 import { useRouter } from "next/navigation";
@@ -13,6 +13,8 @@ const SafeLink = Link as any;
 import { ArrowLeft, Save, User, Phone } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, upsertData, getTimestamp, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -49,9 +51,9 @@ export default function NewLeadPage() {
  try {
  const payload = {
  ...form,
- createdAt: serverTimestamp(),
+ createdAt: getTimestamp(),
  };
- await setDoc(doc(db, "schools", schoolId, "leads", form.id), payload);
+ await upsertData(buildPath(db, "schools", schoolId, "leads", form.id), payload);
  router.push(`/schools/${schoolId}/admin/admission/leads`);
  } catch (err: any) {
  setError(err.message || "An unexpected error occurred");
@@ -154,7 +156,7 @@ export default function NewLeadPage() {
  </div>
  <div>
  <h2 className="text-lg font-bold text-gray-900">Contact & Source</h2>
- <p className="text-xs font-bold text-gray-500 mt-0.5">How to reach them and where they came from</p>
+ <p className="text-xs font-bold text-gray-500 mt-0.5">How to reach them and filterBy they came from</p>
  </div>
  </div>
  <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">

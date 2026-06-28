@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, orderBy, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
@@ -35,6 +35,8 @@ import {
   type HolidayEntry,
 } from "@/utils/attendance";
 import AttendanceMarkCell from "@/components/admin/attendance/AttendanceMarkCell";
+import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
+import { filterGradesByScope, filterSectionsByScope } from "@/lib/teacherClassScope";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -46,6 +48,10 @@ import AbsentLogTab from "@/components/admin/attendance/AbsentLogTab";
 import ClasswiseStatusTab from "@/components/admin/attendance/ClasswiseStatusTab";
 import AttendanceTabGuide, { AttendanceTabLoading } from "@/components/admin/attendance/AttendanceTabGuide";
 import { registerGuide } from "@/components/admin/attendance/attendanceGuidePresets";
+import { buildPath, subscribeData, buildQuery, sortBy, fetchMany, upsertData, fetchOne, db, auth } from "@/lib/db-client";
+import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -90,6 +96,9 @@ function registerSummaryRight(index: number) {
 
 export default function AdminAttendancePage() {
  const schoolId = useSchoolId();
+ const { currentYear } = useAcademicYear();
+ const { grades: branchGrades, sections: branchSections } = useBranchClassOptions(schoolId);
+ const teacherPortal = useTeacherPortalScope();
  const allClassesKey = "All";
  const allSectionsKey = "All";
  const [activeTab, setActiveTab] = useState("Mark");
@@ -100,8 +109,6 @@ export default function AdminAttendancePage() {
    "Classwise Status",
  ];
  const [academicDate, setAcademicDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
- const [classOptions, setClassOptions] = useState<string[]>([]);
- const [sectionOptions, setSectionOptions] = useState<string[]>([]);
  const [grade, setGrade] = useState<string>(allClassesKey);
  const [section, setSection] = useState<string>(allSectionsKey);
  const [holidayEntries, setHolidayEntries] = useState<HolidayEntry[]>([]);
@@ -110,11 +117,25 @@ export default function AdminAttendancePage() {
   [holidayEntries]
  );
 
+ const classOptions = useMemo(() => {
+   const scopedGrades = teacherPortal?.allowedClassKeys.size
+     ? filterGradesByScope(branchGrades, teacherPortal.allowedClassKeys)
+     : branchGrades;
+   return [allClassesKey, ...scopedGrades];
+ }, [branchGrades, allClassesKey, teacherPortal?.allowedClassKeys]);
+
+ const sectionOptions = useMemo(() => {
+   const scopedSections = teacherPortal?.allowedClassKeys.size
+     ? filterSectionsByScope(branchSections, allClassesKey, teacherPortal.allowedClassKeys, allClassesKey)
+     : branchSections;
+   return [allSectionsKey, ...scopedSections];
+ }, [branchSections, allSectionsKey, allClassesKey, teacherPortal?.allowedClassKeys]);
+
  useEffect(() => {
-  const unsub = onSnapshot(collection(db, "schools", schoolId, "holidays"), (snap) => {
+  const unsub = subscribeData(buildPath(db, "schools", schoolId, "holidays"), (snap: any) => {
    setHolidayEntries(
     snap.docs
-     .map((d) => {
+     .map((d: any) => {
       const data = d.data();
       return {
        date: String(data.date || "").trim(),
@@ -122,7 +143,7 @@ export default function AdminAttendancePage() {
        type: String(data.type || "").trim(),
       };
      })
-     .filter((h) => h.date)
+     .filter((h: any) => h.date)
    );
   });
   return () => unsub();
@@ -163,27 +184,6 @@ export default function AdminAttendancePage() {
  const [registerData, setRegisterData] = useState<{year: number, month: number, daysInMonth: number, rows: any[], dayTotals: Record<number, number>} | null>(null);
  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
 
-  useEffect(() => {
-    async function loadMeta() {
-      try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "classes"));
-        const raw = snap.docs.map((d) => d.data());
-        
-        const grades = raw.map(c => String(c.grade ?? c.name ?? "").trim()).filter(Boolean);
-        const sections = raw.map(c => String(c.section ?? "").trim().toUpperCase()).filter(Boolean);
-
-        const uniqueGrades = Array.from(new Set(grades)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-        const uniqueSections = Array.from(new Set(sections)).sort((a, b) => a.localeCompare(b));
-
-        setClassOptions([allClassesKey, ...uniqueGrades]);
-        setSectionOptions([allSectionsKey, ...uniqueSections]);
-      } catch (err) {
-        console.error("Failed to load classes meta:", err);
-      }
-    }
-    loadMeta();
-  }, [schoolId, allClassesKey, allSectionsKey]);
-
  const gradeLabel = (g: string) => {
     if (g === allClassesKey || g === 'all') return 'All Classes';
     return /^\d+$/.test(g) ? `Grade ${g}` : g;
@@ -205,11 +205,11 @@ export default function AdminAttendancePage() {
  const loadRoster = useCallback(async (nextGrade: string, nextSection: string, date: string) => {
     try {
       setLoadError(null);
-      const q = query(collection(db, "schools", schoolId, "students"));
-      const snapshot = await getDocs(q);
+      const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
+      const snapshot = await fetchMany(q);
 
       const filteredStudents = snapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }))
         .filter((s: any) => {
           const classId = String(s.classId || "").trim();
           const studentSection = String(s.section || "").trim().toUpperCase();
@@ -260,7 +260,7 @@ export default function AdminAttendancePage() {
       setSelected({});
       setLoadError(e?.message || "Failed to load roster");
     }
-  }, [schoolId, allClassesKey, allSectionsKey, holidayDates]);
+  }, [schoolId, allClassesKey, allSectionsKey, holidayDates, currentYear?.name]);
 
  useEffect(() => {
  setAcademicDate(new Date().toISOString().split('T')[0]);
@@ -284,7 +284,7 @@ export default function AdminAttendancePage() {
       result = result.filter((r) => `${r.name} ${r.fatherName} ${r.classSection} ${r.admissionNumber} ${r.roll}`.toLowerCase().includes(q));
     }
     
-    result = [...result].sort((a, b) => {
+    result = [...result].sort((a: any, b: any) => {
       if (sortBy === "name") {
         return (a.name || "").localeCompare(b.name || "");
       } else {
@@ -326,9 +326,9 @@ export default function AdminAttendancePage() {
     setIsViewLoading(true);
     setViewGraphData(null);
     try {
-      const q = query(collection(db, "schools", schoolId, "students"));
-      const snapshot = await getDocs(q);
-      const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
+      const snapshot = await fetchMany(q);
+      const students = snapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }));
 
       const filtered = students.filter((s: any) => {
         const classId = String(s.classId || "").trim();
@@ -344,7 +344,7 @@ export default function AdminAttendancePage() {
 
       const start = new Date(viewFromDate);
       const end = new Date(viewToDate);
-      const data = [];
+      const data: any[] = [];
       const listData: any[] = [];
       
       let current = new Date(start);
@@ -385,7 +385,7 @@ export default function AdminAttendancePage() {
       }
       
       // Sort listData by date descending, then name
-      listData.sort((a, b) => {
+      listData.sort((a: any, b: any) => {
         if (a.date !== b.date) return b.date.localeCompare(a.date);
         return a.name.localeCompare(b.name);
       });
@@ -405,9 +405,9 @@ export default function AdminAttendancePage() {
     setIsRegisterLoading(true);
     setRegisterData(null);
     try {
-      const q = query(collection(db, "schools", schoolId, "students"));
-      const snapshot = await getDocs(q);
-      const students = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
+      const snapshot = await fetchMany(q);
+      const students = snapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }));
 
       const filtered = students.filter((s: any) => {
         const classId = String(s.classId || "").trim();
@@ -471,7 +471,7 @@ export default function AdminAttendancePage() {
         };
       });
       
-      data.sort((a, b) => a.name.localeCompare(b.name));
+      data.sort((a: any, b: any) => a.name.localeCompare(b.name));
 
       const dayTotals: Record<number, number> = {};
       for (let day = 1; day <= daysInMonth; day++) {
@@ -562,9 +562,9 @@ export default function AdminAttendancePage() {
 
   const handleRegisterExportPDF = () => {
     if (!registerData || registerData.rows.length === 0) return;
-    const doc = new jsPDF('l', 'mm', 'a4');
-    doc.setFontSize(10);
-    doc.text(`Attendance Register - ${new Date(registerData.year, registerData.month).toLocaleString('default', { month: 'long', year: 'numeric' })}`, 14, 15);
+    const buildPath = new jsPDF('l', 'mm', 'a4');
+    buildPath.setFontSize(10);
+    buildPath.text(`Attendance Register - ${new Date(registerData.year, registerData.month).toLocaleString('default', { month: 'long', year: 'numeric' })}`, 14, 15);
     
     const head1 = ["#", "Adm. No.", "Student Name", "Father Name", "Class"];
     for (let i = 1; i <= registerData.daysInMonth; i++) head1.push(String(i));
@@ -607,7 +607,7 @@ export default function AdminAttendancePage() {
     );
     body.push(footerRow);
 
-    autoTable(doc, {
+    autoTable(buildPath, {
       startY: 20,
       head: [head1],
       body: body,
@@ -616,17 +616,17 @@ export default function AdminAttendancePage() {
       headStyles: { fillColor: [20, 72, 53] }, // #144835
     });
     
-    doc.save(`Attendance_Register_${registerMonth}.pdf`);
+    buildPath.save(`Attendance_Register_${registerMonth}.pdf`);
   };
 
   const handleExportPDF = () => {
     if (!viewListData || viewListData.length === 0) return;
     
-    const doc = new jsPDF();
+    const buildPath = new jsPDF();
     const title = `Attendance Report - ${gradeLabel(viewGrade)} ${viewSection}`;
     
-    doc.setFontSize(14);
-    doc.text(title, 14, 15);
+    buildPath.setFontSize(14);
+    buildPath.text(title, 14, 15);
     
     const tableData = viewListData.map((row, idx) => [
       idx + 1,
@@ -638,7 +638,7 @@ export default function AdminAttendancePage() {
       row.status
     ]);
     
-    autoTable(doc, {
+    autoTable(buildPath, {
       startY: 20,
       head: [["#", "Date", "Name", "Class", "Section", "Roll No", "Status"]],
       body: tableData,
@@ -646,7 +646,7 @@ export default function AdminAttendancePage() {
       headStyles: { fillColor: [20, 72, 53] }
     });
     
-    doc.save(`Attendance_Report_${viewGrade}_${viewSection}.pdf`);
+    buildPath.save(`Attendance_Report_${viewGrade}_${viewSection}.pdf`);
   };
 
  return (
@@ -659,7 +659,7 @@ export default function AdminAttendancePage() {
   {/* Top Header */}
  <AdminPageHeader
   title="Attendance"
-  description="Mark and review daily student attendance by class and section"
+  description={teacherPortal ? "Mark and review attendance for your assigned classes" : "Mark and review daily student attendance by class and section"}
  />
 
  {/* Stats Grid */}
@@ -1009,7 +1009,7 @@ export default function AdminAttendancePage() {
  <Search size={24} className="text-gray-400" />
  </div>
  <p className="text-sm font-bold text-gray-900">No students found</p>
- <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search buildQuery.</p>
  <button 
  onClick={() => setSearchQuery("")}
  className="mt-4 text-xs font-bold text-[#144835] hover:underline"

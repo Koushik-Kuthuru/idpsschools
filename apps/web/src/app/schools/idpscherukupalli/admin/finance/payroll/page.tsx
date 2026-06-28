@@ -9,8 +9,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Download, Search, Settings, FileText, CheckCircle2, AlertCircle, ChevronRight, IndianRupee, Users, Briefcase , Trash2} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -54,10 +56,10 @@ export default function AdminPayrollPage() {
  setLoading(true);
  setLoadError(null);
 
- const qRef = query(collection(db, "schools", schoolId, "employees"), orderBy("firstName", "asc"));
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const list: PayrollRow[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "employees"), sortBy("firstName", "asc"));
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const list: PayrollRow[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  const name = `${data.firstName || ""} ${data.lastName || ""}`.trim() || "Unknown Employee";
  const role = data.role || data.department || "-";
  const salary = Number(data.salary || data.baseSalary || 0);
@@ -67,8 +69,8 @@ export default function AdminPayrollPage() {
  const net = salary - tds - deduct;
 
  return {
- id: doc.id,
- employeeId: data.employeeId || doc.id.substring(0, 8),
+ id: buildPath.id,
+ employeeId: data.employeeId || buildPath.id.substring(0, 8),
  employee: name,
  role: role,
  salary: salary,
@@ -81,7 +83,7 @@ export default function AdminPayrollPage() {
  });
  setPayroll(list);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading payroll:", err);
  setLoadError("Failed to load payroll. Check permissions.");
  setLoading(false);
@@ -274,7 +276,7 @@ export default function AdminPayrollPage() {
  <Search size={16} className="text-gray-400" />
  </div>
  <p className="text-xs font-bold text-gray-900">No payroll records found</p>
- <p className="text-xs text-gray-500 mt-1">Try adjusting your search query.</p>
+ <p className="text-xs text-gray-500 mt-1">Try adjusting your search buildQuery.</p>
  </td>
  </tr>
  )}

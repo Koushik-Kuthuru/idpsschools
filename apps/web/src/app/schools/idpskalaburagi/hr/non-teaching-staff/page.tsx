@@ -21,12 +21,16 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
-import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
+import { type StaffDisplayRecord } from "@/lib/staffRecord";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
+import { useBranchStaff } from "@/hooks/useBranchStaff";
+import { auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -38,94 +42,29 @@ function staffBase(schoolId: string) {
   return `/schools/${schoolId}/admin/hr/non-teaching-staff`;
 }
 
-function mapDoc(docId: string, data: Record<string, unknown>, sourceCollection: EmployeeRow["sourceCollection"]): EmployeeRow {
-  return { ...mapStaffDoc(docId, data), sourceCollection };
-}
-
 export default function AdminNonTeachingStaffPage() {
   const schoolId = useSchoolId();
+  const { currentYear, loading: yearLoading } = useAcademicYear();
+  const { staff, loading, error: loadError } = useBranchStaff(schoolId, "non_teaching", currentYear?.name);
   const [searchQuery, setSearchQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("All Status");
-  const [fromNonTeaching, setFromNonTeaching] = useState<EmployeeRow[]>([]);
-  const [fromStaff, setFromStaff] = useState<EmployeeRow[]>([]);
-  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const qRef = query(collection(db, "schools", schoolId, "departments"), orderBy("name", "asc"));
-    const unsubscribe = onSnapshot(
-      qRef,
-      (snapshot) => {
-        const list = snapshot.docs.map((d) => {
-          const data = d.data() as Record<string, unknown>;
-          return { id: d.id, name: String(data.name || "").trim() || d.id };
-        });
-        setDepartments(list);
-      },
-      () => setDepartments([])
-    );
-    return () => unsubscribe();
-  }, [schoolId]);
+  const employees = useMemo<EmployeeRow[]>(
+    () => staff.map((row) => ({ ...row, sourceCollection: "non_teaching_staff" as const })),
+    [staff]
+  );
 
-  useEffect(() => {
-    setLoading(true);
-    setLoadError(null);
+  const departments = useMemo(() => {
+    const depts = [...new Set(employees.map((m) => m.department).filter(Boolean))] as string[];
+    return depts.map((d) => ({ id: d, name: d }));
+  }, [employees]);
 
-    const qNonTeaching = query(
-      collection(db, "schools", schoolId, "non_teaching_staff"),
-      orderBy("firstName", "asc")
-    );
-    const qStaff = query(collection(db, "schools", schoolId, "staff"), orderBy("firstName", "asc"));
-
-    const unsubNonTeaching = onSnapshot(
-      qNonTeaching,
-      (snapshot) => {
-        setFromNonTeaching(
-          snapshot.docs.map((doc) =>
-            mapDoc(doc.id, doc.data() as Record<string, unknown>, "non_teaching_staff")
-          )
-        );
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error loading non_teaching_staff:", err);
-        setFromNonTeaching([]);
-        setLoadError("Failed to load non-teaching staff. Check permissions.");
-        setLoading(false);
-      }
-    );
-
-    const unsubStaff = onSnapshot(
-      qStaff,
-      (snapshot) => {
-        setFromStaff(
-          snapshot.docs.map((doc) => mapDoc(doc.id, doc.data() as Record<string, unknown>, "staff"))
-        );
-        setLoading(false);
-      },
-      () => setFromStaff([])
-    );
-
-    return () => {
-      unsubNonTeaching();
-      unsubStaff();
-    };
-  }, [schoolId]);
-
-  const employees = useMemo(() => {
-    const byId = new Map<string, EmployeeRow>();
-    for (const row of fromNonTeaching) byId.set(row.id, row);
-    for (const row of fromStaff) {
-      if (!byId.has(row.id)) byId.set(row.id, row);
-    }
-    return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [fromNonTeaching, fromStaff]);
+  const listLoading = (loading && employees.length === 0) || (yearLoading && !currentYear);
 
   const departmentNameById = useMemo(() => {
     const map: Record<string, string> = {};
-    departments.forEach((d) => {
+    departments.forEach((d: any) => {
       map[d.id] = d.name;
     });
     return map;
@@ -149,14 +88,14 @@ export default function AdminNonTeachingStaffPage() {
 
   const stats = useMemo(() => {
     const totalStaff = employees.length;
-    const onLeave = employees.filter((e) => e.status === "On Leave").length;
-    const active = employees.filter((e) => e.status === "Active").length;
+    const onLeave = employees.filter((e: any) => e.status === "On Leave").length;
+    const active = employees.filter((e: any) => e.status === "Active").length;
     return { totalStaff, onLeave, active };
   }, [employees]);
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return employees.filter((e) => {
+    return employees.filter((e: any) => {
       const matchQ =
         !q ||
         e.name.toLowerCase().includes(q) ||
@@ -252,7 +191,7 @@ export default function AdminNonTeachingStaffPage() {
                   className="w-full h-9 appearance-none bg-white border border-gray-200 rounded-lg pl-9 pr-8 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
                 >
                   <option value="all">All Departments</option>
-                  {departmentOptions.map((d) => (
+                  {departmentOptions.map((d: any) => (
                     <option key={d.id} value={d.id}>
                       {d.name}
                     </option>
@@ -285,7 +224,7 @@ export default function AdminNonTeachingStaffPage() {
           </div>
 
           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-            {loading ? "Loading..." : `${filtered.length} members`}
+            {listLoading ? "Loading..." : `${filtered.length} members`}
           </div>
         </div>
 
@@ -308,7 +247,7 @@ export default function AdminNonTeachingStaffPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filtered.map((e) => (
+              {filtered.map((e: any) => (
                 <tr key={`${e.sourceCollection}-${e.id}`} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-4 py-2.5 text-xs font-bold text-gray-700 whitespace-nowrap">{e.employeeId}</td>
                   <td className="px-4 py-2.5">

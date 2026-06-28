@@ -9,12 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "student.app",
-      "googleServicesFile": "./src/GoogleService-Info.plist"
+      "bundleIdentifier": "student.app"
     },
     "android": {
       "package": "students.app",
-      "googleServicesFile": "./src/google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#f6f8f7",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

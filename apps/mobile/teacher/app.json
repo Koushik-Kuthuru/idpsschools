@@ -13,12 +13,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "teacher.app",
-      "googleServicesFile": "./src/GoogleService-Info.plist"
+      "bundleIdentifier": "teacher.app"
     },
     "android": {
       "package": "teacher.app",
-      "googleServicesFile": "./src/google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#ffffff",
         "foregroundImage": "./assets/android-icon-foreground.png"

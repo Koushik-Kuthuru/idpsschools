@@ -1,3 +1,5 @@
+import { buildPath, insertData, db, auth } from "@/lib/db-client";
+
 export type StudentImportRow = {
   name: string;
   className: string;
@@ -68,10 +70,10 @@ export function mapSheetRowsToStudents(
   return result;
 }
 
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 
-export async function importStudentsToFirestore(
+
+
+export async function importStudents(
   schoolId: string,
   rows: Record<string, unknown>[]
 ): Promise<number> {
@@ -82,14 +84,14 @@ export async function importStudentsToFirestore(
     );
   }
   const createdAt = new Date().toISOString();
-  const colRef = collection(db, "schools", schoolId, "students");
+  const colRef = buildPath(db, "schools", schoolId, "students");
   for (const row of mapped) {
-    await addDoc(colRef, studentImportRowToFirestore(row, createdAt));
+    await insertData(colRef, studentImportRowToRecord(row, createdAt));
   }
   return mapped.length;
 }
 
-export function studentImportRowToFirestore(
+export function studentImportRowToRecord(
   row: StudentImportRow,
   createdAt: string
 ): Record<string, unknown> {

@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Plus, RotateCw, Save, Trash2, Calendar as CalendarIcon, Clock, BookOpen } from "lucide-react";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, fetchOne, fetchMany, upsertData, db, auth } from "@/lib/db-client";
+import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -21,11 +24,11 @@ type ExamEntry = {
 
 export default function AddUpdateFinalTestTab() {
   const schoolId = useSchoolId();
+  const { grades: classOptionsFromHook, sectionsByClass } = useBranchClassOptions(schoolId);
   const [term, setTerm] = useState("Term 1");
   const [grade, setGrade] = useState("");
   const [section, setSection] = useState("");
-  const [classOptions, setClassOptions] = useState<string[]>([]);
-  const [sectionsByClass, setSectionsByClass] = useState<Record<string, string[]>>({});
+  const classOptions = classOptionsFromHook;
   const [subjectOptions, setSubjectOptions] = useState<string[]>([]);
 
   const [exams, setExams] = useState<ExamEntry[]>([]);
@@ -34,41 +37,10 @@ export default function AddUpdateFinalTestTab() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Load Classes
   useEffect(() => {
-    async function loadMeta() {
-      try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "classes"));
-        const grades = new Set<string>();
-        const byClass: Record<string, Set<string>> = {};
-        snap.docs.forEach((d) => {
-          const data = d.data();
-          const g = String(data.grade ?? data.name ?? "").trim();
-          const s = String(data.section ?? "").trim().toUpperCase();
-          if (!g) return;
-          grades.add(g);
-          if (!byClass[g]) byClass[g] = new Set();
-          if (s) byClass[g].add(s);
-        });
-        const sortedGrades = Array.from(grades).sort((a, b) =>
-          a.localeCompare(b, undefined, { numeric: true })
-        );
-        const mapped: Record<string, string[]> = {};
-        sortedGrades.forEach((g) => {
-          mapped[g] = Array.from(byClass[g] ?? []).sort();
-        });
-        setClassOptions(sortedGrades);
-        setSectionsByClass(mapped);
-        if (sortedGrades.length > 0) {
-          setGrade(sortedGrades[0]);
-          setSection(mapped[sortedGrades[0]]?.[0] ?? "");
-        }
-      } catch (err) {
-        console.error("Failed to load classes", err);
-      }
-    }
-    loadMeta();
-  }, []);
+    if (!classOptions.length) return;
+    setGrade((prev) => (classOptions.includes(prev) ? prev : classOptions[0]));
+  }, [classOptions]);
 
   const sectionOptions = useMemo(
     () => (grade ? sectionsByClass[grade] ?? [] : []),
@@ -89,9 +61,9 @@ export default function AddUpdateFinalTestTab() {
         return;
       }
       try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "subjects"));
+        const snap = await fetchMany(buildPath(db, "schools", schoolId, "subjects"));
         const names = snap.docs
-          .map((d) => d.data())
+          .map((d: any) => d.data())
           .filter(
             (s) =>
               String(s.classId ?? "").trim() === grade &&
@@ -99,12 +71,13 @@ export default function AddUpdateFinalTestTab() {
           )
           .map((s) => String(s.name ?? "").trim())
           .filter(Boolean);
-        setSubjectOptions(Array.from(new Set(names)).sort((a, b) => a.localeCompare(b)));
+        setSubjectOptions(Array.from(new Set(names)).sort((a: any, b: any) => a.localeCompare(b)));
       } catch {
         setSubjectOptions([]);
       }
     }
     loadSubjects();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grade, section]);
 
   const examDocId = `${term.replace(/ /g, "_")}__${grade}__${section}`;
@@ -117,8 +90,8 @@ export default function AddUpdateFinalTestTab() {
       setError(null);
       setSaveMessage(null);
       try {
-        const ref = doc(db, "schools", schoolId, "exams", examDocId);
-        const snap = await getDoc(ref);
+        const ref = buildPath(db, "schools", schoolId, "exams", examDocId);
+        const snap = await fetchOne(ref);
         if (snap.exists() && snap.data().schedule) {
           setExams(snap.data().schedule as ExamEntry[]);
         } else {
@@ -131,6 +104,7 @@ export default function AddUpdateFinalTestTab() {
       }
     }
     fetchExams();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [examDocId, grade, section, term]);
 
   const addExam = () => {
@@ -148,12 +122,12 @@ export default function AddUpdateFinalTestTab() {
   };
 
   const updateExam = (id: string, field: keyof ExamEntry, value: string) => {
-    setExams(exams.map((e) => (e.id === id ? { ...e, [field]: value } : e)));
+    setExams(exams.map((e: any) => (e.id === id ? { ...e, [field]: value } : e)));
     setSaveMessage(null);
   };
 
   const removeExam = (id: string) => {
-    setExams(exams.filter((e) => e.id !== id));
+    setExams(exams.filter((e: any) => e.id !== id));
     setSaveMessage(null);
   };
 
@@ -170,8 +144,8 @@ export default function AddUpdateFinalTestTab() {
     setError(null);
     setSaveMessage(null);
     try {
-      const ref = doc(db, "schools", schoolId, "exams", examDocId);
-      await setDoc(
+      const ref = buildPath(db, "schools", schoolId, "exams", examDocId);
+      await upsertData(
         ref,
         {
           term,

@@ -18,11 +18,12 @@ import {
  Calendar,
  Send
 } from "lucide-react";
-import { notificationsData } from "@/data/mockData";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, getDocs, addDoc, deleteDoc, doc, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, fetchMany, insertData, removeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -41,14 +42,14 @@ export default function AnnouncementsPage() {
 
  const fetchAnnouncements = async () => {
  try {
- const snapshot = await getDocs(collection(db, "global_announcements"));
- const data = snapshot.docs.map(doc => ({
- id: doc.id,
- ...doc.data(),
+ const snapshot = await fetchMany(buildPath(db, "global_announcements"));
+ const data = snapshot.docs.map((buildPath: any) => ({
+ id: buildPath.id,
+ ...buildPath.data(),
  // Map fields to match UI expectations
- type: doc.data().priority === 'high' ? 'WARNING' : 'INFO',
- message: doc.data().content,
- time: new Date(doc.data().date).toLocaleString(),
+ type: buildPath.data().priority === 'high' ? 'WARNING' : 'INFO',
+ message: buildPath.data().content,
+ time: new Date(buildPath.data().date).toLocaleString(),
  isRead: true
  }));
  setAnnouncements(data);
@@ -77,7 +78,7 @@ export default function AnnouncementsPage() {
 
  const handleDelete = (id: number) => {
  if (confirm("Are you sure you want to delete this announcement?")) {
- setAnnouncements(announcements.filter(a => a.id !== id));
+ setAnnouncements(announcements.filter((a: any) => a.id !== id));
  }
  };
 

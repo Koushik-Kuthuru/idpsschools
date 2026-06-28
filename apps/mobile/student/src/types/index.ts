@@ -29,7 +29,7 @@ export interface User {
   className: string;
   schoolName: string;
   avatar?: string;
-  /** Admin-generated ID card image URL (Firebase Storage / CDN). */
+  /** Admin-generated ID card image URL (Supabase Storage / CDN). */
   idCardImageUrl?: string;
   idCardAcademicYear?: string;
   phone?: string;

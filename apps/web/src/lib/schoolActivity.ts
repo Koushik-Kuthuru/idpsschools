@@ -1,7 +1,9 @@
+import { insertData, buildPath, getTimestamp, db, auth } from "@/lib/db-client";
+
 "use client";
 
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+
+
 
 export type SchoolActivityInput = {
   schoolId: string;
@@ -15,7 +17,7 @@ export type SchoolActivityInput = {
 /** Records a live branch activity (shown on admin dashboard feed). */
 export async function logSchoolActivity(input: SchoolActivityInput) {
   const user = auth.currentUser;
-  await addDoc(collection(db, "schools", input.schoolId, "activity"), {
+  await insertData(buildPath(db, "schools", input.schoolId, "activity"), {
     text: input.text,
     href: input.href ?? `/schools/${input.schoolId}/admin`,
     type: input.type ?? "general",
@@ -23,6 +25,6 @@ export async function logSchoolActivity(input: SchoolActivityInput) {
     actorEmail: user?.email ?? null,
     actorRole: input.actorRole ?? null,
     live: true,
-    createdAt: serverTimestamp(),
+    createdAt: getTimestamp(),
   });
 }

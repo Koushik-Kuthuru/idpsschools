@@ -4,8 +4,8 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 
 import { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
@@ -15,6 +15,8 @@ import { Download, Pencil, Plus, Search, Trash2, ChevronRight, Package, AlertTri
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { buildPath, subscribeData, buildQuery, sortBy, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -61,12 +63,12 @@ export default function AdminStockPage() {
  useEffect(() => {
  setLoading(true);
  setLoadError(null);
- const qRef = query(collection(db, "schools", schoolId, "stock"), orderBy("createdAt", "desc"));
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const mapped: StockItem[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "stock"), sortBy("createdAt", "desc"));
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const mapped: StockItem[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  item: data.item || data.name || "Unknown",
  category: data.category || "Unknown",
  quantity: Number(data.quantity || 0),
@@ -76,7 +78,7 @@ export default function AdminStockPage() {
  });
  setItems(mapped);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading stock:", err);
  setLoadError("Failed to load stock.");
  setLoading(false);
@@ -103,7 +105,7 @@ export default function AdminStockPage() {
 
  const categoryOptions = useMemo(() => {
  const cats = Array.from(new Set(stock.map((s) => s.category).filter(Boolean)));
- cats.sort((a, b) => a.localeCompare(b));
+ cats.sort((a: any, b: any) => a.localeCompare(b));
  return ["All Categories", ...cats];
  }, [stock]);
 

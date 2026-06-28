@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Link from "next/link";
 const SafeLink = Link as any;
 import { usePathname } from "next/navigation";
@@ -24,13 +24,6 @@ export default function StaffPortalLayout({
 }) {
   const pathname = usePathname();
   const { user, role, logout } = useAuth();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
 
   const nav = [
     { name: "Dashboard", href: `/schools/${schoolId}/staff`, icon: Home },

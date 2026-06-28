@@ -2,6 +2,8 @@
 
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import AdminPageHeader from "@/components/admin/PageHeader";
+import { getStudentDisplayName } from "@/lib/studentClassInfo";
 import { 
   User, 
   Users, 
@@ -23,12 +25,14 @@ export default function ProfileView() {
   const { user } = useAuth();
   const student: any = user || {};
 
-  const initials = student.studentName
-    ? student.studentName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
+  const displayName = getStudentDisplayName(student);
+  const initials = displayName
+    ? displayName.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()
     : "ST";
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto p-4 md:p-8 animate-in fade-in duration-500 font-jost space-y-4">
+    <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
+      <AdminPageHeader title="My Profile" description="Your personal and academic information" />
       {/* Hero Profile Section */}
       <div className="bg-white border border-gray-100 rounded-[16px] p-6 md:p-8 mb-4 flex flex-col md:flex-row gap-4 items-center md:items-start shadow-[0_2px_10px_rgba(0,0,0,0.04)] relative overflow-hidden">
         {/* Subtle decorative glow */}

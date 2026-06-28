@@ -1,21 +1,16 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  collection,
-  doc,
-  onSnapshot,
-  setDoc,
-  deleteDoc,
-  serverTimestamp,
-  getDocs,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { BookOpen, ClipboardList, Plus, RotateCw, Trash2, Users, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { getTestOptionsForClass } from "./testOptions";
 import { useSchoolId } from "@/hooks/useSchoolId";
+import { buildPath, subscribeData, upsertData, removeData, getTimestamp, fetchMany, db, auth } from "@/lib/db-client";
+import { sortGrades } from "@/lib/gradeOrder";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
 import {
   computeTestResultStats,
   getTestScheduleStatus,
@@ -94,6 +89,7 @@ function StatusBadge({ status }: { status: TestScheduleStatus }) {
 
 export default function TestsPanel() {
   const schoolId = useSchoolId();
+  const { currentYear } = useAcademicYear();
   const [entries, setEntries] = useState<ExamEntry[]>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [marksDocs, setMarksDocs] = useState<MarksDoc[]>([]);
@@ -116,10 +112,10 @@ export default function TestsPanel() {
   useEffect(() => {
     async function loadClasses() {
       try {
-        const snap = await getDocs(collection(db, "schools", schoolId, "classes"));
+        const snap = await fetchMany(buildPath(db, "schools", schoolId, "classes"));
         const grades = new Set<string>();
         const byClass: Record<string, Set<string>> = {};
-        snap.docs.forEach((d) => {
+        snap.docs.forEach((d: any) => {
           const data = d.data();
           const grade = String(data.grade ?? data.name ?? "").trim();
           const section = String(data.section ?? "").trim().toUpperCase();
@@ -128,9 +124,7 @@ export default function TestsPanel() {
           if (!byClass[grade]) byClass[grade] = new Set();
           if (section) byClass[grade].add(section);
         });
-        const sortedGrades = Array.from(grades).sort((a, b) =>
-          a.localeCompare(b, undefined, { numeric: true })
-        );
+        const sortedGrades = sortGrades(Array.from(grades));
         const mapped: Record<string, string[]> = {};
         sortedGrades.forEach((g) => {
           mapped[g] = Array.from(byClass[g] ?? []).sort();
@@ -142,18 +136,18 @@ export default function TestsPanel() {
       }
     }
     loadClasses();
-  }, []);
+  }, [schoolId, currentYear?.name]);
 
   useEffect(() => {
     async function loadSupportData() {
       try {
         const [stuSnap, marksSnap, subjectsSnap] = await Promise.all([
-          getDocs(collection(db, "schools", schoolId, "students")),
-          getDocs(collection(db, "schools", schoolId, "marks")),
-          getDocs(collection(db, "schools", schoolId, "subjects")),
+          fetchMany(buildPath(db, "schools", schoolId, "students")),
+          fetchMany(buildPath(db, "schools", schoolId, "marks")),
+          fetchMany(buildPath(db, "schools", schoolId, "subjects")),
         ]);
         setStudents(
-          stuSnap.docs.map((d) => {
+          stuSnap.docs.map((d: any) => {
             const data = d.data();
             return {
               id: d.id,
@@ -163,7 +157,7 @@ export default function TestsPanel() {
           })
         );
         setMarksDocs(
-          marksSnap.docs.map((d) => {
+          marksSnap.docs.map((d: any) => {
             const data = d.data();
             return {
               exam: String(data.exam ?? "").trim(),
@@ -175,7 +169,7 @@ export default function TestsPanel() {
           })
         );
         setSubjectCatalog(
-          subjectsSnap.docs.map((d) => {
+          subjectsSnap.docs.map((d: any) => {
             const data = d.data();
             return {
               name: String(data.name ?? "").trim(),
@@ -189,13 +183,14 @@ export default function TestsPanel() {
       }
     }
     loadSupportData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "schools", schoolId, "exam_types"), (snap) => {
+    const unsub = subscribeData(buildPath(db, "schools", schoolId, "exam_types"), (snap: any) => {
       setEntries(
         snap.docs
-          .map((d) => {
+          .map((d: any) => {
             const data = d.data();
             return {
               id: d.id,
@@ -207,10 +202,11 @@ export default function TestsPanel() {
               endDate: data.endDate ? String(data.endDate) : undefined,
             };
           })
-          .filter((e) => e.name && e.category === ACTIVE_CATEGORY)
+          .filter((e: any) => e.name && e.category === ACTIVE_CATEGORY)
       );
     });
     return () => unsub();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sectionOptions = useMemo(
@@ -221,7 +217,7 @@ export default function TestsPanel() {
   const testTypeOptions = useMemo(() => {
     const names = new Set<string>();
     entries.forEach((e) => names.add(e.name));
-    return Array.from(names).sort((a, b) => a.localeCompare(b));
+    return Array.from(names).sort((a: any, b: any) => a.localeCompare(b));
   }, [entries]);
 
   const subjectOptions = useMemo(() => {
@@ -237,7 +233,7 @@ export default function TestsPanel() {
       if (filterSection && m.section !== filterSection) return;
       names.add(m.subject);
     });
-    return Array.from(names).sort((a, b) => a.localeCompare(b));
+    return Array.from(names).sort((a: any, b: any) => a.localeCompare(b));
   }, [subjectCatalog, marksDocs, filterClass, filterSection]);
 
   const activeSubjectFilter = useMemo(
@@ -336,7 +332,7 @@ export default function TestsPanel() {
           activeSubjectFilter
         ),
       }))
-      .sort((a, b) => {
+      .sort((a: any, b: any) => {
         const order = statusSortOrder(a.status) - statusSortOrder(b.status);
         if (order !== 0) return order;
         const dateA = a.startDate ?? "";
@@ -346,7 +342,7 @@ export default function TestsPanel() {
   }, [entries, students, marksDocs, activeSubjectFilter]);
 
   const filtered = useMemo(() => {
-    return testRows.filter((e) => {
+    return testRows.filter((e: any) => {
       if (filterClass && e.classId !== filterClass) return false;
       if (filterSection && e.section !== filterSection) return false;
       if (filterTestType && e.name !== filterTestType) return false;
@@ -393,14 +389,14 @@ export default function TestsPanel() {
     try {
       const slug = selectedTest.toLowerCase().replace(/\s+/g, "_").replace(/[^\w-]/g, "");
       const id = `${ACTIVE_CATEGORY}_${addClass}_${addSection}_${slug}`;
-      await setDoc(doc(db, "schools", schoolId, "exam_types", id), {
+      await upsertData(buildPath(db, "schools", schoolId, "exam_types", id), {
         name: selectedTest,
         category: ACTIVE_CATEGORY,
         classId: addClass,
         section: addSection,
         startDate: newStart,
         endDate: newStart,
-        updatedAt: serverTimestamp(),
+        updatedAt: getTimestamp(),
       });
       closeAddDrawer();
     } catch (err) {
@@ -417,12 +413,13 @@ export default function TestsPanel() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAddForm]);
 
   const handleDelete = async (examId: string) => {
     setDeletingId(examId);
     try {
-      await deleteDoc(doc(db, "schools", schoolId, "exam_types", examId));
+      await removeData(buildPath(db, "schools", schoolId, "exam_types", examId));
     } catch (err) {
       console.error(err);
     } finally {

@@ -11,8 +11,11 @@ import { useEffect, useMemo, useState } from "react";
 import { BookOpen, ChevronRight, Plus, Search , Trash2, Eye, Pencil} from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { collection, onSnapshot, query, orderBy, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { buildPath, subscribeData, buildQuery, sortBy, fetchMany, db, auth } from "@/lib/db-client";
+import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
+
+
+
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
@@ -40,41 +43,26 @@ export type AcademicSubject = {
 
 export default function AdminSubjectsPage() {
  const schoolId = useSchoolId();
+ const { grades: branchGrades, sections: branchSections } = useBranchClassOptions(schoolId);
  const allClassesKey = "All";
  const allSectionsKey = "All";
  const [subjects, setSubjects] = useState<AcademicSubject[]>([]);
  const [loading, setLoading] = useState(true);
  const [loadError, setLoadError] = useState<string | null>(null);
 
- const [classOptions, setClassOptions] = useState<string[]>([]);
- const [sectionOptions, setSectionOptions] = useState<string[]>([]);
-
  const [searchQuery, setSearchQuery] = useState("");
  const [grade, setGrade] = useState(allClassesKey);
  const [section, setSection] = useState(allSectionsKey);
 
- useEffect(() => {
- async function loadMeta() {
- try {
- const snap = await getDocs(collection(db, "schools", schoolId, "classes"));
- const raw = snap.docs.map((d) => d.data());
- 
- const grades = raw.map(c => String(c.grade ?? c.name ?? "").trim()).filter(Boolean);
- const sections = raw.map(c => String(c.section ?? "").trim().toUpperCase()).filter(Boolean);
+ const classOptions = useMemo(
+   () => [allClassesKey, ...branchGrades],
+   [allClassesKey, branchGrades]
+ );
 
- const uniqueGrades = Array.from(new Set(grades)).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
- const uniqueSections = Array.from(new Set(sections)).sort((a, b) => a.localeCompare(b));
-
- setClassOptions([allClassesKey, ...uniqueGrades]);
- setSectionOptions([allSectionsKey, ...uniqueSections]);
- } catch (err) {
- console.error("Error loading classes for meta:", err);
- setClassOptions([allClassesKey]);
- setSectionOptions([allSectionsKey]);
- }
- }
- loadMeta();
- }, [schoolId, allClassesKey, allSectionsKey]);
+ const sectionOptions = useMemo(
+   () => [allSectionsKey, ...branchSections],
+   [allSectionsKey, branchSections]
+ );
 
  const gradeLabel = (g: string) => {
     if (g === allClassesKey || g === 'all') return 'All Grades';
@@ -85,13 +73,13 @@ export default function AdminSubjectsPage() {
  setLoading(true);
  setLoadError(null);
 
- const qRef = query(collection(db, "schools", schoolId, "subjects"), orderBy("name", "asc"));
+ const qRef = buildQuery(buildPath(db, "schools", schoolId, "subjects"), sortBy("name", "asc"));
 
- const unsubscribe = onSnapshot(qRef, (snapshot) => {
- const allSubjects: AcademicSubject[] = snapshot.docs.map(doc => {
- const data = doc.data();
+ const unsubscribe = subscribeData(qRef, (snapshot: any) => {
+ const allSubjects: AcademicSubject[] = snapshot.docs.map((buildPath: any) => {
+ const data = buildPath.data();
  return {
- id: doc.id,
+ id: buildPath.id,
  grade: data.classId || "-",
  section: data.section || "-",
  name: data.name || "Unnamed Subject",
@@ -101,7 +89,7 @@ export default function AdminSubjectsPage() {
  };
  });
 
- // Client-side filtering because Firestore doesn't easily support dynamic multi-field OR/AND queries simply
+ // Client-side filtering for multi-field search
  const filtered = allSubjects.filter(s => {
  const matchGrade = grade === allClassesKey || s.grade === grade;
  const matchSection = section === allSectionsKey || s.section.toUpperCase() === section.toUpperCase();
@@ -114,7 +102,7 @@ export default function AdminSubjectsPage() {
 
  setSubjects(filtered);
  setLoading(false);
- }, (err) => {
+ }, (err: any) => {
  console.error("Error loading subjects:", err);
  setLoadError("Failed to load subjects. Check permissions.");
  setLoading(false);

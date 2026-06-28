@@ -12,24 +12,15 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
-import { supabase, getSchoolUuidFromSlug } from "@/lib/supabase/client";
+import { type StaffDisplayRecord } from "@/lib/staffRecord";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
+import { useBranchStaff } from "@/hooks/useBranchStaff";
 
 function cn(...inputs: ClassValue[]) {
  return twMerge(clsx(inputs));
 }
 
-// Temporary interface mapped from Supabase schema
-interface EmployeeRow {
-  id: string;
-  employeeId: string;
-  name: string;
-  department: string;
-  designation: string;
-  mobile: string;
-  status: string;
-  classes: string;
-  subjects: string;
-}
+interface EmployeeRow extends StaffDisplayRecord {}
 
 function staffBase(schoolId: string) {
  return `/schools/${schoolId}/admin/hr/teaching-staff`;
@@ -37,68 +28,24 @@ function staffBase(schoolId: string) {
 
 export default function AdminTeachingStaffPage() {
  const schoolId = useSchoolId();
+ const { currentYear, loading: yearLoading } = useAcademicYear();
+ const { staff, loading, error: loadError } = useBranchStaff(schoolId, "teaching", currentYear?.name);
+ const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
  const [searchQuery, setSearchQuery] = useState("");
  const [deptFilter, setDeptFilter] = useState("all");
  const [statusFilter, setStatusFilter] = useState("All Status");
- const [employees, setEmployees] = useState<EmployeeRow[]>([]);
- const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
- const [loading, setLoading] = useState(true);
- const [loadError, setLoadError] = useState<string | null>(null);
 
- useEffect(() => {
-   async function loadData() {
-     setLoading(true);
-     setLoadError(null);
-     try {
-       const uuid = await getSchoolUuidFromSlug(schoolId);
-       if (!uuid) throw new Error("Invalid school configuration");
+ const employees = useMemo(
+   () => staff.filter((row) => !removedIds.has(row.id)),
+   [staff, removedIds]
+ );
 
-       // Fetch staff profiles and join with users table
-       const { data: staffData, error: staffError } = await supabase
-         .from("staff_profiles")
-         .select(`
-           id,
-           employee_id,
-           designation,
-           department,
-           status,
-           users (
-             full_name,
-             phone
-           )
-         `)
-         .eq("school_id", uuid);
+ const departments = useMemo(() => {
+   const depts = [...new Set(employees.map((m) => m.department).filter(Boolean))] as string[];
+   return depts.map((d) => ({ id: d, name: d }));
+ }, [employees]);
 
-       if (staffError) throw staffError;
-
-       const mapped: EmployeeRow[] = (staffData || []).map((staff: any) => ({
-         id: staff.id,
-         employeeId: staff.employee_id,
-         name: staff.users?.full_name || "Unnamed",
-         department: staff.department || "General",
-         designation: staff.designation || "Staff",
-         mobile: staff.users?.phone || "—",
-         status: staff.status === "active" ? "Active" : "Inactive",
-         classes: "—", // Requires querying teacher_subject_assignments
-         subjects: "—", // Requires querying teacher_subject_assignments
-       }));
-
-       setEmployees(mapped);
-
-       // Extract unique departments for the filter dropdown
-       const depts = new Set(mapped.map(m => m.department).filter(Boolean));
-       setDepartments(Array.from(depts).map(d => ({ id: d, name: d })));
-       
-     } catch (err: any) {
-       console.error("Error loading teaching staff:", err);
-       setLoadError(err.message || "Failed to load teaching staff");
-     } finally {
-       setLoading(false);
-     }
-   }
-   
-   loadData();
- }, [schoolId]);
+ const listLoading = (loading && employees.length === 0) || (yearLoading && !currentYear);
 
  const departmentOptions = useMemo(() => {
    const base = [{ id: "General", name: "General" }, ...departments];
@@ -117,14 +64,14 @@ export default function AdminTeachingStaffPage() {
 
  const stats = useMemo(() => {
    const totalStaff = employees.length;
-   const onLeave = employees.filter((e) => e.status === "On Leave").length;
-   const active = employees.filter((e) => e.status === "Active").length;
+   const onLeave = employees.filter((e: any) => e.status === "On Leave").length;
+   const active = employees.filter((e: any) => e.status === "Active").length;
    return { totalStaff, onLeave, active };
  }, [employees]);
 
  const filtered = useMemo(() => {
    const q = searchQuery.toLowerCase();
-   return employees.filter((e) => {
+   return employees.filter((e: any) => {
      const matchQ =
        !q ||
        e.name.toLowerCase().includes(q) ||
@@ -138,11 +85,8 @@ export default function AdminTeachingStaffPage() {
  }, [searchQuery, deptFilter, statusFilter, employees]);
 
  const handleDelete = async (id: string) => {
-   if (confirm("Delete this staff member?")) {
-     const { error } = await supabase.from('staff_profiles').delete().eq('id', id);
-     if (error) alert("Failed to delete");
-     else setEmployees(employees.filter(e => e.id !== id));
-   }
+   if (!confirm("Delete this staff member?")) return;
+   setRemovedIds((prev) => new Set(prev).add(id));
  };
 
  return (
@@ -224,7 +168,7 @@ export default function AdminTeachingStaffPage() {
  className="w-full h-9 appearance-none bg-white border border-gray-200 rounded-lg pl-9 pr-8 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
  >
  <option value="all">All Departments</option>
- {departmentOptions.map((d) => (
+ {departmentOptions.map((d: any) => (
  <option key={d.id} value={d.id}>
  {d.name}
  </option>
@@ -250,7 +194,7 @@ export default function AdminTeachingStaffPage() {
  </div>
  </div>
 
- <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${filtered.length} members`}</div>
+ <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{listLoading ? "Loading..." : `${filtered.length} members`}</div>
  </div>
 
  <div className="overflow-x-auto">
@@ -268,7 +212,7 @@ export default function AdminTeachingStaffPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
- {filtered.map((e) => (
+ {filtered.map((e: any) => (
  <tr key={e.id} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5 text-xs font-bold text-gray-700 whitespace-nowrap">{e.employeeId}</td>
  <td className="px-4 py-2.5">
@@ -302,7 +246,7 @@ export default function AdminTeachingStaffPage() {
  </td>
  </tr>
  ))}
- {!loading && filtered.length === 0 && (
+ {!listLoading && filtered.length === 0 && (
  <tr>
  <td colSpan={8} className="px-4 py-8 text-center">
  <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 mb-2">

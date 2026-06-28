@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, query, getDocs, doc, updateDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { Search, Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { buildPath, buildQuery, fetchMany, patchData, upsertData, db, auth } from "@/lib/db-client";
+
 
 interface StaffUpdateTabProps {
   schoolId: string;
@@ -24,9 +26,9 @@ export default function StaffUpdateTab({ schoolId }: StaffUpdateTabProps) {
     setSuccessMessage("");
     setErrorMessage("");
     try {
-      const q = query(collection(db, "schools", schoolId, staffType));
-      const snap = await getDocs(q);
-      const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const q = buildQuery(buildPath(db, "schools", schoolId, staffType));
+      const snap = await fetchMany(q);
+      const data = snap.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }));
       
       const mapped = data.map((staff: any) => {
         const presentDates: string[] = staff.attendance?.presentDates || [];
@@ -46,7 +48,7 @@ export default function StaffUpdateTab({ schoolId }: StaffUpdateTabProps) {
       });
 
       // Sort by name safely
-      mapped.sort((a, b) => {
+      mapped.sort((a: any, b: any) => {
         const nameA = a.name || "";
         const nameB = b.name || "";
         return nameA.localeCompare(nameB);
@@ -63,6 +65,7 @@ export default function StaffUpdateTab({ schoolId }: StaffUpdateTabProps) {
     if (schoolId) {
       loadRoster();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schoolId, date, staffType]);
 
   const handleStatusChange = (id: string, val: string) => {
@@ -82,10 +85,10 @@ export default function StaffUpdateTab({ schoolId }: StaffUpdateTabProps) {
         // Only update if they have a status selected
         if (!staff.status) return;
 
-        const staffRef = doc(db, "schools", schoolId, staffType, staff.id);
+        const staffRef = buildPath(db, "schools", schoolId, staffType, staff.id);
         
-        // We fetch current doc to safely merge arrays
-        const sDoc = await getDocs(query(collection(db, "schools", schoolId, staffType)));
+        // We fetch current buildPath to safely merge arrays
+        const sDoc = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, staffType)));
         const getStaff = sDoc.docs.find(d => d.id === staff.id);
         if (!getStaff) return;
         
@@ -104,7 +107,7 @@ export default function StaffUpdateTab({ schoolId }: StaffUpdateTabProps) {
           absentDates.push(date);
         }
         
-        await updateDoc(staffRef, {
+        await patchData(staffRef, {
           "attendance.presentDates": presentDates,
           "attendance.absentDates": absentDates
         });

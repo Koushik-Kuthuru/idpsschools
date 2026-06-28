@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, getDocs, onSnapshot } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+
+
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { PieChart, RotateCw, LayoutGrid, List, Search } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildPath, fetchMany, subscribeData, db, auth } from "@/lib/db-client";
+
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -37,8 +39,8 @@ export default function ClasswiseStatusTab() {
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "schools", schoolId, "exam_types"), (snap) => {
-      const names = snap.docs.map(d => String(d.data().name || "").trim()).filter(Boolean);
+    const unsub = subscribeData(buildPath(db, "schools", schoolId, "exam_types"), (snap: any) => {
+      const names = snap.docs.map((d: any) => String(d.data().name || "").trim()).filter(Boolean);
       setExamOptions(names);
       if (names.length && !exam) setExam(names[0]);
     });
@@ -50,14 +52,14 @@ export default function ClasswiseStatusTab() {
     async function loadStatus() {
       setIsLoading(true);
       try {
-        const classesSnap = await getDocs(collection(db, "schools", schoolId, "classes"));
-        const classes = classesSnap.docs.map(d => d.data());
+        const classesSnap = await fetchMany(buildPath(db, "schools", schoolId, "classes"));
+        const classes = classesSnap.docs.map((d: any) => d.data());
 
-        const subjectsSnap = await getDocs(collection(db, "schools", schoolId, "subjects"));
-        const subjectsData = subjectsSnap.docs.map(d => d.data());
+        const subjectsSnap = await fetchMany(buildPath(db, "schools", schoolId, "subjects"));
+        const subjectsData = subjectsSnap.docs.map((d: any) => d.data());
 
-        const marksSnap = await getDocs(collection(db, "schools", schoolId, "marks"));
-        const marksData = marksSnap.docs.map(d => d.data() as any);
+        const marksSnap = await fetchMany(buildPath(db, "schools", schoolId, "marks"));
+        const marksData = marksSnap.docs.map((d: any) => d.data() as any);
 
         const data: ClassStatus[] = [];
 
@@ -84,7 +86,7 @@ export default function ClasswiseStatusTab() {
         });
 
         // Sort properly
-        data.sort((a, b) => {
+        data.sort((a: any, b: any) => {
           const gA = parseInt(a.grade) || 0;
           const gB = parseInt(b.grade) || 0;
           if (gA !== gB) return gA - gB;
@@ -113,7 +115,7 @@ export default function ClasswiseStatusTab() {
               className="w-full h-9 appearance-none rounded-lg border border-gray-200 bg-gray-50/50 pl-3 pr-8 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all cursor-pointer"
             >
               {examOptions.length ? (
-                examOptions.map((e) => <option key={e} value={e}>{e}</option>)
+                examOptions.map((e: any) => <option key={e} value={e}>{e}</option>)
               ) : (
                 <option value="" disabled>No exams defined</option>
               )}
