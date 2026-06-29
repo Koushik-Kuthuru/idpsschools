@@ -15,6 +15,7 @@ export type AdminStudentListItem = {
   status: "Active" | "Inactive";
   academicYear: string;
   parentPhone: string | null;
+  fatherName: string;
 };
 
 type StudentsPayload = {
@@ -37,7 +38,7 @@ export function useBranchStudents(
   schoolId: string,
   academicYearName: string | null | undefined
 ): UseBranchStudentsResult {
-  const cacheKey = clientCacheKey("students", schoolId, academicYearName ?? "current");
+  const cacheKey = clientCacheKey("students-v2", schoolId, academicYearName ?? "current");
 
   const query = useCachedQuery<StudentsPayload>({
     cacheKey,

@@ -7,6 +7,7 @@ import {
   loadAllStudentProfiles,
   loadStudentProfileData,
   mergeStudentEnrollment,
+  resolveFatherName,
   resolveStudentYearEnrollment,
   saveStudentProfileData,
   splitParentNames,
@@ -25,6 +26,7 @@ export type BranchStudentRow = {
   status: "Active" | "Inactive";
   academicYear: string;
   parentPhone: string | null;
+  fatherName: string;
 };
 
 export type BranchTransportStudentRow = BranchStudentRow & {
@@ -193,8 +195,11 @@ export function mergeStudentForUi(
 function shapeBranchStudentListRow(
   row: Record<string, unknown>,
   enrollment: StudentYearEnrollment,
-  yearName: string
+  yearName: string,
+  profile: StudentProfileData = {}
 ): BranchStudentRow {
+  const fatherName = resolveFatherName(profile, enrollment, row.parent_name ? String(row.parent_name) : null) || "—";
+
   return {
     id: String(row.id),
     name: String(row.full_name ?? "").trim() || displayAdmissionNo(String(row.admission_no ?? "")) || "Unnamed",
@@ -205,6 +210,7 @@ function shapeBranchStudentListRow(
     status: row.is_active === false ? "Inactive" : "Active",
     academicYear: yearName,
     parentPhone: row.parent_phone ? String(row.parent_phone) : null,
+    fatherName,
   };
 }
 
@@ -287,7 +293,8 @@ export async function loadBranchStudents(
       full_name: string;
       is_active: boolean;
       parent_phone: string | null;
-    }>(admin, "students", "id, admission_no, full_name, is_active, parent_phone", (query) =>
+      parent_name: string | null;
+    }>(admin, "students", "id, admission_no, full_name, is_active, parent_phone, parent_name", (query) =>
       query.eq("branch_id", branchId).order("full_name", { ascending: true })
     ),
     loadAllStudentProfiles(admin, branchId),
@@ -302,7 +309,7 @@ export async function loadBranchStudents(
     const enrollment = resolveStudentYearEnrollment(profile, yearName);
     if (!enrollment) continue;
 
-    results.push(shapeBranchStudentListRow(row as Record<string, unknown>, enrollment, yearName));
+    results.push(shapeBranchStudentListRow(row as Record<string, unknown>, enrollment, yearName, profile));
   }
 
   return results;
@@ -326,7 +333,8 @@ export async function loadBranchTransportStudents(
       full_name: string;
       is_active: boolean;
       parent_phone: string | null;
-    }>(admin, "students", "id, admission_no, full_name, is_active, parent_phone", (query) =>
+      parent_name: string | null;
+    }>(admin, "students", "id, admission_no, full_name, is_active, parent_phone, parent_name", (query) =>
       query.eq("branch_id", branchId).order("full_name", { ascending: true })
     ),
     loadAllStudentProfiles(admin, branchId),
@@ -341,7 +349,7 @@ export async function loadBranchTransportStudents(
     const enrollment = resolveStudentYearEnrollment(profile, yearName);
     if (!enrollment) continue;
 
-    const base = shapeBranchStudentListRow(row as Record<string, unknown>, enrollment, yearName);
+    const base = shapeBranchStudentListRow(row as Record<string, unknown>, enrollment, yearName, profile);
     const transport = transportDetailsFromProfile(profile);
 
     results.push({

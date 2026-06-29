@@ -22,8 +22,14 @@ import {
   Bell, Building2, CalendarDays, ChevronRight, GraduationCap,
   IndianRupee, Plus, ShieldCheck, SlidersHorizontal, Users,
   ClipboardList, Trash2, Save, RefreshCw, Camera,
-  CheckCircle2, Globe, Clock,
+  CheckCircle2, Globe, Clock, Eye,
 } from "lucide-react";
+import FeeReceiptPrintView from "@/components/admin/FeeReceiptPrintView";
+import {
+  loadFeeReceiptTemplate,
+  saveFeeReceiptTemplate,
+  type FeeReceiptTemplateSettings,
+} from "@/lib/feeReceiptTemplate";
 
 const SafeLink = Link as any;
 
@@ -213,6 +219,11 @@ export default function AdminBranchSettingsView() {
     testPhone: "",
   });
 
+  // ── Fee receipt template ─────────────────────────────────────────────────────
+  const [feeReceiptTemplate, setFeeReceiptTemplate] = useState(() =>
+    loadFeeReceiptTemplate(schoolId, activeBranch.name)
+  );
+
   // ── Persist ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!schoolId) return;
@@ -225,7 +236,8 @@ export default function AdminBranchSettingsView() {
     load("holidays", setHolidays);
     load("notifs", setNotifs);
     load("twilioCreds", setTwilioCreds);
-  }, [schoolId]);
+    setFeeReceiptTemplate(loadFeeReceiptTemplate(schoolId, activeBranch.name));
+  }, [schoolId, activeBranch.name]);
 
   useEffect(() => { localStorage.setItem(`branchDetails_${schoolId}`, JSON.stringify(branchDetails)); }, [branchDetails, schoolId]);
   useEffect(() => { localStorage.setItem(`exams_${schoolId}`, JSON.stringify(exams)); }, [exams, schoolId]);
@@ -630,20 +642,154 @@ export default function AdminBranchSettingsView() {
             {activeView === "fees" && (
               <div>
                 <SectionHeader sectionKey="fees" title="Fee Configuration"
-                  subtitle="Currency, late fees, payment gateway and reminders"
-                  onSave={() => showSaved()} />
+                  subtitle="Currency, late fees, payment gateway, reminders and fee receipt template"
+                  onSave={() => {
+                    saveFeeReceiptTemplate(schoolId, { ...feeReceiptTemplate, duplicateCopies: false });
+                    showSaved();
+                  }} />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   {([
                     { label: "Currency",           defaultValue: "INR (₹)" },
                     { label: "Late Fee (per day)",  defaultValue: "₹25" },
                     { label: "Payment Gateway",     defaultValue: "Razorpay" },
-                    { label: "Receipt Prefix",      defaultValue: "IDPS-FEE" },
+                    { label: "Receipt Prefix",      defaultValue: "S-" },
                   ]).map(f => (
                     <FieldCard key={f.label} label={f.label}>
                       <input className={inputCls} defaultValue={f.defaultValue} />
                     </FieldCard>
                   ))}
+                </div>
+
+                <div className="rounded-2xl border border-teal-100 bg-teal-50/30 p-4 mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Eye size={16} className="text-teal-700" />
+                    <h3 className="text-sm font-bold text-gray-900">Fee Receipt Template</h3>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-4">
+                    Fee receipt with coded letterhead (IDPS logo) and legacy bordered layout. Single copy per print.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <FieldCard label="School Name">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.schoolName}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, schoolName: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="CBSE Affiliation No.">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.affiliationNo}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, affiliationNo: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="UDISE Code">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.udiseCode}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, udiseCode: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="School Address">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.schoolAddress}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, schoolAddress: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="Subtitle Line 1">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.schoolSubtitle1}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, schoolSubtitle1: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="Subtitle Line 2">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.schoolSubtitle2}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, schoolSubtitle2: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="Contact Email">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.contactEmail}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, contactEmail: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="Website">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.contactWebsite}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, contactWebsite: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="Mobile Numbers">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.contactMobile}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, contactMobile: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="Signature Label">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.signatureLabel}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, signatureLabel: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="UPI Transaction Label">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.transactionIdLabel}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, transactionIdLabel: e.target.value }))}
+                      />
+                    </FieldCard>
+                    <FieldCard label="Logo URL">
+                      <input
+                        className={inputCls}
+                        value={feeReceiptTemplate.logoUrl}
+                        onChange={(e) => setFeeReceiptTemplate((p) => ({ ...p, logoUrl: e.target.value }))}
+                        placeholder="/idps-logo.png"
+                      />
+                    </FieldCard>
+                    <FieldCard label="Receipt Options">
+                      <label className="flex items-center justify-between gap-3 mt-1 cursor-pointer">
+                        <span className="text-xs font-bold text-gray-800">Show logo on receipt</span>
+                        <Toggle
+                          checked={feeReceiptTemplate.showLogo}
+                          onChange={(v) => setFeeReceiptTemplate((p) => ({ ...p, showLogo: v }))}
+                        />
+                      </label>
+                    </FieldCard>
+                  </div>
+
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 overflow-auto max-h-[520px]">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mb-3">Live Preview</p>
+                    <FeeReceiptPrintView
+                      data={{
+                        feeMonth: "Apr",
+                        admissionNo: "1360",
+                        date: "30-03-2026",
+                        studentName: "Raavi Jeshwika",
+                        receiptNo: "S-41",
+                        fatherName: "RAAVI LOKESH",
+                        mobile: "9493633838",
+                        classSection: "Nursery-RAINBOW",
+                        paymentMode: "UPI ID",
+                        transactionId: "385778875117",
+                        lineItems: [{ particular: "ADMISSION FEE", amount: 5000 }],
+                        grandTotal: 5000,
+                        balanceUpToMonth: 0,
+                        balanceUpToMonthLabel: "Apr",
+                        balanceUpToYearEnd: 80000,
+                        balanceUpToYearEndLabel: "March 2027",
+                      }}
+                      template={feeReceiptTemplate}
+                    />
+                  </div>
                 </div>
 
                 <FieldCard label="Auto Reminders">

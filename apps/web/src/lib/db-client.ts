@@ -93,6 +93,7 @@ function shapeApiStudent(row: Record<string, unknown>): Record<string, unknown> 
     rollNumber: row.roll ?? row.rollNumber ?? admissionNo,
     status: row.status ?? "Active",
     parentPhone: row.parentPhone ?? null,
+    fatherName: row.fatherName ?? null,
     is_active: row.status !== "Inactive",
   };
 }

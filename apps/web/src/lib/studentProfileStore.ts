@@ -262,6 +262,29 @@ export async function loadAllStudentProfiles(
 }
 
 /** Split parent_name stored as "Father / Mother" into separate fields. */
+export function resolveFatherName(
+  profile: StudentProfileData,
+  enrollment: StudentYearEnrollment | null,
+  parentNameFromRow?: string | null
+): string {
+  const fromEnrollment = String(enrollment?.fatherName ?? "").trim();
+  if (fromEnrollment) return fromEnrollment;
+
+  const fromProfileRoot = String(profile.fatherName ?? profile.father_name ?? "").trim();
+  if (fromProfileRoot) return fromProfileRoot;
+
+  const enrollments = profile.enrollments ?? {};
+  for (const yearEnrollment of Object.values(enrollments)) {
+    const name = String(yearEnrollment?.fatherName ?? "").trim();
+    if (name) return name;
+  }
+
+  const fromParents = splitParentNames(parentNameFromRow).fatherName;
+  if (fromParents) return fromParents;
+
+  return "";
+}
+
 export function splitParentNames(parentName: string | null | undefined): {
   fatherName: string;
   motherName: string;
@@ -419,6 +442,13 @@ export function splitStudentUpdatePayload(payload: Record<string, unknown>): {
     "feeStatus",
     "lastYearDue",
     "discRemark",
+    "grossFee",
+    "annualFee",
+    "totalDiscount",
+    "lateFine",
+    "discountLog",
+    "feeTransactions",
+    "transactions",
     "username",
     "portalPassword",
     "attendance",

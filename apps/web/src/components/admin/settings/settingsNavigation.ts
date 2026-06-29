@@ -139,7 +139,7 @@ export function buildSettingsNavCategories(schoolSlug: string): SettingsNavCateg
         {
           key: "fees",
           label: "Fees",
-          desc: "Billing & reminders",
+          desc: "Billing, reminders & receipt template",
           icon: IndianRupee,
           href: `${base}?view=fees`,
         },
@@ -229,7 +229,7 @@ export function buildSettingsHomeCategories(schoolSlug: string): { label: string
         {
           key: "fees",
           title: "Fee Configuration",
-          desc: "Currency, late fees, gateway and reminders.",
+          desc: "Currency, late fees, gateway and fee receipt template.",
           icon: IndianRupee,
           href: `${base}?view=fees`,
         },

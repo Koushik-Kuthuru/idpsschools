@@ -12,7 +12,14 @@ import { useEffect, useState } from "react";
 
 import CapturePhotoModal from "@/components/ui/CapturePhotoModal";
 import { calculateAttendanceStats, AttendanceStats } from "@/utils/attendance";
-import { buildPath, fetchOne, buildQuery, filterBy, fetchMany, patchData, db, uploadFile } from "@/lib/db-client";
+import { buildPath, fetchOne, buildQuery, fetchMany, patchData, db, uploadFile } from "@/lib/db-client";
+import {
+  createStandardFeeGridTemplate,
+  extractFeeDetails,
+  mergeFeeGridWithTemplate,
+  resolveStudentFeeGrid,
+} from "@/lib/studentFeeResolver";
+import { feeStructureMatchesGrade, hasFeeGridData } from "@/lib/feeDepositUtils";
 
 
 const InfoSection = ({ title, icon: Icon, children }: any) => (
@@ -89,19 +96,7 @@ export default function AdminStudentProfilePage({
  const MONTHS = ["APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR"];
  
 
- const [feeGrid, setFeeGrid] = useState([
- { name: "LAST YEAR DUE", method: "-", values: Array(12).fill("0") },
- { name: "ADMISSION FEE", method: "ONE TIME", values: ["15000", ...Array(11).fill("0")] },
- { name: "TUITION FEE", method: "QUARTERLY", values: ["0", "0", "0", "38500", "0", "0", "38500", "0", "0", "38000", "0", "0"] },
- { name: "HOSTEL FEE", method: "QUARTERLY", values: ["0", "0", "0", "40000", "0", "0", "35000", "0", "0", "35000", "0", "0"] },
- { name: "IIT FEE", method: "-", values: Array(12).fill("0") },
- { name: "OLYMPIAD FEE", method: "-", values: Array(12).fill("0") },
- { name: "EXCURSION FEE", method: "-", values: Array(12).fill("0") },
- { name: "CURRICULUM FEE", method: "-", values: Array(12).fill("0") },
- { name: "FOOD FEE", method: "-", values: Array(12).fill("0") },
- { name: "MISCELLANEOUS", method: "-", values: Array(12).fill("0") },
- { name: "TRANSPORT FEE", method: "QUARTERLY", values: Array(12).fill("0") },
- ]);
+ const [feeGrid, setFeeGrid] = useState(createStandardFeeGridTemplate());
 
  const handleFeeChange = (rowIdx: number, colIdx: number, val: string) => {
  const newGrid = [...feeGrid];
@@ -118,7 +113,7 @@ export default function AdminStudentProfilePage({
  setFeeStatus("NEW");
  setLastYearDue("0");
  setDiscRemark("");
- setFeeGrid(feeGrid.map(row => ({ ...row, values: Array(12).fill("0") })));
+ setFeeGrid(createStandardFeeGridTemplate());
  };
 
  const calculateRowTotal = (values: string[]) => {
@@ -416,25 +411,33 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  }
 
  // Load existing fee details if present
- if (studentData.feeDetails) {
- setFeeCategory(studentData.feeDetails.feeCategory || "GENERAL");
- setFeeTypeFilter(studentData.feeDetails.feeTypeFilter || "MONTHLY");
- setFeeStatus(studentData.feeDetails.feeStatus || "NEW");
- setLastYearDue(studentData.feeDetails.lastYearDue || "0");
- setDiscRemark(studentData.feeDetails.discRemark || "");
- if (studentData.feeDetails.feeGrid && Array.isArray(studentData.feeDetails.feeGrid)) {
- setFeeGrid(studentData.feeDetails.feeGrid);
+ const extractedFees = extractFeeDetails(studentData);
+ setFeeCategory(extractedFees.feeCategory || "GENERAL");
+ setFeeTypeFilter(extractedFees.feeTypeFilter || "MONTHLY");
+ setFeeStatus(extractedFees.feeStatus || "NEW");
+ setLastYearDue(extractedFees.lastYearDue || "0");
+ setDiscRemark(extractedFees.discRemark || "");
+
+ let structure: Record<string, unknown> | null = null;
+ const gradeToSearch =
+   studentData.classId || studentData.className || studentData.grade || studentData.class;
+ if (gradeToSearch) {
+   const feeSnap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "fee_structures")));
+   const match = feeSnap.docs.find((d) => {
+     const data = d.data() as Record<string, unknown>;
+     return feeStructureMatchesGrade(String(data.grade ?? ""), String(gradeToSearch));
+   });
+   if (match) {
+     structure = match.data() as Record<string, unknown>;
+     setFeeStructure(structure);
+   }
  }
- }
- 
- // Try to fetch fee structure for the student's class
- if (studentData.classId || studentData.grade) {
- const gradeToSearch = studentData.classId || studentData.grade;
- const feeQuery = buildQuery(buildPath(db, "schools", schoolId, "fee_structures"), filterBy("grade", "==", gradeToSearch));
- const feeSnap = await fetchMany(feeQuery);
- if (!feeSnap.empty) {
- setFeeStructure(feeSnap.docs[0].data());
- }
+
+ const resolvedGrid = resolveStudentFeeGrid(studentData, structure);
+ if (hasFeeGridData(resolvedGrid)) {
+   setFeeGrid(mergeFeeGridWithTemplate(resolvedGrid));
+ } else if (hasFeeGridData(extractedFees.feeGrid)) {
+   setFeeGrid(mergeFeeGridWithTemplate(extractedFees.feeGrid));
  }
  } else {
  setStudent(null);
@@ -890,46 +893,15 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
- {feeGrid.map((fee, rowIdx) => {
- let rowTotal = calculateRowTotal(fee.values);
- let displayValues = fee.values;
- 
- if (fee.name === "LAST YEAR DUE") {
- displayValues = [lastYearDue, ...Array(11).fill("0")];
- rowTotal = parseInt(lastYearDue, 10) || 0;
- }
- return (
- <tr key={rowIdx} className="hover:bg-gray-50/50 transition-colors group">
- <td className="py-2 px-4 text-xs font-bold text-gray-700 sticky left-0 bg-white group-hover:bg-gray-50/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">{fee.name}</td>
- <td className="py-2 px-3 text-center">
- <span className="text-xs font-bold text-gray-400 bg-gray-100/50 px-2 py-1 rounded uppercase tracking-wider">{fee.method}</span>
- </td>
- {displayValues.map((val, colIdx) => (
- <td key={colIdx} className="py-2 px-1 text-center">
- <input 
- type="text" 
- value={displayValues[colIdx]}
- onChange={(e) => handleFeeChange(rowIdx, colIdx, e.target.value)}
- onFocus={(e) => e.target.value === "0" && e.target.select()}
- disabled={fee.name === "LAST YEAR DUE" && colIdx > 0}
- readOnly={fee.name === "LAST YEAR DUE"}
- className={`w-14 h-8 text-center text-xs font-bold ${displayValues[colIdx] === "0" || displayValues[colIdx] === "" ? 'text-gray-400 bg-gray-50/50' : 'text-gray-900 bg-emerald-50/50'} border border-transparent rounded-md focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/20 outline-none transition-all hover:bg-white hover:border-gray-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
- />
- </td>
+ {student.siblings.map((sib: any, idx: number) => (
+ <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+ <td className="py-3 px-5 text-xs font-bold text-gray-700">{sib.name || "—"}</td>
+ <td className="py-3 px-5 text-xs font-bold text-gray-600">{sib.age || "—"}</td>
+ <td className="py-3 px-5 text-xs font-bold text-gray-600">{sib.gender || "—"}</td>
+ <td className="py-3 px-5 text-xs font-bold text-gray-600">{sib.school || "—"}</td>
+ <td className="py-3 px-5 text-xs font-bold text-gray-600">{sib.class || "—"}</td>
+ </tr>
  ))}
- <td className="py-2 px-4 text-right bg-emerald-50/30 border-l border-emerald-100/50">
- <span className="text-xs font-bold text-[#144835]">{rowTotal.toLocaleString()}</span>
- </td>
- </tr>
- )})}
- 
- {/* Grand Total Row */}
- <tr className="bg-gray-50/80 border-t-2 border-gray-200">
- <td colSpan={14} className="py-4 px-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wide sticky left-0 z-10 shadow-[1px_0_0_0_#f3f4f6]">Grand Total</td>
- <td className="py-4 px-4 text-right bg-emerald-100/50 border-l border-emerald-200/50">
- <span className="text-sm font-bold text-[#144835]">₹{calculateGrandTotal().toLocaleString()}</span>
- </td>
- </tr>
  </tbody>
  </table>
  </div>
@@ -1002,44 +974,44 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-50">
- {[
- { name: "LAST YEAR DUE", method: "-", values: Array(12).fill("0"), total: "0" },
- { name: "ADMISSION FEE", method: "ONE TIME", values: ["15000", ...Array(11).fill("0")], total: "15000" },
- { name: "TUITION FEE", method: "QUARTERLY", values: ["0", "0", "0", "38500", "0", "0", "38500", "0", "0", "38000", "0", "0"], total: "115000" },
- { name: "HOSTEL FEE", method: "QUARTERLY", values: ["0", "0", "0", "40000", "0", "0", "35000", "0", "0", "35000", "0", "0"], total: "110000" },
- { name: "IIT FEE", method: "-", values: Array(12).fill("0"), total: "0" },
- { name: "OLYMPIAD FEE", method: "-", values: Array(12).fill("0"), total: "0" },
- { name: "EXCURSION FEE", method: "-", values: Array(12).fill("0"), total: "0" },
- { name: "CURRICULUM FEE", method: "-", values: Array(12).fill("0"), total: "0" },
- { name: "FOOD FEE", method: "-", values: Array(12).fill("0"), total: "0" },
- { name: "MISCELLANEOUS", method: "-", values: Array(12).fill("0"), total: "0" },
- { name: "TRANSPORT FEE", method: "QUARTERLY", values: Array(12).fill("0"), total: "0" },
- ].map((fee, idx) => (
- <tr key={idx} className="hover:bg-gray-50/50 transition-colors group">
+ {feeGrid.map((fee, rowIdx) => {
+ let rowTotal = calculateRowTotal(fee.values);
+ let displayValues = fee.values;
+
+ if (fee.name === "LAST YEAR DUE") {
+ displayValues = [lastYearDue, ...Array(11).fill("0")];
+ rowTotal = parseInt(lastYearDue, 10) || 0;
+ }
+ return (
+ <tr key={rowIdx} className="hover:bg-gray-50/50 transition-colors group">
  <td className="py-2 px-4 text-xs font-bold text-gray-700 sticky left-0 bg-white group-hover:bg-gray-50/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">{fee.name}</td>
  <td className="py-2 px-3 text-center">
  <span className="text-xs font-bold text-gray-400 bg-gray-100/50 px-2 py-1 rounded uppercase tracking-wider">{fee.method}</span>
  </td>
- {fee.values.map((val, i) => (
- <td key={i} className="py-2 px-1 text-center">
- <input 
- type="text" 
- defaultValue={val} 
- className={`w-14 h-8 text-center text-xs font-bold ${val === "0" ? 'text-gray-400 bg-gray-50/50' : 'text-gray-900 bg-emerald-50/50'} border border-transparent rounded-md focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/20 outline-none transition-all hover:bg-white hover:border-gray-200 shadow-sm`}
+ {displayValues.map((val, colIdx) => (
+ <td key={colIdx} className="py-2 px-1 text-center">
+ <input
+ type="text"
+ value={displayValues[colIdx]}
+ onChange={(e) => handleFeeChange(rowIdx, colIdx, e.target.value)}
+ onFocus={(e) => e.target.value === "0" && e.target.select()}
+ disabled={fee.name === "LAST YEAR DUE" && colIdx > 0}
+ readOnly={fee.name === "LAST YEAR DUE"}
+ className={`w-14 h-8 text-center text-xs font-bold ${displayValues[colIdx] === "0" || displayValues[colIdx] === "" ? 'text-gray-400 bg-gray-50/50' : 'text-gray-900 bg-emerald-50/50'} border border-transparent rounded-md focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/20 outline-none transition-all hover:bg-white hover:border-gray-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
  />
  </td>
  ))}
  <td className="py-2 px-4 text-right bg-emerald-50/30 border-l border-emerald-100/50">
- <span className="text-xs font-bold text-[#144835]">{fee.total}</span>
+ <span className="text-xs font-bold text-[#144835]">{rowTotal.toLocaleString()}</span>
  </td>
  </tr>
- ))}
- 
+ )})}
+
  {/* Grand Total Row */}
  <tr className="bg-gray-50/80 border-t-2 border-gray-200">
  <td colSpan={14} className="py-4 px-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wide sticky left-0 z-10 shadow-[1px_0_0_0_#f3f4f6]">Grand Total</td>
  <td className="py-4 px-4 text-right bg-emerald-100/50 border-l border-emerald-200/50">
- <span className="text-sm font-bold text-[#144835]">240000</span>
+ <span className="text-sm font-bold text-[#144835]">₹{calculateGrandTotal().toLocaleString()}</span>
  </td>
  </tr>
  </tbody>
