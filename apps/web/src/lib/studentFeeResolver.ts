@@ -7,7 +7,9 @@ import {
   type FeeReceiptRow,
 } from "@/lib/feeDepositUtils";
 import {
+  classStructureAsGradeRecord,
   createStandardFeeGridFromConfig,
+  fetchHydratedFeeConfiguration,
   findClassStructureForGrade,
   loadFeeConfiguration,
   mergeFeeGridWithConfigTemplate,
@@ -138,6 +140,8 @@ export function mapProfileFeeTransaction(
     receiptNo: String(row.receiptNo ?? row.receipt ?? row.receipt_no ?? `S-${index + 1}`),
     month: monthRaw || (dateRaw ? monthLabelFromIndex(new Date(`${dateRaw}T12:00:00`).getMonth()) : "—"),
     date: dateRaw,
+    dateDisplay: row.dateDisplay ? String(row.dateDisplay) : undefined,
+    time: row.time ? String(row.time) : undefined,
     amount: parseAmount(row.amount),
     mode: String(row.mode ?? row.paymentMode ?? "Cash"),
     fine: parseAmount(row.fine ?? row.lateFine),
@@ -145,7 +149,7 @@ export function mapProfileFeeTransaction(
     studentId: student?.id,
     admissionNo: student?.admissionNo,
     studentName: student?.name,
-    reference: String(row.reference ?? row.upiId ?? row.upiRef ?? row.transactionId ?? row.txnId ?? ""),
+    reference: String(row.transNo ?? row.reference ?? row.upiId ?? row.upiRef ?? row.transactionId ?? row.txnId ?? ""),
     particular: row.particular ? String(row.particular) : undefined,
     lineItems: Array.isArray(row.lineItems)
       ? (row.lineItems as Array<{ particular?: string; amount?: string | number }>).map((item) => ({
@@ -276,5 +280,45 @@ export function resolveStudentFeeDetails(
   return {
     ...extracted,
     feeGrid: hasFeeGridData(feeGrid) ? feeGrid : extracted.feeGrid,
+  };
+}
+
+/** Load class fee structure + student overrides + transport for UI (deposit fee, receipts, etc.). */
+export async function hydrateStudentFeeDetails(
+  record: Record<string, unknown>,
+  schoolId: string,
+  academicYearFallback?: string | null
+): Promise<StudentFeeDetails> {
+  const gradeToSearch = studentEnrollmentGrade(record);
+  const studentYear = studentAcademicYear(record, academicYearFallback);
+  const yearForLookup = studentYear ?? academicYearFallback ?? null;
+  const feeConfig = await fetchHydratedFeeConfiguration(schoolId, yearForLookup);
+
+  let structure: Record<string, unknown> | null = null;
+  if (gradeToSearch) {
+    let classEntry = findClassStructureForGrade(feeConfig, gradeToSearch, yearForLookup);
+    if (!classEntry && yearForLookup) {
+      classEntry = findClassStructureForGrade(feeConfig, gradeToSearch, null);
+    }
+    if (classEntry) structure = classStructureAsGradeRecord(classEntry);
+  }
+
+  const resolved = resolveStudentFeeDetails(
+    record,
+    structure,
+    schoolId,
+    feeConfig,
+    yearForLookup
+  );
+
+  const feeGrid = mergeFeeGridWithTemplate(
+    resolved.feeGrid ?? [],
+    createStandardFeeGridTemplate(schoolId),
+    schoolId
+  );
+
+  return {
+    ...resolved,
+    feeGrid: hasFeeGridData(feeGrid) ? feeGrid : resolved.feeGrid,
   };
 }

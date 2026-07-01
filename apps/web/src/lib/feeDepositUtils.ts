@@ -24,6 +24,10 @@ export type FeeReceiptRow = {
   receiptNo: string;
   month: string;
   date: string;
+  /** Exact date text from source Excel (e.g. "19 January 2026"). */
+  dateDisplay?: string;
+  /** Time from source when available (HH:mm:ss). */
+  time?: string;
   amount: number;
   mode: string;
   fine: number;
@@ -39,17 +43,173 @@ export type FeeReceiptRow = {
   lineItems?: Array<{ particular?: string; amount?: string | number }>;
 };
 
+const EXCEL_MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
+
+/** Convert YYYY-MM-DD to Excel-style text (e.g. "19 January 2026"). */
+export function isoDateToExcelDisplay(iso: string): string {
+  const value = String(iso ?? "").trim().slice(0, 10);
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return value;
+  const year = match[1];
+  const monthIdx = Number.parseInt(match[2], 10) - 1;
+  const day = Number.parseInt(match[3], 10);
+  const month = EXCEL_MONTH_NAMES[monthIdx];
+  if (!month || !day) return value;
+  return `${day} ${month} ${year}`;
+}
+
+export function formatReceiptDateTime(
+  row: Pick<FeeReceiptRow, "date" | "dateDisplay" | "time">,
+  options?: { excelStyle?: boolean }
+): {
+  date: string;
+  time: string;
+} {
+  const excelStyle = options?.excelStyle !== false;
+  const display = String(row.dateDisplay ?? "").trim();
+  const iso = String(row.date ?? "").trim().slice(0, 10);
+
+  let date = display;
+  if (!date && iso) {
+    date = excelStyle ? isoDateToExcelDisplay(iso) : iso;
+  }
+  if (excelStyle && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    date = isoDateToExcelDisplay(date);
+  }
+  if (!date) date = "—";
+
+  const time = String(row.time ?? "").trim() || "—";
+  return { date, time };
+}
+
+/** Short date in Excel transaction rows: "09 March" from "09 March 2026". */
+export function excelShortTxnDate(fullDate: string): string {
+  const text = String(fullDate ?? "").trim();
+  const match = text.match(/^(\d{1,2}\s+[A-Za-z]+)(?:\s+\d{4})?$/);
+  return match ? match[1] : text;
+}
+
+export function excelModeGroupLabel(mode: string): string {
+  const upper = String(mode ?? "").trim().toUpperCase();
+  if (!upper) return "";
+  if (upper.includes("UPI")) return "UPI ID";
+  if (upper.includes("CASH")) return "CASH";
+  if (upper.includes("CARD")) return "CREDIT/DEBIT CARD";
+  if (upper.includes("NEFT") || upper.includes("BANK")) return "NEFT";
+  if (upper.includes("CHEQ")) return "CHEQUE";
+  return upper;
+}
+
+export type FeeTxnTableRow =
+  | { kind: "date-header"; key: string; label: string }
+  | { kind: "txn"; key: string; receipt: FeeReceiptRow }
+  | { kind: "date-summary"; key: string; label: string; count: number; total: number }
+  | { kind: "mode-label"; key: string; label: string; amount: number; count: number };
+
+function parseReceiptRecNo(receipt: FeeReceiptRow): number {
+  return Number.parseInt(String(receipt.receiptNo).replace(/\D/g, ""), 10) || 0;
+}
+
+/** Group All Time transactions like the Excel report: date header → rows → daily total → mode labels. */
+export function buildExcelGroupedTxnRows(receipts: FeeReceiptRow[]): FeeTxnTableRow[] {
+  const byDate = new Map<string, FeeReceiptRow[]>();
+
+  for (const receipt of receipts) {
+    const key = String(receipt.date || receipt.dateDisplay || "").trim() || "unknown";
+    const list = byDate.get(key) ?? [];
+    list.push(receipt);
+    byDate.set(key, list);
+  }
+
+  const sortedKeys = [...byDate.keys()].sort((a, b) => {
+    if (a === "unknown") return 1;
+    if (b === "unknown") return -1;
+    return a.localeCompare(b);
+  });
+
+  const rows: FeeTxnTableRow[] = [];
+
+  for (const dateKey of sortedKeys) {
+    const items = [...(byDate.get(dateKey) ?? [])].sort(
+      (a, b) => parseReceiptRecNo(a) - parseReceiptRecNo(b)
+    );
+    if (items.length === 0) continue;
+
+    const headerLabel = formatReceiptDateTime(items[0], { excelStyle: true }).date;
+    rows.push({ kind: "date-header", key: `header-${dateKey}`, label: headerLabel });
+
+    for (const receipt of items) {
+      rows.push({ kind: "txn", key: receipt.id, receipt });
+    }
+
+    const total = items
+      .filter((r) => r.status !== "Cancelled" && r.status !== "Failed")
+      .reduce((sum, r) => sum + r.amount, 0);
+
+    rows.push({
+      kind: "date-summary",
+      key: `summary-${dateKey}`,
+      label: headerLabel,
+      count: items.length,
+      total,
+    });
+
+    const modeTotals = new Map<string, { amount: number; count: number }>();
+    for (const receipt of items) {
+      if (receipt.status === "Cancelled" || receipt.status === "Failed") continue;
+      const label = excelModeGroupLabel(receipt.mode);
+      if (!label) continue;
+      const prev = modeTotals.get(label) ?? { amount: 0, count: 0 };
+      modeTotals.set(label, {
+        amount: prev.amount + receipt.amount,
+        count: prev.count + 1,
+      });
+    }
+
+    for (const [label, stats] of [...modeTotals.entries()].sort((a, b) =>
+      a[0].localeCompare(b[0])
+    )) {
+      rows.push({
+        kind: "mode-label",
+        key: `mode-${dateKey}-${label}`,
+        label,
+        amount: stats.amount,
+        count: stats.count,
+      });
+    }
+  }
+
+  return rows;
+}
+
 export function mapPaymentDocToReceipt(
   id: string,
   data: Record<string, unknown>
 ): FeeReceiptRow {
   const monthRaw = String(data.feeMonth ?? data.month ?? "");
   const dateRaw = String(data.date ?? data.payment_date ?? "").slice(0, 10);
+  const dateDisplay = data.dateDisplay ? String(data.dateDisplay).trim() : undefined;
+  const time = data.time ? String(data.time).trim() : undefined;
   return {
     id,
     receiptNo: String(data.receiptNo ?? data.id ?? id).slice(0, 24),
     month: monthRaw || monthLabelFromIndex(new Date(dateRaw || Date.now()).getMonth()),
     date: dateRaw,
+    dateDisplay,
+    time,
     amount: parseAmount(data.amount),
     mode: String(data.mode ?? data.paymentMode ?? "Cash"),
     fine: parseAmount(data.fine ?? data.lateFine),
@@ -60,7 +220,7 @@ export function mapPaymentDocToReceipt(
     collectedBy: data.collectedBy ? String(data.collectedBy) : undefined,
     collectedByName: data.collectedByName ? String(data.collectedByName) : undefined,
     remark: data.remark ? String(data.remark) : undefined,
-    reference: data.reference ? String(data.reference) : undefined,
+    reference: String(data.transNo ?? data.reference ?? data.upiId ?? data.upiRef ?? data.transactionId ?? data.txnId ?? "").trim() || undefined,
     particular: data.particular ? String(data.particular) : undefined,
     lineItems: Array.isArray(data.lineItems)
       ? (data.lineItems as FeeReceiptRow["lineItems"])
@@ -82,13 +242,14 @@ function parseReceiptDate(date: string): Date | null {
 
 export function filterReceiptsByPeriod(
   receipts: FeeReceiptRow[],
-  period: CollectionPeriod
+  period: CollectionPeriod,
+  options?: { includeCancelled?: boolean }
 ): FeeReceiptRow[] {
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
 
   return receipts.filter((r) => {
-    if (!isSuccessReceipt(r)) return false;
+    if (!options?.includeCancelled && !isSuccessReceipt(r)) return false;
     if (period === "all") return true;
     if (!r.date) return period === "today" ? false : true;
 

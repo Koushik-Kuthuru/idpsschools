@@ -143,6 +143,22 @@ async function fetchBranchFeeStructuresViaApi(
   }
 }
 
+async function fetchBranchFeePaymentsViaApi(schoolSlug: string): Promise<Record<string, unknown>[]> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    const res = await fetch(`/api/admin/fee-payments?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.warn("Branch fee payments API:", data.error || res.status, { schoolSlug });
+      return [];
+    }
+    return (data.payments ?? []) as Record<string, unknown>[];
+  } catch (err) {
+    console.warn("Branch fee payments API fetch failed:", err);
+    return [];
+  }
+}
+
 async function fetchBranchDepartmentsViaApi(
   schoolSlug: string,
   academicYear: string | null
@@ -432,6 +448,12 @@ async function applyQuery(collectionPath: string[], constraints: any[] = []) {
     return finishQuery(collectionPath, constraints, filtered);
   }
 
+  if (schoolSlug && table === "payments") {
+    const apiRows = await fetchBranchFeePaymentsViaApi(schoolSlug);
+    const filtered = applyClientConstraints(table, apiRows, constraints);
+    return finishQuery(collectionPath, constraints, filtered);
+  }
+
   let schoolFilter: string | null = null;
   if (isSubcollection && parentId) {
     schoolFilter = await resolveSchoolFilter(table, parentId);
@@ -526,8 +548,13 @@ export async function fetchMany(queryOrPath: any, options: FetchOptions = {}) {
     parsed.collectionPath[0] === "schools" &&
     resolveTable(parsed.collectionPath[2]) === "branch_class_fee_structures";
 
+  const isFeePaymentsQuery =
+    parsed.collectionPath.length === 3 &&
+    parsed.collectionPath[0] === "schools" &&
+    resolveTable(parsed.collectionPath[2]) === "payments";
+
   const cacheKey = buildDbQueryCacheKey(parsed.collectionPath, parsed.constraints);
-  if (!options.skipCache && !isFeeStructuresQuery) {
+  if (!options.skipCache && !isFeeStructuresQuery && !isFeePaymentsQuery) {
     const cached = readDbRowsCache(cacheKey);
     if (cached) return new QueryResult(cached);
   }
@@ -658,6 +685,22 @@ export async function upsertData(docPath: string[], data: any, options: any = {}
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
       throw new Error(body.error || "Failed to save fee structure");
+    }
+    return;
+  }
+
+  if (schoolSlug && table === "payments") {
+    const res = await fetch("/api/admin/fee-payments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schoolId: schoolSlug,
+        payment: { ...data, id: data.id ?? id },
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(body.error || "Failed to save fee payment");
     }
     return;
   }

@@ -1,0 +1,19 @@
+{
+  "mode": "apply",
+  "createMissing": false,
+  "file": "/Users/koushik/Downloads/discount_2026-2027.xlsx",
+  "excelRows": 329,
+  "created": 0,
+  "updated": 329,
+  "unchanged": 0,
+  "skippedNoData": 0,
+  "paymentsCreated": 0,
+  "paymentsSkipped": 158,
+  "paymentsUpdatedProfileOnly": 0,
+  "notFound": [],
+  "ambiguous": [],
+  "matchedByNameOnly": [],
+  "admissionWithDifferentName": [],
+  "createdStudents": [],
+  "paymentSamples": []
+}

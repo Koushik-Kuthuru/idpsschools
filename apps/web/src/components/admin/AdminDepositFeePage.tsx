@@ -36,24 +36,19 @@ import { useAcademicYear } from "@/contexts/AcademicYearContext";
 import { useBranchStudents } from "@/hooks/useBranchStudents";
 import {
   FEE_MONTHS,
-  buildFeeGridFromStructure,
   buildPaidMonthsFromReceipts,
   computeFeeStatus,
   formatInr,
   hasFeeGridData,
   monthLabelFromIndex,
+  mapPaymentDocToReceipt,
+  formatReceiptDateTime,
   nextReceiptNo,
-  normalizeGradeKey,
   parseAmount,
   type FeeGridRow,
   type FeeReceiptRow,
 } from "@/lib/feeDepositUtils";
-import { extractFeeDetails, extractFeeTransactions } from "@/lib/studentFeeResolver";
-import {
-  classStructureAsGradeRecord,
-  fetchHydratedFeeConfiguration,
-  findClassStructureForGrade,
-} from "@/lib/feeConfigurationStore";
+import { extractFeeDetails, extractFeeTransactions, hydrateStudentFeeDetails } from "@/lib/studentFeeResolver";
 import { buildFeeReceiptPrintData } from "@/lib/buildFeeReceiptData";
 import { loadFeeReceiptTemplate, type FeeReceiptPrintData } from "@/lib/feeReceiptTemplate";
 import {
@@ -121,44 +116,13 @@ type StudentDetail = Record<string, unknown> & {
   className?: string;
 };
 
-function defaultFeeGrid(): FeeGridRow[] {
-  return [
-    { name: "TUITION FEE", method: "QUARTERLY", values: Array(12).fill("0") },
-    { name: "ADMISSION FEE", method: "ONE TIME", values: Array(12).fill("0") },
-    { name: "TRANSPORT FEE", method: "QUARTERLY", values: Array(12).fill("0") },
-  ];
-}
-
 function mapPaymentDoc(id: string, data: Record<string, unknown>): FeeReceiptRow {
-  const monthRaw = String(data.feeMonth ?? data.month ?? "");
-  const dateRaw = String(data.date ?? data.payment_date ?? "").slice(0, 10);
-  return {
-    id,
-    receiptNo: String(data.receiptNo ?? data.id ?? id).slice(0, 12),
-    month: monthRaw || monthLabelFromIndex(new Date(dateRaw || Date.now()).getMonth()),
-    date: dateRaw,
-    amount: parseAmount(data.amount),
-    mode: String(data.mode ?? data.paymentMode ?? "Cash"),
-    fine: parseAmount(data.fine),
-    status: String(data.status ?? "Completed"),
-    studentId: data.studentId ? String(data.studentId) : undefined,
-    studentName: data.studentName ? String(data.studentName) : undefined,
-    admissionNo: data.admissionNo ? String(data.admissionNo) : undefined,
-    collectedBy: data.collectedBy ? String(data.collectedBy) : undefined,
-    collectedByName: data.collectedByName ? String(data.collectedByName) : undefined,
-    remark: data.remark ? String(data.remark) : undefined,
-    reference: String(data.reference ?? data.upiId ?? data.upiRef ?? data.transactionId ?? data.txnId ?? ""),
-  };
+  return mapPaymentDocToReceipt(id, data);
 }
 
-function formatLegacyTxDate(date: string): string {
-  if (!date) return "—";
-  const d = new Date(`${date.slice(0, 10)}T12:00:00`);
-  if (Number.isNaN(d.getTime())) return date;
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yy = String(d.getFullYear()).slice(-2);
-  return `${dd}-${mm}-${yy}`;
+function formatLegacyTxDate(row: Pick<FeeReceiptRow, "date" | "dateDisplay" | "time">): string {
+  const { date, time } = formatReceiptDateTime(row);
+  return time !== "—" ? `${date} · ${time}` : date;
 }
 
 function isUpiPaymentMode(mode: string): boolean {
@@ -300,18 +264,6 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
     setStudentLoadError(null);
   };
 
-  const resolveGradeFeeStructure = useCallback(
-    async (gradeRaw: string) => {
-      const grade = String(gradeRaw ?? "").trim();
-      if (!grade) return null;
-
-      const config = await fetchHydratedFeeConfiguration(schoolId, currentYear?.name ?? null);
-      const entry = findClassStructureForGrade(config, grade, currentYear?.name ?? null);
-      return entry ? classStructureAsGradeRecord(entry) : null;
-    },
-    [schoolId, currentYear?.name]
-  );
-
   const studentReceipts = useMemo(() => {
     if (!student) return [];
     const adm = String(student.admissionNo ?? "").toLowerCase();
@@ -359,28 +311,20 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Student not found");
 
-        let detail = data.student as StudentDetail;
-        const grade =
-          String(detail.grade ?? detail.classId ?? detail.className ?? "").trim() ||
-          classOptions.find((c) => normalizeGradeKey(c) === normalizeGradeKey(String(detail.classId ?? ""))) ||
-          "";
+        const detail = data.student as StudentDetail;
+        const feeDetails = await hydrateStudentFeeDetails(
+          detail as Record<string, unknown>,
+          schoolId,
+          currentYear?.name ?? null
+        );
 
-        if (!hasFeeGridData(detail.feeDetails?.feeGrid)) {
-          const structure = await resolveGradeFeeStructure(grade);
-          if (structure) {
-            detail = {
-              ...detail,
-              feeDetails: {
-                ...(detail.feeDetails ?? {}),
-                feeCategory: detail.feeDetails?.feeCategory ?? "GENERAL",
-                feeStatus: detail.feeDetails?.feeStatus ?? "NEW",
-                feeGrid: buildFeeGridFromStructure(structure),
-              },
-            };
-          }
-        }
-
-        setStudent(detail);
+        setStudent({
+          ...detail,
+          feeDetails: {
+            ...(detail.feeDetails ?? {}),
+            ...feeDetails,
+          },
+        });
       } catch (err) {
         setStudent(null);
         setStudentLoadError(err instanceof Error ? err.message : "Failed to load student");
@@ -388,7 +332,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
         setStudentLoading(false);
       }
     },
-    [schoolId, currentYear?.name, classOptions, resolveGradeFeeStructure]
+    [schoolId, currentYear?.name]
   );
 
   useEffect(() => {
@@ -401,8 +345,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
 
   const feeGrid = useMemo(() => {
     const grid = student?.feeDetails?.feeGrid;
-    if (hasFeeGridData(grid)) return grid as FeeGridRow[];
-    return defaultFeeGrid();
+    return (Array.isArray(grid) ? grid : []) as FeeGridRow[];
   }, [student]);
 
   const paidMonths = useMemo(() => {
@@ -950,7 +893,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
                         <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50/50">
                           <td className="px-3 py-2.5 font-bold text-gray-800">{r.receiptNo}</td>
                           <td className="px-3 py-2.5 font-semibold text-gray-600">{r.month}</td>
-                          <td className="px-3 py-2.5 text-gray-500">{formatLegacyTxDate(r.date)}</td>
+                          <td className="px-3 py-2.5 text-gray-500">{formatLegacyTxDate(r)}</td>
                           <td className="px-3 py-2.5 text-right font-bold text-[#144835]">
                             {formatInr(r.amount)}
                           </td>
@@ -1219,7 +1162,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
         open={feeStructureOpen && Boolean(student)}
         onClose={() => setFeeStructureOpen(false)}
         studentName={String(student?.name ?? student?.studentName ?? "Student")}
-        feeGrid={hasFeeGridData(student?.feeDetails?.feeGrid) ? (student?.feeDetails?.feeGrid as FeeGridRow[]) : feeGrid}
+        feeGrid={feeGrid}
         lastYearDue={student?.feeDetails?.lastYearDue}
         transportFees={student?.transportDetails?.fees}
       />

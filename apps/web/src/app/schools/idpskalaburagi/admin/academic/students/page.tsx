@@ -360,17 +360,25 @@ export default function AdminStudentsPage() {
  />
  </div>
 
- <div className="flex flex-col gap-1.5 w-full sm:w-[190px]">
- <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
- <ArrowUpDown size={12} aria-hidden />
- Sort
- </label>
- <SelectMenu
- value={sortKey}
- onChange={(value) => setSortKey(value as StudentSortKey)}
- options={sortOptions}
- aria-label="Sort students"
+ <div className="relative shrink-0 self-end">
+ <ArrowUpDown
+ size={16}
+ className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+ aria-hidden
  />
+ <select
+ value={sortKey}
+ onChange={(e) => setSortKey(e.target.value as StudentSortKey)}
+ className="h-9 w-9 rounded-lg border border-gray-200 bg-gray-50/50 text-transparent appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] hover:bg-gray-50 transition-all"
+ aria-label="Sort students"
+ title="Sort students"
+ >
+ {sortOptions.map((option) => (
+ <option key={option.value} value={option.value} className="text-gray-900">
+ {option.label}
+ </option>
+ ))}
+ </select>
  </div>
 
  {hasActiveFilters ? (

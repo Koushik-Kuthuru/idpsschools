@@ -30,6 +30,8 @@
     "check:transport-excel": "node scripts/import-cherukupalli-transport-excel.mjs --dry-run",
     "import:transport-excel": "node scripts/import-cherukupalli-transport-excel.mjs --apply --clear-extra",
     "apply:transport-quarterly-fees": "node scripts/apply-transport-quarterly-fees.mjs --apply",
+    "import:discount-excel": "node scripts/import-cherukupalli-discount-excel.mjs --apply --create-missing --file \"/Users/koushik/Downloads/discount_2026-2027.xlsx\"",
+    "import:transactions-excel": "node scripts/import-cherukupalli-transactions-excel.mjs --apply --create-missing --file \"/Users/koushik/Downloads/abc-8.xlsx\"",
     "seed:idps-departments-catalog": "node scripts/seed-idps-departments-catalog.mjs --all-branches",
     "generate:departments-migration": "node scripts/generate-departments-seed-migration.mjs",
     "import:staff-details-excel": "node scripts/import-staff-details-excel.mjs",

@@ -1,0 +1,21 @@
+{
+  "mode": "dry-run",
+  "file": "/Users/koushik/Downloads/abc-8.xlsx",
+  "academicYear": "2026-27",
+  "excelTransactions": 568,
+  "completedCount": 550,
+  "cancelledCount": 18,
+  "completedTotal": 15802024,
+  "paymentsCreated": 0,
+  "paymentsSkipped": 568,
+  "paymentsDateUpdated": 0,
+  "paymentsLinked": 0,
+  "studentsCreated": 0,
+  "createdStudents": [],
+  "createErrors": [],
+  "profilesUpdated": 0,
+  "studentsWithTransactions": 401,
+  "matchedByNameOnly": 0,
+  "ambiguousName": 0,
+  "notFound": []
+}

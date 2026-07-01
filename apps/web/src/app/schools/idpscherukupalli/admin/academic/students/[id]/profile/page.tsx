@@ -29,6 +29,7 @@ import {
   type FeeConfiguration,
 } from "@/lib/feeConfigurationStore";
 import StudentFeeStructureEditor, { type FeeStructureFormState } from "@/components/admin/StudentFeeStructureEditor";
+import StudentFeeTransactionsPanel from "@/components/admin/fees/StudentFeeTransactionsPanel";
 import { resolveStudentProfileTab } from "@/lib/studentProfileTabs";
 
 
@@ -889,6 +890,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  )}
  
  {activeTab === "Fee Details" && (
+ <div className="space-y-4">
  <StudentFeeStructureEditor
  key={studentId}
  initial={{
@@ -913,6 +915,8 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
        }
  }
  />
+ <StudentFeeTransactionsPanel student={student} />
+ </div>
  )}
 
  {activeTab === "Transport Details" && (

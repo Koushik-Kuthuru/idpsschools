@@ -1,7 +1,6 @@
-import { FEE_MONTHS, parseAmount, type FeeReceiptRow } from "@/lib/feeDepositUtils";
+import { FEE_MONTHS, parseAmount, formatReceiptDateTime, type FeeReceiptRow } from "@/lib/feeDepositUtils";
 import {
   balanceYearEndLabel,
-  formatReceiptDate,
   isUpiPaymentMode,
   type FeeReceiptLineItem,
   type FeeReceiptPrintData,
@@ -68,11 +67,13 @@ export function buildFeeReceiptPrintData(params: {
   const grandTotal = lineItems.reduce((sum, row) => sum + row.amount, 0);
   const month = receipt.month || "APR";
   const txnId = isUpiPaymentMode(receipt.mode) ? String(receipt.reference ?? "").trim() : "";
+  const { date: receiptDate, time: receiptTime } = formatReceiptDateTime(receipt);
+  const dateLabel = receiptTime !== "—" ? `${receiptDate} ${receiptTime}` : receiptDate;
 
   return {
     feeMonth: month,
     admissionNo: String(student.admissionNo ?? "—"),
-    date: formatReceiptDate(receipt.date),
+    date: dateLabel,
     studentName: String(student.name ?? student.studentName ?? "—"),
     receiptNo: receipt.receiptNo,
     fatherName: String(student.fatherName ?? "—"),

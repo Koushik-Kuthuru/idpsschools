@@ -15,7 +15,8 @@ export function useFeePayments(schoolId: string) {
     setError(null);
     try {
       const snap = await fetchMany(
-        buildQuery(buildPath(db, "schools", schoolId, "payments"), sortBy("createdAt", "desc"))
+        buildQuery(buildPath(db, "schools", schoolId, "payments"), sortBy("createdAt", "desc")),
+        { skipCache: true }
       );
       setReceipts(snap.docs.map((d) => mapPaymentDocToReceipt(d.id, d.data() as Record<string, unknown>)));
     } catch (err) {
