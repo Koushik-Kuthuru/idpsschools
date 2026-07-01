@@ -20,6 +20,49 @@ const ROMAN_VALUES: Record<string, number> = {
 
 const ROMAN_PATTERN = /^(XII|XI|X|IX|VIII|VII|VI|V|IV|III|II|I)\b/i;
 
+const STREAM_GROUP_PATTERN = /\b(MPC|BIPC|BIOPC|MBIPC|CEC|NDA)\b/i;
+
+/** XI (MPC), XI + NDA, etc. — distinct from plain XI for fee/class lists. */
+export function isStreamOrCompositeGrade(raw: string): boolean {
+  const label = String(raw ?? "").trim();
+  if (!label) return false;
+
+  if (STREAM_GROUP_PATTERN.test(label)) return true;
+
+  const upper = label.toUpperCase();
+  if (/^XI\b/.test(upper) && /\+/.test(label)) return true;
+  if (/^XII\b/.test(upper) && /\+/.test(label)) return true;
+  if (/^XI\s*\(/i.test(label)) return true;
+  if (/^XII\s*\(/i.test(label)) return true;
+
+  return false;
+}
+
+/** Stable identity for deduping class grades (aliases merge; streams stay separate). */
+export function gradeIdentityKey(raw: string): string {
+  const label = String(raw ?? "").trim();
+  if (!label) return "";
+
+  if (isStreamOrCompositeGrade(label)) {
+    return `stream:${label.toUpperCase().replace(/\s+/g, " ").trim()}`;
+  }
+
+  return `std:${gradeSortKey(label)}`;
+}
+
+export function gradesMatchForClass(a: string, b: string): boolean {
+  return gradeIdentityKey(a) === gradeIdentityKey(b);
+}
+
+/** Document / storage id for a class grade label. */
+export function gradeDocId(grade: string): string {
+  return grade
+    .trim()
+    .replaceAll("/", "-")
+    .replace(/\s+/g, "-")
+    .replace(/\+/g, "-plus-");
+}
+
 /** Lower number = earlier in school progression. */
 export function gradeSortKey(raw: string): number {
   const label = String(raw ?? "").trim();
@@ -61,6 +104,10 @@ export function sortGrades(grades: string[]): string[] {
 export function gradeDisplayLabel(raw: string): string {
   const label = String(raw ?? "").trim();
   if (!label) return "Unknown";
+
+  if (isStreamOrCompositeGrade(label)) {
+    return label;
+  }
 
   const key = gradeSortKey(label);
   if (key === 0) return "Nursery";

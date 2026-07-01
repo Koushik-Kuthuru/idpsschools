@@ -1,19 +1,22 @@
 import { ROLE_NAV_GROUPS, type UserRole } from "@/lib/auth/roles";
 import {
+  BedDouble,
   BookOpen,
   Bus,
-  CalendarCheck,
+  Building2,
   Calendar,
+  CalendarCheck,
   CalendarDays,
   ClipboardList,
-  CreditCard,
   FileText,
   GraduationCap,
   LayoutDashboard,
   MessageSquare,
   Receipt,
   User,
+  UserCheck,
   Users,
+  UtensilsCrossed,
   Wallet,
 } from "lucide-react";
 
@@ -66,6 +69,29 @@ export function buildNavGroups(schoolId: string): NavGroup[] {
       ],
     },
     {
+      id: "hostel",
+      name: "Hostel",
+      icon: BedDouble,
+      items: [
+        { name: "Residents", href: `${base}/hostel/residents`, icon: Users },
+        { name: "Rooms & Blocks", href: `${base}/hostel/rooms`, icon: Building2 },
+        { name: "Attendance", href: `${base}/hostel/attendance`, icon: CalendarCheck },
+        { name: "Visitors", href: `${base}/hostel/visitors`, icon: UserCheck },
+        { name: "Fee Status", href: `${base}/hostel/fees`, icon: Wallet },
+      ],
+    },
+    {
+      id: "mess",
+      name: "Mess",
+      icon: UtensilsCrossed,
+      items: [
+        { name: "Menu", href: `${base}/mess/menu`, icon: CalendarDays },
+        { name: "Meal Attendance", href: `${base}/mess/attendance`, icon: ClipboardList },
+        { name: "Billing", href: `${base}/mess/billing`, icon: Receipt },
+        { name: "Feedback", href: `${base}/mess/feedback`, icon: MessageSquare },
+      ],
+    },
+    {
       id: "staff_hr",
       name: "Staff & HR",
       icon: Users,
@@ -83,12 +109,9 @@ export function buildNavGroups(schoolId: string): NavGroup[] {
       icon: Wallet,
       items: [
         { name: "Fees",               href: `${base}/finance/fees`,          icon: Wallet },
-        { name: "Pay Fee",            href: `${base}/finance/fees/deposit`,  icon: CreditCard },
-        { name: "Invoices",           href: `${base}/finance/invoices`,      icon: Receipt },
-        { name: "Payments",           href: `${base}/finance/payments`, icon: Wallet },
-        { name: "Expenses",           href: `${base}/finance/expenses`, icon: Wallet },
-        { name: "Payroll",            href: `${base}/finance/payroll`,  icon: Wallet },
-        { name: "Financial Reports",  href: `${base}/finance/reports`,  icon: FileText },
+        { name: "Expenses",           href: `${base}/finance/expenses`,      icon: Wallet },
+        { name: "Payroll",            href: `${base}/finance/payroll`,       icon: Wallet },
+        { name: "Financial Reports",  href: `${base}/finance/reports`,       icon: FileText },
       ],
     },
     {

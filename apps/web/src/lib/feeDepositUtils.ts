@@ -36,10 +36,39 @@ export type FeeReceiptRow = {
   remark?: string;
   reference?: string;
   particular?: string;
-  lineItems?: Array<{ particular: string; amount: number }>;
+  lineItems?: Array<{ particular?: string; amount?: string | number }>;
 };
 
-export type CollectionPeriod = "today" | "week" | "month";
+export function mapPaymentDocToReceipt(
+  id: string,
+  data: Record<string, unknown>
+): FeeReceiptRow {
+  const monthRaw = String(data.feeMonth ?? data.month ?? "");
+  const dateRaw = String(data.date ?? data.payment_date ?? "").slice(0, 10);
+  return {
+    id,
+    receiptNo: String(data.receiptNo ?? data.id ?? id).slice(0, 24),
+    month: monthRaw || monthLabelFromIndex(new Date(dateRaw || Date.now()).getMonth()),
+    date: dateRaw,
+    amount: parseAmount(data.amount),
+    mode: String(data.mode ?? data.paymentMode ?? "Cash"),
+    fine: parseAmount(data.fine ?? data.lateFine),
+    status: String(data.status ?? "Completed"),
+    studentId: data.studentId ? String(data.studentId) : undefined,
+    studentName: data.studentName ? String(data.studentName) : undefined,
+    admissionNo: data.admissionNo ? String(data.admissionNo) : undefined,
+    collectedBy: data.collectedBy ? String(data.collectedBy) : undefined,
+    collectedByName: data.collectedByName ? String(data.collectedByName) : undefined,
+    remark: data.remark ? String(data.remark) : undefined,
+    reference: data.reference ? String(data.reference) : undefined,
+    particular: data.particular ? String(data.particular) : undefined,
+    lineItems: Array.isArray(data.lineItems)
+      ? (data.lineItems as FeeReceiptRow["lineItems"])
+      : undefined,
+  };
+}
+
+export type CollectionPeriod = "today" | "week" | "month" | "all";
 
 function isSuccessReceipt(r: FeeReceiptRow) {
   return r.status !== "Cancelled" && r.status !== "Failed";
@@ -60,6 +89,7 @@ export function filterReceiptsByPeriod(
 
   return receipts.filter((r) => {
     if (!isSuccessReceipt(r)) return false;
+    if (period === "all") return true;
     if (!r.date) return period === "today" ? false : true;
 
     if (period === "today") return r.date === todayStr;
@@ -162,7 +192,15 @@ export function hasFeeGridData(grid: FeeGridRow[] | undefined): boolean {
 }
 
 /** Spread annual fee heads into quarterly months (Jul, Oct, Jan, Apr). */
-export function buildFeeGridFromStructure(structure: Record<string, unknown>): FeeGridRow[] {
+export function buildFeeGridFromStructure(
+  structure: Record<string, unknown>,
+  schoolId?: string
+): FeeGridRow[] {
+  const nestedGrid = structure.feeGrid;
+  if (Array.isArray(nestedGrid) && hasFeeGridData(nestedGrid as FeeGridRow[])) {
+    return nestedGrid as FeeGridRow[];
+  }
+
   const tuition = parseAmount(structure.tuition);
   const sports = parseAmount(structure.sports);
   const transport = parseAmount(structure.transport);

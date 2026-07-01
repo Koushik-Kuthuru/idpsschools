@@ -1,7 +1,7 @@
 "use client";
 
-import AdminFeeStructuresPage from "@/components/admin/AdminFeeStructuresPage";
+import AdminFeesHubPage from "@/components/admin/AdminFeesHubPage";
 
 export default function AdminFeesPage() {
-  return <AdminFeeStructuresPage />;
+  return <AdminFeesHubPage />;
 }

@@ -24,7 +24,8 @@ import { twMerge } from "tailwind-merge";
 
 import { provisionPortalUser } from "@/lib/auth/provision-client";
 import { generatePortalPassword, inferRoleFromStaff } from "@/lib/auth/roles";
-import { buildPath, subscribeData, sortBy, buildQuery, db, auth } from "@/lib/db-client";
+import { auth } from "@/lib/db-client";
+import { useBranchDepartments } from "@/hooks/useBranchDepartments";
 
 
 function cn(...inputs: ClassValue[]) {
@@ -60,16 +61,21 @@ function generateEmployeeId() {
 }
 
 function isTeachingFromFields(roleTitle: string, department: string) {
-  const role = String(roleTitle || "").toLowerCase();
-  const dept = String(department || "").toLowerCase();
+  const role = String(roleTitle || "").toUpperCase();
+  const dept = String(department || "").toUpperCase();
+  if (
+    dept === "TEACHING" ||
+    dept === "HOD TEACHING" ||
+    dept === "TEACHING SUPPORT" ||
+    dept === "ROBOTICS" ||
+    dept === "SPACE"
+  ) {
+    return true;
+  }
   return (
-    role.includes("teacher") ||
-    role.includes("tutor") ||
-    role.includes("professor") ||
-    role.includes("lecturer") ||
-    role.includes("faculty") ||
-    dept === "academic" ||
-    dept === "academics"
+    /\b(TEACHER|TUTOR|PROFESSOR|LECTURER|FACULTY|PGT|PRT|TGT|HOD)\b/.test(role) ||
+    dept === "ACADEMIC" ||
+    dept === "ACADEMICS"
   );
 }
 
@@ -119,7 +125,7 @@ export default function EmployeeForm({
     address: "",
     employeeId: initialEmployeeId,
     department: "",
-    position: mode === "create" && category === "teaching" ? "Teacher" : "",
+    position: "",
     joiningDate: "",
     employmentType: "Full-time Permanent",
     baseSalary: "",
@@ -132,11 +138,6 @@ export default function EmployeeForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [provisionInfo, setProvisionInfo] = useState<string | null>(null);
-  const [departments, setDepartments] = useState<Array<{ id: string; name: string }>>([]);
-
-  const onChange = <K extends keyof FormState>(key: K, value: FormState[K]) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  };
 
   const directoryLabel =
     directoryHref.includes("teaching-staff")
@@ -146,33 +147,38 @@ export default function EmployeeForm({
         : "Directory";
 
   const schoolId = useMemo(() => inferSchoolIdFromHref(directoryHref), [directoryHref]);
-
-  useEffect(() => {
-    const qRef = buildQuery(buildPath(db, "schools", schoolId, "departments"), sortBy("name", "asc"));
-    const unsub = subscribeData(
-      qRef,
-      (snap: any) => {
-        const next = snap.docs.map((d: any) => {
-          const data = d.data() as any;
-          return { id: d.id, name: String(data.name || "").trim() || d.id };
-        });
-        setDepartments(next);
-      },
-      () => setDepartments([])
-    );
-    return () => unsub();
-  }, [schoolId]);
+  const { departments: branchDepartments, loading: departmentsLoading } = useBranchDepartments(schoolId);
 
   const departmentOptions = useMemo(() => {
-    const base = [{ id: "General", name: "General" }, ...departments];
-    const seen = new Set<string>();
-    return base.filter((d) => {
-      if (!d.id) return false;
-      if (seen.has(d.id)) return false;
-      seen.add(d.id);
-      return true;
+    let list = branchDepartments;
+    if (category === "teaching") {
+      list = list.filter((d) => d.category === "teaching");
+    } else if (category === "nonTeaching") {
+      list = list.filter((d) => d.category !== "teaching");
+    }
+    return [...list].sort((a, b) => a.name.localeCompare(b.name));
+  }, [branchDepartments, category]);
+
+  const designationOptions = useMemo(() => {
+    const selected = departmentOptions.find(
+      (d) => d.name === form.department || d.id === form.department
+    );
+    return selected?.designations ?? [];
+  }, [departmentOptions, form.department]);
+
+  const onChange = <K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === "department") {
+        const dept = departmentOptions.find((d) => d.name === value || d.id === value);
+        const validPosition = dept?.designations.some(
+          (item) => item.name === prev.position || item.id === prev.position
+        );
+        if (!validPosition) next.position = "";
+      }
+      return next;
     });
-  }, [departments]);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -510,23 +516,16 @@ export default function EmployeeForm({
                     className="w-full h-9 rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all"
                     value={form.department}
                     onChange={(e) => onChange("department", e.target.value)}
+                    disabled={departmentsLoading}
                   >
-                    <option value="">Select Department</option>
-                    {departmentOptions.length ? (
-                      departmentOptions.map((d: any) => (
-                        <option key={d.id} value={d.id}>
-                          {d.name}
-                        </option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="Academics">Academics</option>
-                        <option value="Administration">Administration</option>
-                        <option value="Finance">Finance</option>
-                        <option value="IT & Systems">IT & Systems</option>
-                        <option value="HR">HR</option>
-                      </>
-                    )}
+                    <option value="">
+                      {departmentsLoading ? "Loading departments..." : "Select Department"}
+                    </option>
+                    {departmentOptions.map((d) => (
+                      <option key={d.id} value={d.name}>
+                        {d.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -537,13 +536,20 @@ export default function EmployeeForm({
                   className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] transition-all"
                   value={form.position}
                   onChange={(e) => onChange("position", e.target.value)}
+                  disabled={!form.department || departmentsLoading}
                 >
-                  <option value="">Select Position</option>
-                  <option value="Teacher">Teacher</option>
-                  <option value="Senior Teacher">Senior Teacher</option>
-                  <option value="Accountant">Accountant</option>
-                  <option value="HR Manager">HR Manager</option>
-                  <option value="Senior Developer">Senior Developer</option>
+                  <option value="">
+                    {!form.department
+                      ? "Select department first"
+                      : designationOptions.length
+                        ? "Select Position"
+                        : "No designations for this department"}
+                  </option>
+                  {designationOptions.map((item) => (
+                    <option key={item.id} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 

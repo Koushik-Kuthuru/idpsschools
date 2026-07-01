@@ -1,0 +1,22 @@
+{
+  "generatedAt": "2026-06-30T13:56:43.784Z",
+  "filePath": "/Users/koushik/idps-schools/data/Student_with_transport.xlsx",
+  "mode": "apply+clear-extra",
+  "slabCounts": {
+    "below": 52,
+    "above": 298,
+    "other": 0
+  },
+  "totals": {
+    "excelRows": 350,
+    "missingInDb": 0,
+    "needsTransport": 0,
+    "alreadyCorrect": 350,
+    "dbOnlyTransport": 0,
+    "updated": 0,
+    "cleared": 0
+  },
+  "missingInDb": [],
+  "needsTransport": [],
+  "dbOnlyTransport": []
+}

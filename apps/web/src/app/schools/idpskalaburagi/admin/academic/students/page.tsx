@@ -18,7 +18,8 @@ import {
  Trash2,
  CheckCircle2,
  AlertCircle,
- X
+ X,
+ ArrowUpDown,
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -76,6 +77,37 @@ function getAvatarColor(name: string) {
  return colors[index];
 }
 
+type StudentSortKey =
+ | "name-asc"
+ | "name-desc"
+ | "roll-asc"
+ | "roll-desc"
+ | "admission-asc"
+ | "admission-desc";
+
+function compareStudentField(a: string, b: string, mode: "text" | "numeric") {
+ if (mode === "numeric") {
+  const na = Number.parseInt(String(a).replace(/\D/g, ""), 10) || 0;
+  const nb = Number.parseInt(String(b).replace(/\D/g, ""), 10) || 0;
+  if (na !== nb) return na - nb;
+  return String(a).localeCompare(String(b), undefined, { sensitivity: "base", numeric: true });
+ }
+ return String(a).localeCompare(String(b), undefined, { sensitivity: "base" });
+}
+
+function sortStudents(rows: AdminStudent[], sortKey: StudentSortKey) {
+ const desc = sortKey.endsWith("-desc");
+ const field = sortKey.split("-")[0] as "name" | "roll" | "admission";
+
+ return [...rows].sort((a, b) => {
+  let cmp = 0;
+  if (field === "name") cmp = compareStudentField(a.name, b.name, "text");
+  else if (field === "roll") cmp = compareStudentField(a.roll, b.roll, "numeric");
+  else cmp = compareStudentField(a.admissionNo, b.admissionNo, "numeric");
+  return desc ? -cmp : cmp;
+ });
+}
+
 export default function AdminStudentsPage() {
   const schoolId = useSchoolId();
   const { currentYear, loading: yearLoading } = useAcademicYear();
@@ -93,6 +125,7 @@ export default function AdminStudentsPage() {
  const [classFilter, setClassFilter] = useState<string>(allClassesKey);
  const [sectionFilter, setSectionFilter] = useState<string>(allSectionsKey);
  const [statusFilter, setStatusFilter] = useState<"all" | "Active" | "Inactive">("all");
+ const [sortKey, setSortKey] = useState<StudentSortKey>("name-asc");
  const [selected, setSelected] = useState<Record<string, boolean>>({});
 
  const students = useMemo<AdminStudent[]>(
@@ -143,6 +176,8 @@ export default function AdminStudentsPage() {
  });
  }, [classFilter, sectionFilter, searchQuery, statusFilter, students, allClassesKey, allSectionsKey]);
 
+ const sortedFiltered = useMemo(() => sortStudents(filtered, sortKey), [filtered, sortKey]);
+
  const hasActiveFilters =
  searchQuery.trim() !== "" ||
  classFilter !== allClassesKey ||
@@ -172,9 +207,20 @@ export default function AdminStudentsPage() {
  ],
  []
  );
+ const sortOptions = useMemo(
+ () => [
+ { value: "name-asc", label: "Name (A → Z)" },
+ { value: "name-desc", label: "Name (Z → A)" },
+ { value: "roll-asc", label: "Roll No. (Low → High)" },
+ { value: "roll-desc", label: "Roll No. (High → Low)" },
+ { value: "admission-asc", label: "Admission No. (Low → High)" },
+ { value: "admission-desc", label: "Admission No. (High → Low)" },
+ ],
+ []
+ );
 
  const selectedCount = useMemo(() => Object.values(selected).filter(Boolean).length, [selected]);
- const allSelectedOnPage = useMemo(() => filtered.length > 0 && filtered.every((s) => selected[s.id]), [filtered, selected]);
+ const allSelectedOnPage = useMemo(() => sortedFiltered.length > 0 && sortedFiltered.every((s) => selected[s.id]), [sortedFiltered, selected]);
 
  return (
  <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
@@ -204,7 +250,7 @@ export default function AdminStudentsPage() {
  }}
  />
  <ExportButton
- data={filtered}
+ data={sortedFiltered}
  filename="students"
  columns={[
  { header: "Name", key: "name" },
@@ -314,6 +360,19 @@ export default function AdminStudentsPage() {
  />
  </div>
 
+ <div className="flex flex-col gap-1.5 w-full sm:w-[190px]">
+ <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+ <ArrowUpDown size={12} aria-hidden />
+ Sort
+ </label>
+ <SelectMenu
+ value={sortKey}
+ onChange={(value) => setSortKey(value as StudentSortKey)}
+ options={sortOptions}
+ aria-label="Sort students"
+ />
+ </div>
+
  {hasActiveFilters ? (
  <button
  type="button"
@@ -399,7 +458,7 @@ export default function AdminStudentsPage() {
  <div className="flex items-center gap-3 min-w-0">
  <h2 className="text-sm font-bold text-gray-800 shrink-0">Student Directory</h2>
  <div className="hidden sm:flex items-center gap-2 text-xs font-bold bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-200">
- <span className="text-gray-600">{filtered.length} result{filtered.length === 1 ? "" : "s"}</span>
+ <span className="text-gray-600">{sortedFiltered.length} result{sortedFiltered.length === 1 ? "" : "s"}</span>
  {hasActiveFilters ? (
  <>
  <span className="w-1 h-1 rounded-full bg-gray-300" />
@@ -409,7 +468,7 @@ export default function AdminStudentsPage() {
  </div>
  </div>
  <p className="text-xs font-medium text-gray-500 sm:hidden">
- {filtered.length} student{filtered.length === 1 ? "" : "s"}
+ {sortedFiltered.length} student{sortedFiltered.length === 1 ? "" : "s"}
  {hasActiveFilters ? ` of ${students.length}` : ""}
  </p>
  </div>
@@ -455,7 +514,7 @@ export default function AdminStudentsPage() {
  const checked = e.target.checked;
  setSelected((prev) => {
  const next = { ...prev };
- filtered.forEach((s) => {
+ sortedFiltered.forEach((s) => {
  next[s.id] = checked;
  });
  return next;
@@ -473,8 +532,8 @@ export default function AdminStudentsPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
- {filtered.length > 0 ? (
- filtered.map((s) => {
+ {sortedFiltered.length > 0 ? (
+ sortedFiltered.map((s) => {
  const initials = s.name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
  const active = s.status === "Active";
  const avatarColor = getAvatarColor(s.name);
@@ -593,10 +652,10 @@ export default function AdminStudentsPage() {
 
  <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between bg-gray-50/30">
  <p className="text-xs font-medium text-gray-500">
- {filtered.length > 0 ? (
+ {sortedFiltered.length > 0 ? (
  <>
- Showing <span className="font-bold text-gray-900">{filtered.length}</span>
- {filtered.length === 1 ? " student" : " students"}
+ Showing <span className="font-bold text-gray-900">{sortedFiltered.length}</span>
+ {sortedFiltered.length === 1 ? " student" : " students"}
  {hasActiveFilters ? (
  <> matching filters · <span className="font-bold text-gray-900">{students.length}</span> total enrolled</>
  ) : null}
@@ -605,9 +664,9 @@ export default function AdminStudentsPage() {
  <>No students match the current filters</>
  )}
  </p>
- {filtered.length > 0 ? (
+ {sortedFiltered.length > 0 ? (
  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider hidden sm:inline">
- {filtered.filter((s) => s.status === "Active").length} active
+ {sortedFiltered.filter((s) => s.status === "Active").length} active
  </span>
  ) : null}
  </div>

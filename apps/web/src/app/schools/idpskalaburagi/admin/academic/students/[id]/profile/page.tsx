@@ -19,7 +19,17 @@ import {
   mergeFeeGridWithTemplate,
   resolveStudentFeeGrid,
 } from "@/lib/studentFeeResolver";
-import { feeStructureMatchesGrade, hasFeeGridData } from "@/lib/feeDepositUtils";
+import { sumRowValues } from "@/lib/feeDepositUtils";
+import {
+  classStructureAsGradeRecord,
+  fetchHydratedFeeConfiguration,
+  findClassStructureForGrade,
+  studentAcademicYear,
+  studentEnrollmentGrade,
+  type FeeConfiguration,
+} from "@/lib/feeConfigurationStore";
+import StudentFeeStructureEditor, { type FeeStructureFormState } from "@/components/admin/StudentFeeStructureEditor";
+import { resolveStudentProfileTab } from "@/lib/studentProfileTabs";
 
 
 const InfoSection = ({ title, icon: Icon, children }: any) => (
@@ -61,8 +71,12 @@ export default function AdminStudentProfilePage({
  const [perfClassFilter, setPerfClassFilter] = useState("Current Class");
  const [perfTermFilter, setPerfTermFilter] = useState("Term 1");
  const [perfExamTypeFilter, setPerfExamTypeFilter] = useState("All Exams");
- const initialTab = searchParams?.get("tab") || "Basic Details";
+ const initialTab = resolveStudentProfileTab(searchParams?.get("tab"));
  const [activeTab, setActiveTab] = useState(initialTab);
+
+ useEffect(() => {
+   setActiveTab(resolveStudentProfileTab(searchParams?.get("tab")));
+ }, [searchParams]);
 
  // Capture Modal State
  const [isCaptureModalOpen, setIsCaptureModalOpen] = useState(false);
@@ -96,28 +110,17 @@ export default function AdminStudentProfilePage({
  const MONTHS = ["APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR"];
  
 
- const [feeGrid, setFeeGrid] = useState(createStandardFeeGridTemplate());
+ const [feeGrid, setFeeGrid] = useState(createStandardFeeGridTemplate(schoolId));
 
- const handleFeeChange = (rowIdx: number, colIdx: number, val: string) => {
- const newGrid = [...feeGrid];
- // Allow only numbers
- if (/^\d*$/.test(val)) {
- newGrid[rowIdx].values[colIdx] = val === "" ? "0" : parseInt(val, 10).toString();
- setFeeGrid(newGrid);
- }
- };
-
- const resetFeeGrid = () => {
- setFeeCategory("GENERAL");
- setFeeTypeFilter("MONTHLY");
- setFeeStatus("NEW");
- setLastYearDue("0");
- setDiscRemark("");
- setFeeGrid(createStandardFeeGridTemplate());
- };
-
- const calculateRowTotal = (values: string[]) => {
- return values.reduce((sum, val) => sum + (parseInt(val, 10) || 0), 0);
+ const saveFeeStructure = async (state: FeeStructureFormState) => {
+ const docRef = buildPath(db, "schools", schoolId, "students", studentId);
+ await patchData(docRef, { feeDetails: state });
+ setFeeCategory(state.feeCategory);
+ setFeeTypeFilter(state.feeTypeFilter);
+ setFeeStatus(state.feeStatus);
+ setLastYearDue(state.lastYearDue);
+ setDiscRemark(state.discRemark);
+ setFeeGrid(state.feeGrid);
  };
 
  
@@ -319,31 +322,6 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  }
  };
 
- const handleUpdateFeeStructure = async () => {
- try {
- const docRef = buildPath(db, "schools", schoolId, "students", studentId);
- await patchData(docRef, {
- feeDetails: {
- feeCategory,
- feeTypeFilter,
- feeStatus,
- lastYearDue,
- discRemark,
- feeGrid
- }
- });
- alert("Fee structure saved to database successfully!");
- } catch (err) {
- console.error("Error saving fee structure:", err);
- alert("Failed to save fee structure.");
- }
- };
-
- const calculateGrandTotal = () => {
- const gridTotal = feeGrid.reduce((sum, row) => sum + calculateRowTotal(row.values), 0);
- return gridTotal + (parseInt(lastYearDue, 10) || 0);
- };
-
  const PROFILE_TABS = [
  { id: "Basic Details", icon: User },
  { id: "Fee Details", icon: IndianRupee },
@@ -419,26 +397,26 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  setDiscRemark(extractedFees.discRemark || "");
 
  let structure: Record<string, unknown> | null = null;
- const gradeToSearch =
-   studentData.classId || studentData.className || studentData.grade || studentData.class;
+ const gradeToSearch = studentEnrollmentGrade(studentData);
+ const studentYear = studentAcademicYear(studentData);
+ let feeConfig: FeeConfiguration | undefined;
  if (gradeToSearch) {
-   const feeSnap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "fee_structures")));
-   const match = feeSnap.docs.find((d) => {
-     const data = d.data() as Record<string, unknown>;
-     return feeStructureMatchesGrade(String(data.grade ?? ""), String(gradeToSearch));
-   });
-   if (match) {
-     structure = match.data() as Record<string, unknown>;
+   feeConfig = await fetchHydratedFeeConfiguration(schoolId, studentYear);
+   const classEntry = findClassStructureForGrade(feeConfig, gradeToSearch, studentYear);
+   if (classEntry) {
+     structure = classStructureAsGradeRecord(classEntry);
      setFeeStructure(structure);
    }
  }
 
- const resolvedGrid = resolveStudentFeeGrid(studentData, structure);
- if (hasFeeGridData(resolvedGrid)) {
-   setFeeGrid(mergeFeeGridWithTemplate(resolvedGrid));
- } else if (hasFeeGridData(extractedFees.feeGrid)) {
-   setFeeGrid(mergeFeeGridWithTemplate(extractedFees.feeGrid));
- }
+ const resolvedGrid = resolveStudentFeeGrid(
+   studentData,
+   structure,
+   schoolId,
+   feeConfig ?? undefined,
+   studentYear
+ );
+ setFeeGrid(mergeFeeGridWithTemplate(resolvedGrid, createStandardFeeGridTemplate(schoolId), schoolId));
  } else {
  setStudent(null);
  }
@@ -535,7 +513,7 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
 
  {/* Quick Stats or Additional Info can go here */}
  <div className="bg-gradient-to-br from-[#144835] to-[#0d3023] rounded-xl shadow-md p-5 text-white">
- <h3 className="text-xs font-extrabold uppercase tracking-wide text-emerald-200 mb-4">Current Academic Year</h3>
+ <h3 className="text-xs font-extrabold uppercase tracking-wide text-white mb-4">Current Academic Year</h3>
  <div className="space-y-4">
  <div>
  <p className="text-xs text-emerald-100/70 font-bold uppercase tracking-wider">Attendance</p>
@@ -911,127 +889,65 @@ const handlePhotoRemove = async (type: 'student' | 'father' | 'mother' | 'guardi
  )}
  
  {activeTab === "Fee Details" && (
- <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
- {/* Alert Notice */}
- <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 flex items-start gap-3 shadow-sm">
- <div className="text-amber-500 mt-0.5"><AlertCircle size={18} strokeWidth={2.5}/></div>
- <div>
- <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider">Important Notice</h4>
- <p className="text-xs font-bold text-amber-700/80 mt-0.5">Transport/Bus Fee indicated here is for reference only. For changing Bus Fee, please go to the <strong>'Transport Details'</strong> section.</p>
- </div>
- </div>
-
- {/* Fee Structure Table Card */}
- <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden flex flex-col">
- 
- {/* Top Controls Header */}
- <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between gap-4">
- <div className="flex flex-wrap items-center gap-4">
- <div className="flex items-center gap-2">
- <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Category</span>
- <select value={feeCategory} onChange={e => setFeeCategory(e.target.value)} className="h-8 rounded-lg border border-gray-200 bg-white px-3 py-0 text-xs font-bold text-[#144835] focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm cursor-pointer appearance-none pr-8 relative" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23144835' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1em 1em` }}>
- <option value="GENERAL">GENERAL</option>
- <option value="RTE">RTE</option>
- </select>
- </div>
- <div className="flex items-center gap-2">
- <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Fee Type</span>
- <select value={feeTypeFilter} onChange={e => setFeeTypeFilter(e.target.value)} className="h-8 rounded-lg border border-gray-200 bg-white px-3 py-0 text-xs font-bold text-[#144835] focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm cursor-pointer appearance-none pr-8 relative" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23144835' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1em 1em` }}>
- <option value="MONTHLY">MONTHLY</option>
- <option value="QUARTERLY">QUARTERLY</option>
- <option value="YEARLY">YEARLY</option>
- </select>
- </div>
- <div className="flex items-center gap-2">
- <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</span>
- <select value={feeStatus} onChange={e => setFeeStatus(e.target.value)} className="h-8 rounded-lg border border-gray-200 bg-white px-3 py-0 text-xs font-bold text-[#144835] focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm cursor-pointer appearance-none pr-8 relative" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23144835' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: `right 0.5rem center`, backgroundRepeat: `no-repeat`, backgroundSize: `1em 1em` }}>
- <option value="NEW">NEW</option>
- <option value="OLD">OLD</option>
- </select>
- </div>
- <div className="flex items-center gap-2">
- <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Last Year Due</span>
- <input type="number" value={lastYearDue} onChange={e => setLastYearDue(e.target.value)} onFocus={(e) => e.target.value === "0" && e.target.select()} className="h-8 w-24 rounded-lg border border-gray-200 bg-white px-3 text-xs font-bold text-gray-900 focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm text-center" />
- </div>
- </div>
- <div className="flex items-center gap-2 w-full sm:w-auto">
- <span className="text-xs font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Disc. Remark</span>
- <input type="text" value={discRemark} onChange={e => setDiscRemark(e.target.value)} placeholder="Optional remark..." className="h-8 w-full sm:w-48 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:border-[#144835] focus:ring-1 focus:ring-[#144835] outline-none shadow-sm placeholder:text-gray-400" />
- </div>
- </div>
-
- {/* Data Grid */}
- <div className="overflow-x-auto">
- <table className="w-full text-left border-collapse whitespace-nowrap">
- <thead>
- <tr className="bg-gray-50/50 border-b border-gray-100">
- <th className="py-3 px-4 text-xs font-bold text-gray-500 uppercase tracking-wide sticky left-0 bg-gray-50/90 backdrop-blur-sm z-20 shadow-[1px_0_0_0_#f3f4f6]">Fee Type</th>
- <th className="py-3 px-3 text-xs font-bold text-gray-500 uppercase tracking-wide text-center">Method</th>
- {["APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC", "JAN", "FEB", "MAR"].map(m => (
- <th key={m} className="py-3 px-2 text-xs font-bold text-gray-500 uppercase tracking-wide text-center">{m}</th>
- ))}
- <th className="py-3 px-4 text-xs font-bold text-[#144835] uppercase tracking-wide text-right bg-emerald-50/50">Total</th>
- </tr>
- </thead>
- <tbody className="divide-y divide-gray-50">
- {feeGrid.map((fee, rowIdx) => {
- let rowTotal = calculateRowTotal(fee.values);
- let displayValues = fee.values;
-
- if (fee.name === "LAST YEAR DUE") {
- displayValues = [lastYearDue, ...Array(11).fill("0")];
- rowTotal = parseInt(lastYearDue, 10) || 0;
+ <StudentFeeStructureEditor
+ key={studentId}
+ initial={{
+ feeCategory,
+ feeTypeFilter,
+ feeStatus,
+ lastYearDue,
+ discRemark,
+ feeGrid,
+ }}
+ onSave={saveFeeStructure}
+ schoolId={schoolId}
+ classFeeSource={
+   feeStructure
+     ? {
+         grade: String(feeStructure.grade ?? studentEnrollmentGrade(student)),
+         academicYear: String(feeStructure.academicYear ?? student.academicYear ?? ""),
+       }
+     : {
+         grade: studentEnrollmentGrade(student),
+         academicYear: studentAcademicYear(student) ?? "",
+       }
  }
- return (
- <tr key={rowIdx} className="hover:bg-gray-50/50 transition-colors group">
- <td className="py-2 px-4 text-xs font-bold text-gray-700 sticky left-0 bg-white group-hover:bg-gray-50/80 z-10 shadow-[1px_0_0_0_#f3f4f6]">{fee.name}</td>
- <td className="py-2 px-3 text-center">
- <span className="text-xs font-bold text-gray-400 bg-gray-100/50 px-2 py-1 rounded uppercase tracking-wider">{fee.method}</span>
- </td>
- {displayValues.map((val, colIdx) => (
- <td key={colIdx} className="py-2 px-1 text-center">
- <input
- type="text"
- value={displayValues[colIdx]}
- onChange={(e) => handleFeeChange(rowIdx, colIdx, e.target.value)}
- onFocus={(e) => e.target.value === "0" && e.target.select()}
- disabled={fee.name === "LAST YEAR DUE" && colIdx > 0}
- readOnly={fee.name === "LAST YEAR DUE"}
- className={`w-14 h-8 text-center text-xs font-bold ${displayValues[colIdx] === "0" || displayValues[colIdx] === "" ? 'text-gray-400 bg-gray-50/50' : 'text-gray-900 bg-emerald-50/50'} border border-transparent rounded-md focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/20 outline-none transition-all hover:bg-white hover:border-gray-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
  />
- </td>
- ))}
- <td className="py-2 px-4 text-right bg-emerald-50/30 border-l border-emerald-100/50">
- <span className="text-xs font-bold text-[#144835]">{rowTotal.toLocaleString()}</span>
- </td>
- </tr>
- )})}
-
- {/* Grand Total Row */}
- <tr className="bg-gray-50/80 border-t-2 border-gray-200">
- <td colSpan={14} className="py-4 px-4 text-right text-xs font-bold text-gray-600 uppercase tracking-wide sticky left-0 z-10 shadow-[1px_0_0_0_#f3f4f6]">Grand Total</td>
- <td className="py-4 px-4 text-right bg-emerald-100/50 border-l border-emerald-200/50">
- <span className="text-sm font-bold text-[#144835]">₹{calculateGrandTotal().toLocaleString()}</span>
- </td>
- </tr>
- </tbody>
- </table>
- </div>
-
- {/* Footer Update Action */}
- <div className="p-4 border-t border-gray-100 bg-white flex justify-end items-center gap-3">
- <button onClick={resetFeeGrid} className="px-5 py-2.5 text-xs font-bold text-gray-500 hover:text-gray-900 uppercase tracking-wider transition-colors">Reset Values</button>
- <button onClick={handleUpdateFeeStructure} className="inline-flex items-center justify-center px-6 py-2.5 bg-[#144835] text-white text-xs font-bold uppercase tracking-wide rounded-lg shadow-sm hover:bg-[#0d3023] hover:shadow transition-all active:scale-95">
- Update Fee Structure
- </button>
- </div>
- </div>
- </div>
  )}
 
  {activeTab === "Transport Details" && (
  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
- 
+
+ {feeGrid.some((row) => sumRowValues(row.values) > 0) && (
+ <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden">
+ <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+ <div className="flex items-center gap-3">
+ <div className="h-8 w-8 rounded-full bg-emerald-50 text-[#144835] flex items-center justify-center shrink-0">
+ <IndianRupee size={16} strokeWidth={2.5} />
+ </div>
+ <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">School Fee Summary</h3>
+ </div>
+ <button
+ type="button"
+ onClick={() => setActiveTab("Fee Details")}
+ className="text-xs font-bold text-[#144835] uppercase tracking-wider hover:underline"
+ >
+ View Full Fee Details
+ </button>
+ </div>
+ <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+ {feeGrid
+ .filter((row) => sumRowValues(row.values) > 0)
+ .map((row) => (
+ <div key={row.name} className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50/50 px-4 py-3">
+ <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">{row.name}</span>
+ <span className="text-sm font-bold text-[#144835] tabular-nums">₹{sumRowValues(row.values).toLocaleString("en-IN")}</span>
+ </div>
+ ))}
+ </div>
+ </div>
+ )}
+
  {/* Core Assignment & Timing */}
  <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden">
  <div className="px-5 py-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">

@@ -5,15 +5,11 @@ import { loadBranchStaffRecords } from "@/lib/loadBranchStaff";
 import {
   addDepartmentToCatalog,
   addDesignationToCatalog,
-  catalogFromStaffDerived,
   deleteDepartmentFromCatalog,
   deleteDesignationFromCatalog,
   loadBranchDepartmentsCatalog,
   normalizeDepartmentName,
   normalizeDesignationName,
-  saveBranchDepartmentsCatalog,
-  slugDepartmentId,
-  slugDesignationId,
   updateDepartmentInCatalog,
   updateDesignationInCatalog,
 } from "@/lib/branchDepartmentsStore";
@@ -74,25 +70,6 @@ function aggregateStaffCounts(
   return map;
 }
 
-function buildDerivedFromStaff(staff: Record<string, unknown>[]) {
-  const counts = aggregateStaffCounts(staff);
-  return [...counts.entries()]
-    .map(([name, data]) => ({
-      id: slugDepartmentId(name),
-      name,
-      category: data.category,
-      staffCount: data.staffCount,
-      designations: [...data.designations.entries()]
-        .map(([desigName, staffCount]) => ({
-          id: slugDesignationId(desigName),
-          name: desigName,
-          staffCount,
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-}
-
 export async function loadBranchDepartments(
   admin: SupabaseClient<any>,
   schoolSlug: string,
@@ -103,15 +80,9 @@ export async function loadBranchDepartments(
 
   const yearName = await resolveYearName(admin, branchId, academicYearName);
   const staff = await loadBranchStaffRecords(admin, schoolSlug, "all", yearName);
-  const derived = buildDerivedFromStaff(staff);
   const staffCounts = aggregateStaffCounts(staff);
 
-  let catalog = await loadBranchDepartmentsCatalog(admin, branchId);
-  if (catalog.departments.length === 0 && derived.length > 0) {
-    catalog = catalogFromStaffDerived(derived);
-    await saveBranchDepartmentsCatalog(admin, branchId, catalog);
-    catalog = await loadBranchDepartmentsCatalog(admin, branchId);
-  }
+  const catalog = await loadBranchDepartmentsCatalog(admin, branchId);
 
   return catalog.departments.map((dept) => {
     const stats = staffCounts.get(dept.name);
@@ -123,7 +94,11 @@ export async function loadBranchDepartments(
 
     const staffCount = designations.reduce((sum, d) => sum + d.staffCount, 0) || stats?.staffCount || 0;
     const category =
-      dept.name === "TEACHING" || stats?.category === "teaching" ? "teaching" : "non_teaching";
+      dept.category === "teaching" || dept.category === "non_teaching"
+        ? dept.category
+        : stats?.category === "teaching"
+          ? "teaching"
+          : "non_teaching";
 
     return {
       id: dept.id,

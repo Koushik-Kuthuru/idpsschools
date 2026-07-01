@@ -27,7 +27,9 @@
     "import:abc-students-2022-23": "node ../../scripts/import-abc-students.mjs --year 2022-23 --file \"data/abc-3.xlsx\"",
     "import:abc-students-2023-24": "node ../../scripts/import-abc-students.mjs --year 2023-24 --file \"data/abc-4.xlsx\"",
     "import:abc-students-2024-25": "node ../../scripts/import-abc-students.mjs --year 2024-25 --file \"data/abc-5.xlsx\"",
-    "import:abc-students-2025-26": "node ../../scripts/import-abc-students.mjs --year 2025-26 --file \"data/abc-6.xlsx\""
+    "import:abc-students-2025-26": "node ../../scripts/import-abc-students.mjs --year 2025-26 --file \"data/abc-6.xlsx\"",
+    "setup:class-fee-structures-db": "node ../../scripts/setup-class-fee-structures-db.mjs",
+    "import:cherukupalli-fee-structure-2026-27": "node ../../scripts/import-cherukupalli-fee-structure.mjs --year 2026-27 --file \"data/IDPS_Fee_Structure_2026_2027_Final.xlsx\""
   },
   "dependencies": {
     "@supabase/server": "^1.2.0",

@@ -1,0 +1,175 @@
+[
+  { "name": "TEACHING SUPPORT", "category": "teaching", "designations": ["ASSISTANT TEACHER"] },
+  { "name": "ROBOTICS", "category": "teaching", "designations": ["ROBOTICS FACULTY"] },
+  { "name": "SPACE", "category": "teaching", "designations": ["SPACE FACULTY"] },
+  { "name": "TEST", "category": "teaching", "designations": ["TEST"] },
+  {
+    "name": "ACADEMIC ADMINISTRATION",
+    "category": "non_teaching",
+    "designations": ["ACADEMIC DIRECTOR", "MANAGER", "PRINCIPAL", "VICE-PRINCIPAL"]
+  },
+  {
+    "name": "TEACHING",
+    "category": "teaching",
+    "designations": [
+      "BIOLOGY",
+      "COMPUTER",
+      "ENGLISH",
+      "FRENCH",
+      "HINDI",
+      "MATHEMATICS",
+      "MOTHER TEACHER",
+      "MUSIC TEACHER",
+      "PGT BIOLOGY",
+      "PGT CHEMISTRY",
+      "PGT COMPUTER",
+      "PGT ENGLISH",
+      "PGT HINDI",
+      "PGT MATHEMATICS",
+      "PGT PHYSICS",
+      "PGT SCIENCE",
+      "PGT SOCIAL STUDIES",
+      "PGT TELUGU",
+      "PHONICS",
+      "PHYSICS",
+      "PRE POLITICAL SCIENCE",
+      "PRT BIOLOGY",
+      "PRT CHEMISTRY",
+      "PRT COMPUTER",
+      "PRT ENGLISH",
+      "PRT HINDI",
+      "PRT MATHEMATICS",
+      "PRT SCIENCE",
+      "PRT SOCIAL STUDIES",
+      "PRT TELUGU",
+      "ROBOTICS",
+      "SCIENCE",
+      "SOCIAL STUDIES",
+      "SPACE LAB",
+      "TELUGU",
+      "TGT BIOLOGY",
+      "TGT CHEMISTRY",
+      "TGT COMPUTER",
+      "TGT ENGLISH",
+      "TGT HINDI",
+      "TGT MATHEMATICS",
+      "TGT SCIENCE",
+      "TGT SOCIAL STUDIES",
+      "TGT TELUGU"
+    ]
+  },
+  {
+    "name": "MESS",
+    "category": "non_teaching",
+    "designations": ["COMM-I", "COMM-II", "HELPER", "MESS INCHARGE", "STORE INCHARGE"]
+  },
+  {
+    "name": "TRANSPORTATION",
+    "category": "non_teaching",
+    "designations": ["BUS AYYA", "BUSES INCHARGE", "CONDUCTOR", "DRIVER", "SIR DRIVER"]
+  },
+  {
+    "name": "MANAGEMENT",
+    "category": "non_teaching",
+    "designations": ["CEO", "DIRECTOR", "FOUNDER", "MANAGER"]
+  },
+  {
+    "name": "CLEANING",
+    "category": "non_teaching",
+    "designations": ["AAYA", "CARE TAKER", "CLEANING INCHARGE", "HOUSE KEEPER"]
+  },
+  {
+    "name": "NON TEACHING",
+    "category": "non_teaching",
+    "designations": ["ASSISTANT LIBRARIAN", "CLERK", "LIBRARIAN", "RECEPTIONIST"]
+  },
+  {
+    "name": "SECURITY",
+    "category": "non_teaching",
+    "designations": ["SECURITY GUARD", "SECURITY OFFICER"]
+  },
+  {
+    "name": "COMPUTER",
+    "category": "non_teaching",
+    "designations": ["COMPUTER OPERATOR", "NETWORK ADMIN"]
+  },
+  {
+    "name": "RECRUITMENT",
+    "category": "non_teaching",
+    "designations": [
+      "DIRECTOR OF RECRUITMENT",
+      "H R MANAGER",
+      "LEAD RECRUITER",
+      "RECRUITMENT MANAGER",
+      "TECHNICAL RECRUITER"
+    ]
+  },
+  {
+    "name": "SITE AND ENGINEERING",
+    "category": "non_teaching",
+    "designations": [
+      "AC MECHANIC",
+      "ELECTRICIAN",
+      "ENGINEER",
+      "LOAN PROCESSING",
+      "MECHANIC",
+      "PLUMBER",
+      "SITE ENGINEER"
+    ]
+  },
+  {
+    "name": "FINANCE AND ACCOUNTS",
+    "category": "non_teaching",
+    "designations": ["ACCOUNTANT", "FINANCE AND ADMINISTRATION"]
+  },
+  {
+    "name": "BOOKS AND UNIFORMS",
+    "category": "non_teaching",
+    "designations": ["BOOKS INCHARGE", "UNIFORMS"]
+  },
+  { "name": "FEE", "category": "non_teaching", "designations": ["FEE COLLECTION"] },
+  { "name": "HOSTEL", "category": "non_teaching", "designations": ["HOSTEL INCHARGE"] },
+  { "name": "CERTIFICATES", "category": "non_teaching", "designations": ["CERTIFICATES INCHARGE"] },
+  {
+    "name": "GAMES AND ACTIVITIES",
+    "category": "non_teaching",
+    "designations": [
+      "ART & CRAFT",
+      "DANCE",
+      "HORSE RIDING TRAINER",
+      "MUSIC",
+      "PET",
+      "PHYSICAL DIRECTOR",
+      "SWIMMING TRAINER",
+      "YOGA"
+    ]
+  },
+  {
+    "name": "MEDICAL",
+    "category": "non_teaching",
+    "designations": ["MEDICAL COMPOUNDER", "STAFF NURSE"]
+  },
+  {
+    "name": "HOD TEACHING",
+    "category": "teaching",
+    "designations": [
+      "HOD BIOLOGY",
+      "HOD ENGLISH",
+      "HOD HINDI",
+      "HOD MATHEMATICS",
+      "HOD SOCIAL",
+      "HOD TELUGU"
+    ]
+  },
+  {
+    "name": "INCHARGE",
+    "category": "non_teaching",
+    "designations": [
+      "FIRST FLOOR INCHARGE",
+      "GROUND FLOOR INCHARGE",
+      "SECOND FLOOR INCHARGE",
+      "THIRD FLOOR INCHARGE"
+    ]
+  },
+  { "name": "SCHOOL APP", "category": "non_teaching", "designations": ["APP SUPPORT"] }
+]

@@ -6,8 +6,11 @@ import {
   Clock,
   Globe,
   GraduationCap,
-  IndianRupee,
   LayoutGrid,
+  ListTree,
+  PlusCircle,
+  Receipt,
+  Tags,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -18,7 +21,11 @@ export type InPageSectionKey =
   | "exams"
   | "holidays"
   | "notifications"
-  | "fees"
+  | "fee-heads"
+  | "fee-types"
+  | "class-fees"
+  | "extra-fees"
+  | "fee-receipt"
   | "staff"
   | "integrations";
 
@@ -137,11 +144,39 @@ export function buildSettingsNavCategories(schoolSlug: string): SettingsNavCateg
       label: "Finance & HR",
       items: [
         {
-          key: "fees",
-          label: "Fees",
-          desc: "Billing, reminders & receipt template",
-          icon: IndianRupee,
-          href: `${base}?view=fees`,
+          key: "fee-heads",
+          label: "Fee Head Master",
+          desc: "Group fee items under academic, hostel & activity heads",
+          icon: ListTree,
+          href: `${base}?view=fee-heads`,
+        },
+        {
+          key: "fee-types",
+          label: "Standard Fee Items",
+          desc: "Admission, tuition, hostel and other recurring fee lines",
+          icon: Tags,
+          href: `${base}?view=fee-types`,
+        },
+        {
+          key: "class-fees",
+          label: "Class Fee Structure",
+          desc: "Month-wise default fees for each class or grade",
+          icon: GraduationCap,
+          href: `${base}?view=class-fees`,
+        },
+        {
+          key: "extra-fees",
+          label: "Additional Fees",
+          desc: "Late fee per day, exam fee and other optional charges",
+          icon: PlusCircle,
+          href: `${base}?view=extra-fees`,
+        },
+        {
+          key: "fee-receipt",
+          label: "Receipt & Billing",
+          desc: "Reminders and fee receipt letterhead template",
+          icon: Receipt,
+          href: `${base}?view=fee-receipt`,
         },
         {
           key: "staff",
@@ -227,11 +262,39 @@ export function buildSettingsHomeCategories(schoolSlug: string): { label: string
       label: "Finance & HR",
       items: [
         {
-          key: "fees",
-          title: "Fee Configuration",
-          desc: "Currency, late fees, gateway and fee receipt template.",
-          icon: IndianRupee,
-          href: `${base}?view=fees`,
+          key: "fee-heads",
+          title: "Fee Head Master",
+          desc: "Organise fee items under heads such as Academic, Hostel and Activities.",
+          icon: ListTree,
+          href: `${base}?view=fee-heads`,
+        },
+        {
+          key: "fee-types",
+          title: "Standard Fee Items",
+          desc: "Configure admission, tuition, hostel, laundry, Co-Spark and other standard lines.",
+          icon: Tags,
+          href: `${base}?view=fee-types`,
+        },
+        {
+          key: "class-fees",
+          title: "Class Fee Structure",
+          desc: "Set month-wise default fee amounts for each class — applied to all students in that grade.",
+          icon: GraduationCap,
+          href: `${base}?view=class-fees`,
+        },
+        {
+          key: "extra-fees",
+          title: "Additional Fees",
+          desc: "Late fee per day on the Late Fee row, plus exam fee and other optional charges.",
+          icon: PlusCircle,
+          href: `${base}?view=extra-fees`,
+        },
+        {
+          key: "fee-receipt",
+          title: "Receipt & Billing",
+          desc: "Fee receipt letterhead, reminders and print preview.",
+          icon: Receipt,
+          href: `${base}?view=fee-receipt`,
         },
         {
           key: "staff",
@@ -251,7 +314,11 @@ export const IN_PAGE_SECTION_KEYS: InPageSectionKey[] = [
   "exams",
   "holidays",
   "notifications",
-  "fees",
+  "fee-heads",
+  "fee-types",
+  "class-fees",
+  "extra-fees",
+  "fee-receipt",
   "staff",
   "integrations",
 ];
@@ -259,8 +326,16 @@ export const IN_PAGE_SECTION_KEYS: InPageSectionKey[] = [
 export function parseSettingsViewParam(view: string | null): ViewKey {
   if (!view || view === "home") return "home";
   if (view === "academic-years") return "home";
+  if (view === "fees") return "fee-receipt";
   if (IN_PAGE_SECTION_KEYS.includes(view as InPageSectionKey)) return view as InPageSectionKey;
   return "home";
 }
 
 export type ViewKey = "home" | InPageSectionKey;
+
+/** Settings views that need maximum horizontal space — inner sidebar starts minimized. */
+const SETTINGS_SIDEBAR_COLLAPSED_VIEWS: InPageSectionKey[] = ["class-fees"];
+
+export function shouldCollapseSettingsSidebar(view: ViewKey): boolean {
+  return view !== "home" && SETTINGS_SIDEBAR_COLLAPSED_VIEWS.includes(view);
+}

@@ -10,7 +10,49 @@ export type StaffYearProfile = {
   password?: string;
 };
 
-export type StaffProfileData = StaffYearProfile & {
+export type StaffExtendedProfile = {
+  empCode?: string;
+  fatherName?: string;
+  motherName?: string;
+  maritalStatus?: string;
+  fatherOccupation?: string;
+  motherOccupation?: string;
+  spouseName?: string;
+  spouseContact?: string;
+  childrenCount?: number;
+  permanentAddress?: string;
+  correspondenceAddress?: string;
+  aadharNo?: string;
+  panNo?: string;
+  qualification?: string;
+  confirmationDate?: string;
+  trainedStatus?: string;
+  availingTransport?: string;
+  busNo?: string;
+  route?: string;
+  stop?: string;
+  spouseOrganisation?: string;
+  lockerNo?: string;
+  lockerKey?: string;
+  schoolWing?: string;
+  previousSchool?: string;
+  bloodGroup?: string;
+  computerKnowledge?: string;
+  experienceMonths?: number;
+  relatives?: string;
+  probationMonths?: number;
+  employmentStatus?: string;
+  remarks?: string;
+  resigningDate?: string;
+  noticePeriodDays?: number;
+  emergencyPerson?: string;
+  emergencyContact?: string;
+  gender?: string;
+  dob?: string;
+};
+
+export type StaffProfileData = StaffYearProfile &
+  StaffExtendedProfile & {
   username?: string;
   academicYear?: string;
   years?: Record<string, StaffYearProfile>;

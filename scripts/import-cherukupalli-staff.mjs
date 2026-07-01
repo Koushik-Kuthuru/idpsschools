@@ -87,6 +87,14 @@ function cleanText(value) {
   return s;
 }
 
+function normalizeGender(value) {
+  const s = cleanText(value).toLowerCase();
+  if (!s) return null;
+  if (s === "m" || s === "male" || s === "boy") return "male";
+  if (s === "f" || s === "female" || s === "girl") return "female";
+  return null;
+}
+
 export function slugEmployeeId(username, name, index) {
   const base = cleanText(username).toLowerCase().replace(/[^a-z0-9._-]/g, "");
   if (base) return base;
@@ -120,6 +128,121 @@ function cleanSubjects(value) {
 }
 
 export function readStaffExcelRows(filePath) {
+  return readStaffExcelRowsFull(filePath).map(stripRowToLegacyShape);
+}
+
+function stripRowToLegacyShape(row) {
+  return {
+    rowNum: row.rowNum,
+    name: row.name,
+    department: row.department,
+    designation: row.designation,
+    mobile: row.mobile,
+    dob: row.dob,
+    username: row.username,
+    password: row.password,
+    joinDate: row.joinDate,
+    classTeacher: row.classTeacher,
+    classes: row.classes,
+    subjects: row.subjects,
+  };
+}
+
+function cleanNumber(value) {
+  if (value == null || value === "") return null;
+  const n = Number(String(value).replace(/\.0$/, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+export function resolveStaffUsername(row, index) {
+  const raw = cleanText(row.username).toLowerCase();
+  const nameSlug = slugEmployeeId("", row.name, index);
+  if (raw === "saireddy" && String(row.name || "").trim().toUpperCase() !== "AKASH SATVAYA") {
+    return nameSlug;
+  }
+  if (raw && raw !== "saireddy") return raw.replace(/[^a-z0-9._-]/g, "");
+  if (row.empCode) return String(row.empCode).trim().toLowerCase();
+  return nameSlug;
+}
+
+export function buildExtendedProfileFromRow(row) {
+  const extended = {
+    empCode: row.empCode || undefined,
+    fatherName: row.fatherName || undefined,
+    motherName: row.motherName || undefined,
+    maritalStatus: row.maritalStatus || undefined,
+    fatherOccupation: row.fatherOccupation || undefined,
+    motherOccupation: row.motherOccupation || undefined,
+    spouseName: row.spouseName || undefined,
+    spouseContact: row.spouseContact || undefined,
+    childrenCount: row.childrenCount ?? undefined,
+    permanentAddress: row.permanentAddress || undefined,
+    correspondenceAddress: row.correspondenceAddress || undefined,
+    aadharNo: row.aadharNo || undefined,
+    panNo: row.panNo || undefined,
+    qualification: row.qualification || undefined,
+    confirmationDate: row.confirmationDate || undefined,
+    trainedStatus: row.trainedStatus || undefined,
+    availingTransport: row.availingTransport || undefined,
+    busNo: row.busNo || undefined,
+    route: row.route || undefined,
+    stop: row.stop || undefined,
+    spouseOrganisation: row.spouseOrganisation || undefined,
+    lockerNo: row.lockerNo || undefined,
+    lockerKey: row.lockerKey || undefined,
+    schoolWing: row.schoolWing || undefined,
+    previousSchool: row.previousSchool || undefined,
+    bloodGroup: row.bloodGroup || undefined,
+    computerKnowledge: row.computerKnowledge || undefined,
+    experienceMonths: row.experienceMonths ?? undefined,
+    relatives: row.relatives || undefined,
+    probationMonths: row.probationMonths ?? undefined,
+    employmentStatus: row.employmentStatus || undefined,
+    remarks: row.remarks || undefined,
+    resigningDate: row.resigningDate || undefined,
+    noticePeriodDays: row.noticePeriodDays ?? undefined,
+    emergencyPerson: row.emergencyPerson || undefined,
+    emergencyContact: row.emergencyContact || undefined,
+    gender: row.gender || undefined,
+  };
+
+  Object.keys(extended).forEach((key) => {
+    if (extended[key] === undefined || extended[key] === "") delete extended[key];
+  });
+
+  return extended;
+}
+
+export function dedupeStaffRowsByName(rows) {
+  const map = new Map();
+  for (const row of rows) {
+    const key = String(row.name || "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, " ");
+    if (!key) continue;
+    if (!map.has(key)) {
+      map.set(key, { ...row });
+      continue;
+    }
+    const existing = map.get(key);
+    existing.classes = mergeList(existing.classes, row.classes);
+    existing.subjects = cleanSubjects(mergeList(existing.subjects, row.subjects));
+    existing.classTeacher = mergeList(existing.classTeacher, row.classTeacher);
+    if (!existing.mobile && row.mobile) existing.mobile = row.mobile;
+    if (!existing.dob && row.dob) existing.dob = row.dob;
+    if (!existing.password && row.password) existing.password = row.password;
+    if (!existing.joinDate && row.joinDate) existing.joinDate = row.joinDate;
+    if (!existing.email && row.email) existing.email = row.email;
+    if (!existing.username || existing.username === "saireddy") existing.username = row.username;
+    if (existing.department === "OTHER" && row.department !== "OTHER") existing.department = row.department;
+    if (existing.designation === "Staff" && row.designation !== "Staff") existing.designation = row.designation;
+    Object.assign(existing, buildExtendedProfileFromRow({ ...existing, ...row }));
+  }
+  return [...map.values()];
+}
+
+export function readStaffExcelRowsFull(filePath) {
   const wb = XLSX.readFile(filePath, { cellDates: true });
   const sheet = wb.Sheets[wb.SheetNames[0]];
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
@@ -137,7 +260,13 @@ export function readStaffExcelRows(filePath) {
     const name = cleanText(byHeader["Name"] ?? row[2]);
     if (!name) continue;
 
-    parsed.push({
+    const empCodeRaw = byHeader["Emp Code"];
+    const empCode =
+      empCodeRaw == null || empCodeRaw === "" || Number(empCodeRaw) === 0
+        ? ""
+        : String(empCodeRaw).trim().replace(/\.0$/, "");
+
+    const parsedRow = {
       rowNum: idx + 2,
       name,
       department: cleanText(byHeader["Department"] ?? row[3]) || "OTHER",
@@ -150,7 +279,47 @@ export function readStaffExcelRows(filePath) {
       classTeacher: cleanText(byHeader["Class Teacher"] ?? row[10]),
       classes: cleanText(byHeader["Classes"] ?? row[11]),
       subjects: cleanText(byHeader["Subjects"] ?? row[12]),
-    });
+      empCode,
+      email: cleanText(byHeader["Email ID"]),
+      fatherName: cleanText(byHeader["Father's Name"]),
+      motherName: cleanText(byHeader["Mother's Name"]),
+      maritalStatus: cleanText(byHeader["Marital Status"]),
+      fatherOccupation: cleanText(byHeader["Father Occupation"]),
+      motherOccupation: cleanText(byHeader["Mother Occupation"]),
+      spouseName: cleanText(byHeader["Spouse Name"]),
+      spouseContact: cleanPhone(byHeader["Spouse Contact No."]),
+      childrenCount: cleanNumber(byHeader["No. of children"]),
+      permanentAddress: cleanText(byHeader["Permanent Address"]),
+      correspondenceAddress: cleanText(byHeader["Correspondence Address"]),
+      aadharNo: cleanText(byHeader["Aadhar No."]),
+      panNo: cleanText(byHeader["PAN No."]),
+      qualification: cleanText(byHeader["Qualification"]),
+      confirmationDate: parseDate(byHeader["Date of Confirmation"]),
+      trainedStatus: cleanText(byHeader["Trained/Untrained"]),
+      availingTransport: cleanText(byHeader["Availing School Transport"]),
+      busNo: cleanText(byHeader["Bus No."]),
+      route: cleanText(byHeader["Route"]),
+      stop: cleanText(byHeader["Stop"]),
+      spouseOrganisation: cleanText(byHeader["spouse organisation name"]),
+      lockerNo: cleanText(byHeader["Locker No."]),
+      lockerKey: cleanText(byHeader["Locker Key"]),
+      schoolWing: cleanText(byHeader["School Wing"]),
+      previousSchool: cleanText(byHeader["Previous School"]),
+      bloodGroup: cleanText(byHeader["Blood Group"]),
+      computerKnowledge: cleanText(byHeader["Computer Knowledge"]),
+      experienceMonths: cleanNumber(byHeader["Experience (Months)"]),
+      relatives: cleanText(byHeader["Relatives"]),
+      probationMonths: cleanNumber(byHeader["Probation Period (Months)"]),
+      employmentStatus: cleanText(byHeader["Employment Status"]),
+      remarks: cleanText(byHeader["Remarks"]),
+      resigningDate: parseDate(byHeader["Date of Resigning"]),
+      noticePeriodDays: cleanNumber(byHeader["Notice Period (Days)"]),
+      emergencyPerson: cleanText(byHeader["Emergency Person"]),
+      emergencyContact: cleanPhone(byHeader["Emergency Contact"]),
+      gender: cleanText(byHeader["Gender"]),
+    };
+
+    parsed.push(parsedRow);
   }
 
   return parsed;
@@ -474,9 +643,9 @@ async function upsertStaffMember(branchId, academicYear, row, employeeId) {
     employee_id: employeeId,
     full_name: row.name,
     dob: row.dob,
-    gender: null,
+    gender: normalizeGender(row.gender),
     phone: row.mobile,
-    email: null,
+    email: row.email || null,
     join_date: row.joinDate,
     is_active: true,
     ...(teachingStaff
@@ -515,7 +684,8 @@ async function upsertStaffMember(branchId, academicYear, row, employeeId) {
   if (!DRY_RUN && staffId) {
     const profile = await loadStaffProfileNotice(branchId, staffId);
     const merged = mergeStaffProfileYear(profile, academicYear, yearData, row.username || employeeId);
-    await saveStaffProfileNotice(branchId, staffId, merged);
+    const extended = buildExtendedProfileFromRow(row);
+    await saveStaffProfileNotice(branchId, staffId, { ...merged, ...extended });
   }
 
   return { teachingStaff, created, reused: Boolean(existing && !created) };
@@ -628,4 +798,4 @@ if (isDirectRun) {
   });
 }
 
-export { saveStaffProfileNotice, buildYearProfile as buildProfile, isTeachingDepartment };
+export { saveStaffProfileNotice, buildYearProfile as buildProfile, isTeachingDepartment, upsertStaffMember, findStaffByEmployeeId, loadStaffProfileNotice, mergeStaffProfileYear };

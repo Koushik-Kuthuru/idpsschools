@@ -1,4 +1,4 @@
-import { sortGrades } from "@/lib/gradeOrder";
+import { gradeIdentityKey, gradesMatchForClass, sortGrades } from "@/lib/gradeOrder";
 
 type ClassLike = {
   grade?: string;
@@ -12,8 +12,17 @@ function gradeOf(c: ClassLike): string {
 }
 
 export function uniqueGradesFromClasses(classes: ClassLike[]): string[] {
-  const grades = classes.map(gradeOf).filter(Boolean);
-  return sortGrades([...new Set(grades)]);
+  const seen = new Set<string>();
+  const grades: string[] = [];
+  for (const c of classes) {
+    const g = gradeOf(c);
+    if (!g) continue;
+    const key = gradeIdentityKey(g);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    grades.push(g);
+  }
+  return sortGrades(grades);
 }
 
 export function uniqueSectionsFromClasses(classes: ClassLike[]): string[] {
@@ -24,9 +33,8 @@ export function uniqueSectionsFromClasses(classes: ClassLike[]): string[] {
 }
 
 export function sectionsForGrade(classes: ClassLike[], grade: string): string[] {
-  const want = grade.trim();
   const sections = classes
-    .filter((c) => gradeOf(c) === want)
+    .filter((c) => gradesMatchForClass(gradeOf(c), grade))
     .map((c) => String(c.section ?? "").trim().toUpperCase())
     .filter(Boolean);
   return [...new Set(sections)].sort((a, b) => a.localeCompare(b));

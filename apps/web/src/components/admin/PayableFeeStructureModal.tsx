@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import {
   FEE_MONTHS,
@@ -32,14 +33,14 @@ export default function PayableFeeStructureModal({
   lastYearDue,
   transportFees,
 }: PayableFeeStructureModalProps) {
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
   const rows = mergePayableFeeGrid(feeGrid, { lastYearDue, transportFees });
   const grandTotal = payableFeeGridGrandTotal(rows);
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/45 backdrop-blur-[2px]"
       onClick={onClose}
       role="presentation"
     >
@@ -50,7 +51,7 @@ export default function PayableFeeStructureModal({
         aria-modal="true"
         aria-labelledby="payable-fee-structure-title"
       >
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-[#f3f4f6]">
+        <div className="flex shrink-0 items-center justify-between px-5 py-3 border-b border-gray-200 bg-[#f3f4f6]">
           <h2 id="payable-fee-structure-title" className="text-sm font-bold text-gray-800">
             Annual Fee Structure For {studentName}
           </h2>
@@ -64,7 +65,7 @@ export default function PayableFeeStructureModal({
           </button>
         </div>
 
-        <div className="flex-1 overflow-auto p-4">
+        <div className="min-h-0 overflow-auto px-4 py-3">
           <table className="w-full min-w-[720px] border-collapse text-xs text-gray-800">
             <thead>
               <tr className="border border-gray-300 bg-white">
@@ -108,7 +109,7 @@ export default function PayableFeeStructureModal({
           </table>
         </div>
 
-        <div className="flex justify-end px-5 py-3 border-t border-gray-200 bg-[#f9fafb]">
+        <div className="flex shrink-0 justify-end px-5 py-3 border-t border-gray-200 bg-[#f9fafb]">
           <button
             type="button"
             onClick={onClose}
@@ -118,6 +119,7 @@ export default function PayableFeeStructureModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

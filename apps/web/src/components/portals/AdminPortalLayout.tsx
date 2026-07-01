@@ -10,7 +10,7 @@ import Header from "@/components/admin/Header";
 import AdminStandaloneShell from "@/components/admin/AdminStandaloneShell";
 import { BranchProvider } from "@/components/admin/BranchContext";
 import { AcademicYearProvider } from "@/contexts/AcademicYearContext";
-import { isAdminStandaloneRoute } from "@/lib/admin-layout";
+import { isAdminSidebarCollapsedRoute, isAdminStandaloneRoute } from "@/lib/admin-layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import SchoolRouteGuard from "@/components/auth/SchoolRouteGuard";
 import { ADMIN_LAYOUT_ALLOWED_ROLES } from "@/lib/auth/admin-portal-roles";
@@ -24,16 +24,16 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
   const pathname = usePathname();
   const params = useParams();
   const schoolId = useSchoolId();
-  const isSettingsRoute = /\/admin\/.*settings(?:\/|$)/.test(pathname || "");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(!isSettingsRoute);
+  const collapseSidebar = isAdminSidebarCollapsedRoute(pathname);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!collapseSidebar);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
-    if (isSettingsRoute) {
+    if (collapseSidebar) {
       setIsSidebarOpen(false);
     }
-  }, [pathname, isSettingsRoute]);
+  }, [pathname, collapseSidebar]);
 
   return (
     <SchoolRouteGuard schoolId={schoolId}>

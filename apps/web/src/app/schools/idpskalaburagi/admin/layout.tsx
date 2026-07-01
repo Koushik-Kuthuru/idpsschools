@@ -11,7 +11,7 @@ import { BranchProvider } from "@/components/admin/BranchContext";
 import { AcademicYearProvider } from "@/contexts/AcademicYearContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { ADMIN_LAYOUT_ALLOWED_ROLES } from "@/lib/auth/admin-portal-roles";
-import { isAdminStandaloneRoute } from "@/lib/admin-layout";
+import { isAdminSidebarCollapsedRoute, isAdminStandaloneRoute } from "@/lib/admin-layout";
 import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
 
 function cn(...inputs: ClassValue[]) {
@@ -24,16 +24,16 @@ export default function AdminLayout({
  children: React.ReactNode;
 }) {
  const pathname = usePathname();
- const isSettingsRoute = /\/admin\/.*settings(?:\/|$)/.test(pathname || "");
- const [isSidebarOpen, setIsSidebarOpen] = useState(!isSettingsRoute);
+ const collapseSidebar = isAdminSidebarCollapsedRoute(pathname);
+ const [isSidebarOpen, setIsSidebarOpen] = useState(!collapseSidebar);
  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
  useEffect(() => {
  setIsMobileMenuOpen(false);
- if (isSettingsRoute) {
+ if (collapseSidebar) {
  setIsSidebarOpen(false);
  }
- }, [pathname, isSettingsRoute]);
+ }, [pathname, collapseSidebar]);
 
  const isStandalone = isAdminStandaloneRoute(pathname);
 

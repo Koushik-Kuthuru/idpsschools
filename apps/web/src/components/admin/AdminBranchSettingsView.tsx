@@ -13,6 +13,7 @@ import {
   buildSettingsNavCategories,
   parseSettingsViewParam,
   settingsBasePath,
+  shouldCollapseSettingsSidebar,
   type InPageSectionKey,
   type SettingsNavKey,
   type ViewKey,
@@ -20,10 +21,27 @@ import {
 import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
 import {
   Bell, Building2, CalendarDays, ChevronRight, GraduationCap,
-  IndianRupee, Plus, ShieldCheck, SlidersHorizontal, Users,
+  Plus, ShieldCheck, SlidersHorizontal, Users,
   ClipboardList, Trash2, Save, RefreshCw, Camera,
-  CheckCircle2, Globe, Clock, Eye,
+  CheckCircle2, Globe, Clock, Eye, ListTree, Tags, PlusCircle, Receipt,
 } from "lucide-react";
+import {
+  loadFeeConfiguration,
+  saveFeeConfiguration,
+  fetchHydratedFeeConfiguration,
+  type FeeConfiguration,
+  type ClassFeeStructureEntry,
+} from "@/lib/feeConfigurationStore";
+import {
+  ClassFeesPanel,
+  ExtraFeesPanel,
+  FeeConfigurationSaveBar,
+  FeeHeadsPanel,
+  FeeTypesPanel,
+} from "@/components/admin/settings/FeeConfigurationPanels";
+import { buildPath, buildQuery, fetchMany, getTimestamp, upsertData, db } from "@/lib/db-client";
+import { gradesMatchForClass, gradeDocId } from "@/lib/gradeOrder";
+import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
 import FeeReceiptPrintView from "@/components/admin/FeeReceiptPrintView";
 import {
   loadFeeReceiptTemplate,
@@ -40,14 +58,18 @@ import { type LucideIcon } from "lucide-react";
 type SectionKey = InPageSectionKey;
 
 const sections: { key: SectionKey; label: string; desc: string; icon: LucideIcon }[] = [
-  { key: "general",       label: "General",       desc: "Branch info & branding",     icon: Building2 },
-  { key: "academic",      label: "Academic",      desc: "Sessions & grading",          icon: GraduationCap },
-  { key: "exams",         label: "Exams",         desc: "Exam schedule types",         icon: ClipboardList },
-  { key: "holidays",      label: "Holidays",      desc: "Calendar & leave days",       icon: CalendarDays },
-  { key: "notifications", label: "Notifications", desc: "Alerts & digest settings",    icon: Bell },
-  { key: "fees",          label: "Fees",          desc: "Billing & reminders",         icon: IndianRupee },
-  { key: "staff",         label: "Staff Policy",  desc: "Working hours & leaves",      icon: Users },
-  { key: "integrations",  label: "Integrations",  desc: "SMS & WhatsApp API credentials", icon: Globe },
+  { key: "general",       label: "General",              desc: "Branch info & branding",              icon: Building2 },
+  { key: "academic",      label: "Academic",             desc: "Sessions & grading",                  icon: GraduationCap },
+  { key: "exams",         label: "Exams",                desc: "Exam schedule types",                 icon: ClipboardList },
+  { key: "holidays",      label: "Holidays",             desc: "Calendar & leave days",               icon: CalendarDays },
+  { key: "notifications", label: "Notifications",        desc: "Alerts & digest settings",            icon: Bell },
+  { key: "fee-heads",     label: "Fee Head Master",      desc: "Group fee items under heads",         icon: ListTree },
+  { key: "fee-types",     label: "Standard Fee Items",   desc: "Admission, tuition & recurring lines", icon: Tags },
+  { key: "class-fees",    label: "Class Fee Structure",  desc: "Default fees per class",              icon: GraduationCap },
+  { key: "extra-fees",    label: "Additional Fees",      desc: "Optional ad-hoc charges",             icon: PlusCircle },
+  { key: "fee-receipt",   label: "Receipt & Billing",    desc: "Receipt template & billing",          icon: Receipt },
+  { key: "staff",         label: "Staff Policy",         desc: "Working hours & leaves",              icon: Users },
+  { key: "integrations",  label: "Integrations",         desc: "SMS & WhatsApp API credentials",      icon: Globe },
 ];
 
 const sectionColors: Record<SectionKey, { bg: string; text: string; ring: string }> = {
@@ -56,7 +78,11 @@ const sectionColors: Record<SectionKey, { bg: string; text: string; ring: string
   exams:         { bg: "bg-purple-50",   text: "text-purple-700",   ring: "ring-purple-200"   },
   holidays:      { bg: "bg-orange-50",   text: "text-orange-600",   ring: "ring-orange-200"   },
   notifications: { bg: "bg-amber-50",    text: "text-amber-600",    ring: "ring-amber-200"    },
-  fees:          { bg: "bg-teal-50",     text: "text-teal-700",     ring: "ring-teal-200"     },
+  "fee-heads":    { bg: "bg-teal-50",     text: "text-teal-700",     ring: "ring-teal-200"     },
+  "fee-types":    { bg: "bg-teal-50",     text: "text-teal-700",     ring: "ring-teal-200"     },
+  "class-fees":   { bg: "bg-teal-50",     text: "text-teal-700",     ring: "ring-teal-200"     },
+  "extra-fees":   { bg: "bg-teal-50",     text: "text-teal-700",     ring: "ring-teal-200"     },
+  "fee-receipt":  { bg: "bg-teal-50",     text: "text-teal-700",     ring: "ring-teal-200"     },
   staff:         { bg: "bg-violet-50",   text: "text-violet-700",   ring: "ring-violet-200"   },
   integrations:  { bg: "bg-rose-50",     text: "text-rose-700",     ring: "ring-rose-200"     },
 };
@@ -93,7 +119,7 @@ function SectionHeader({ sectionKey, title, subtitle, onSave, saving }: {
   onSave?: () => void; saving?: boolean;
 }) {
   const c = sectionColors[sectionKey];
-  const Icon = sections.find(s => s.key === sectionKey)!.icon as LucideIcon;
+  const Icon = sections.find(s => s.key === sectionKey)?.icon ?? SlidersHorizontal;
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div className="flex items-center gap-4">
@@ -122,12 +148,17 @@ function SectionHeader({ sectionKey, title, subtitle, onSave, saving }: {
 export default function AdminBranchSettingsView() {
   const { activeBranch } = useBranch();
   const schoolId = activeBranch.id;
+  const { grades: branchGrades, academicYear: branchAcademicYear } = useBranchClassOptions(schoolId);
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [activeView, setActiveView] = useState<ViewKey>("home");
+  const [activeView, setActiveView] = useState<ViewKey>(() =>
+    parseSettingsViewParam(searchParams.get("view"))
+  );
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    () => !shouldCollapseSettingsSidebar(parseSettingsViewParam(searchParams.get("view")))
+  );
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -138,7 +169,12 @@ export default function AdminBranchSettingsView() {
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   useEffect(() => {
-    setActiveView(parseSettingsViewParam(searchParams.get("view")));
+    const view = parseSettingsViewParam(searchParams.get("view"));
+    setActiveView(view);
+    setMobileNavOpen(false);
+    if (shouldCollapseSettingsSidebar(view)) {
+      setIsSidebarOpen(false);
+    }
   }, [searchParams]);
 
   const sidebarActiveKey: SettingsNavKey =
@@ -219,6 +255,78 @@ export default function AdminBranchSettingsView() {
     testPhone: "",
   });
 
+  // ── Fee configuration ────────────────────────────────────────────────────────
+  const [feeConfiguration, setFeeConfiguration] = useState<FeeConfiguration>(() =>
+    loadFeeConfiguration(schoolId)
+  );
+  const [feeStructuresHydrated, setFeeStructuresHydrated] = useState(false);
+  const [savingFeeConfig, setSavingFeeConfig] = useState(false);
+
+  const gradeOptions = useMemo(() => branchGrades, [branchGrades]);
+
+  const handleSaveFeeConfiguration = async () => {
+    setSavingFeeConfig(true);
+    try {
+      saveFeeConfiguration(schoolId, feeConfiguration);
+      for (const entry of feeConfiguration.classStructures) {
+        if (!entry.grade.trim()) continue;
+        const docId = gradeDocId(entry.grade);
+        await upsertData(
+          buildPath(db, "schools", schoolId, "fee_structures", docId),
+          {
+            grade: entry.grade,
+            academicYear: entry.academicYear,
+            feeGrid: entry.feeGrid,
+            status: entry.status,
+            updatedAt: getTimestamp(),
+          },
+          { merge: true }
+        );
+      }
+      showSaved();
+    } catch (err) {
+      console.error("Failed to save fee configuration:", err);
+    } finally {
+      setSavingFeeConfig(false);
+    }
+  };
+
+  const handleSaveClassFeeStructure = async (entry: ClassFeeStructureEntry) => {
+    setSavingFeeConfig(true);
+    try {
+      setFeeConfiguration((prev) => {
+        const others = prev.classStructures.filter(
+          (e) =>
+            !(
+              gradesMatchForClass(e.grade, entry.grade) &&
+              e.academicYear === entry.academicYear
+            )
+        );
+        const nextConfig = { ...prev, classStructures: [...others, entry] };
+        saveFeeConfiguration(schoolId, nextConfig);
+        return nextConfig;
+      });
+      const docId = gradeDocId(entry.grade);
+      await upsertData(
+        buildPath(db, "schools", schoolId, "fee_structures", docId),
+        {
+          grade: entry.grade,
+          academicYear: entry.academicYear,
+          feeGrid: entry.feeGrid,
+          status: entry.status,
+          updatedAt: getTimestamp(),
+        },
+        { merge: true }
+      );
+      showSaved();
+    } catch (err) {
+      console.error("Failed to save class fee structure:", err);
+      throw err;
+    } finally {
+      setSavingFeeConfig(false);
+    }
+  };
+
   // ── Fee receipt template ─────────────────────────────────────────────────────
   const [feeReceiptTemplate, setFeeReceiptTemplate] = useState(() =>
     loadFeeReceiptTemplate(schoolId, activeBranch.name)
@@ -238,6 +346,33 @@ export default function AdminBranchSettingsView() {
     load("twilioCreds", setTwilioCreds);
     setFeeReceiptTemplate(loadFeeReceiptTemplate(schoolId, activeBranch.name));
   }, [schoolId, activeBranch.name]);
+
+  useEffect(() => {
+    if (!schoolId) return;
+    if (!branchAcademicYear) {
+      setFeeStructuresHydrated(true);
+      return;
+    }
+    let cancelled = false;
+    setFeeStructuresHydrated(false);
+
+    async function hydrateFeeStructures() {
+      try {
+        const merged = await fetchHydratedFeeConfiguration(schoolId, branchAcademicYear);
+        if (!cancelled) setFeeConfiguration(merged);
+      } catch (err) {
+        console.error("Failed to hydrate class fee structures:", err);
+        if (!cancelled) setFeeConfiguration(loadFeeConfiguration(schoolId));
+      } finally {
+        if (!cancelled) setFeeStructuresHydrated(true);
+      }
+    }
+
+    hydrateFeeStructures();
+    return () => {
+      cancelled = true;
+    };
+  }, [schoolId, branchAcademicYear]);
 
   useEffect(() => { localStorage.setItem(`branchDetails_${schoolId}`, JSON.stringify(branchDetails)); }, [branchDetails, schoolId]);
   useEffect(() => { localStorage.setItem(`exams_${schoolId}`, JSON.stringify(exams)); }, [exams, schoolId]);
@@ -638,28 +773,90 @@ export default function AdminBranchSettingsView() {
               </div>
             )}
 
-            {/* ════ FEES ════ */}
-            {activeView === "fees" && (
+            {/* ════ FEE HEAD MASTER ════ */}
+            {activeView === "fee-heads" && (
               <div>
-                <SectionHeader sectionKey="fees" title="Fee Configuration"
-                  subtitle="Currency, late fees, payment gateway, reminders and fee receipt template"
+                <SectionHeader
+                  sectionKey="fee-heads"
+                  title="Fee Head Master"
+                  subtitle="Organise standard fee items under academic, hostel and activity heads"
+                />
+                <FeeHeadsPanel
+                  config={feeConfiguration}
+                  onChange={setFeeConfiguration}
+                  inputCls={inputCls}
+                  selectCls={selectCls}
+                />
+                <FeeConfigurationSaveBar saving={savingFeeConfig} onSave={handleSaveFeeConfiguration} />
+              </div>
+            )}
+
+            {/* ════ STANDARD FEE ITEMS ════ */}
+            {activeView === "fee-types" && (
+              <div>
+                <SectionHeader
+                  sectionKey="fee-types"
+                  title="Standard Fee Items"
+                  subtitle="Admission, tuition, hostel, laundry, Co-Spark and other lines on every student fee sheet"
+                />
+                <FeeTypesPanel
+                  config={feeConfiguration}
+                  onChange={setFeeConfiguration}
+                  inputCls={inputCls}
+                  selectCls={selectCls}
+                />
+                <FeeConfigurationSaveBar saving={savingFeeConfig} onSave={handleSaveFeeConfiguration} />
+              </div>
+            )}
+
+            {/* ════ CLASS FEE STRUCTURE ════ */}
+            {activeView === "class-fees" && (
+              <div>
+                <SectionHeader
+                  sectionKey="class-fees"
+                  title="Class Fee Structure"
+                  subtitle="Default month-wise fees per class — applied to each student based on their enrolled class (individual overrides on the student profile take precedence)"
+                />
+                <ClassFeesPanel
+                  config={feeConfiguration}
+                  onChange={setFeeConfiguration}
+                  inputCls={inputCls}
+                  selectCls={selectCls}
+                  gradeOptions={gradeOptions}
+                  academicYear={branchAcademicYear ?? ""}
+                  loading={!feeStructuresHydrated || !branchAcademicYear}
+                  onSaveClass={handleSaveClassFeeStructure}
+                />
+              </div>
+            )}
+
+            {/* ════ ADDITIONAL FEES ════ */}
+            {activeView === "extra-fees" && (
+              <div>
+                <SectionHeader
+                  sectionKey="extra-fees"
+                  title="Additional Fees"
+                  subtitle="Optional charges — configure late fee per day on the Late Fee row"
+                />
+                <ExtraFeesPanel
+                  config={feeConfiguration}
+                  onChange={setFeeConfiguration}
+                  inputCls={inputCls}
+                  selectCls={selectCls}
+                />
+                <FeeConfigurationSaveBar saving={savingFeeConfig} onSave={handleSaveFeeConfiguration} />
+              </div>
+            )}
+
+            {/* ════ RECEIPT & BILLING ════ */}
+            {activeView === "fee-receipt" && (
+              <div>
+                <SectionHeader sectionKey="fee-receipt" title="Receipt & Billing"
+                  subtitle="Fee receipt letterhead, reminders and print preview"
                   onSave={() => {
                     saveFeeReceiptTemplate(schoolId, { ...feeReceiptTemplate, duplicateCopies: false });
                     showSaved();
                   }} />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {([
-                    { label: "Currency",           defaultValue: "INR (₹)" },
-                    { label: "Late Fee (per day)",  defaultValue: "₹25" },
-                    { label: "Payment Gateway",     defaultValue: "Razorpay" },
-                    { label: "Receipt Prefix",      defaultValue: "S-" },
-                  ]).map(f => (
-                    <FieldCard key={f.label} label={f.label}>
-                      <input className={inputCls} defaultValue={f.defaultValue} />
-                    </FieldCard>
-                  ))}
-                </div>
 
                 <div className="rounded-2xl border border-teal-100 bg-teal-50/30 p-4 mb-6">
                   <div className="flex items-center gap-2 mb-4">

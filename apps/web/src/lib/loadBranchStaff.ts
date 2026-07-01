@@ -87,6 +87,49 @@ export function shapeStaffRowForUi(
   const username = String(profile.username ?? row.employee_id ?? "").trim();
   const portalPassword = String(yearProfile.portalPassword ?? yearProfile.password ?? "").trim();
 
+  const extended = {
+    empCode: profile.empCode,
+    fatherName: profile.fatherName,
+    motherName: profile.motherName,
+    maritalStatus: profile.maritalStatus,
+    fatherOccupation: profile.fatherOccupation,
+    motherOccupation: profile.motherOccupation,
+    spouseName: profile.spouseName,
+    spouseContact: profile.spouseContact,
+    childrenCount: profile.childrenCount,
+    permanentAddress: profile.permanentAddress,
+    correspondenceAddress: profile.correspondenceAddress,
+    aadharNo: profile.aadharNo,
+    panNo: profile.panNo,
+    qualification: profile.qualification ?? (row.qualification ? String(row.qualification) : undefined),
+    confirmationDate: profile.confirmationDate,
+    trainedStatus: profile.trainedStatus,
+    availingTransport: profile.availingTransport,
+    busNo: profile.busNo,
+    route: profile.route,
+    stop: profile.stop,
+    spouseOrganisation: profile.spouseOrganisation,
+    lockerNo: profile.lockerNo,
+    lockerKey: profile.lockerKey,
+    schoolWing: profile.schoolWing,
+    previousSchool: profile.previousSchool,
+    bloodGroup: profile.bloodGroup,
+    computerKnowledge: profile.computerKnowledge,
+    experienceMonths: profile.experienceMonths,
+    relatives: profile.relatives,
+    probationMonths: profile.probationMonths,
+    employmentStatus: profile.employmentStatus,
+    remarks: profile.remarks,
+    resigningDate: profile.resigningDate,
+    noticePeriodDays: profile.noticePeriodDays,
+    emergencyPerson: profile.emergencyPerson,
+    emergencyContact: profile.emergencyContact,
+    gender: profile.gender ?? row.gender,
+    dob: profile.dob ?? (row.dob ? String(row.dob) : undefined),
+  };
+
+  const qualificationValue = extended.qualification;
+
   return {
     id: row.id,
     employeeId: String(row.employee_id ?? row.id),
@@ -110,8 +153,13 @@ export function shapeStaffRowForUi(
     status: row.is_active === false ? "Inactive" : "Active",
     joiningDate: row.join_date ? String(row.join_date) : "",
     joinDate: row.join_date ? String(row.join_date) : "",
+    employmentType: String(profile.employmentStatus ?? "Full-Time"),
     academicYear,
     staffKind: kind,
+    qualifications: qualificationValue ? [String(qualificationValue)] : [],
+    ...Object.fromEntries(
+      Object.entries(extended).filter(([, value]) => value !== undefined && value !== null && value !== "")
+    ),
   };
 }
 
@@ -175,4 +223,67 @@ export async function loadBranchStaffRecords(
   return results.sort((a, b) =>
     String(a.name ?? "").localeCompare(String(b.name ?? ""), undefined, { sensitivity: "base" })
   );
+}
+
+export type BranchStaffDetail = {
+  staff: Record<string, unknown>;
+  profile: StaffProfileData;
+  staffKind: "teaching" | "non_teaching";
+};
+
+export async function loadBranchStaffRecordById(
+  admin: SupabaseClient<any>,
+  schoolSlug: string,
+  staffId: string,
+  options?: {
+    academicYearName?: string | null;
+    kind?: "teaching" | "non_teaching";
+  }
+): Promise<BranchStaffDetail | null> {
+  const branchId = await resolveBranchUuid(admin, schoolSlug);
+  if (!branchId) return null;
+
+  let yearName = options?.academicYearName?.trim() || null;
+  if (!yearName) {
+    const years = await listBranchAcademicYears(admin, branchId);
+    yearName = years.find((y) => y.is_current)?.name ?? years[0]?.name ?? "2022-23";
+  }
+
+  const tables: Array<{ table: "teachers" | "non_teaching_staff"; kind: "teaching" | "non_teaching" }> =
+    options?.kind === "non_teaching"
+      ? [{ table: "non_teaching_staff", kind: "non_teaching" }]
+      : options?.kind === "teaching"
+        ? [{ table: "teachers", kind: "teaching" }]
+        : [
+            { table: "teachers", kind: "teaching" },
+            { table: "non_teaching_staff", kind: "non_teaching" },
+          ];
+
+  for (const { table, kind } of tables) {
+    const { data, error } = await admin
+      .from(table)
+      .select("*")
+      .eq("branch_id", branchId)
+      .eq("id", staffId)
+      .maybeSingle();
+
+    if (error || !data) continue;
+
+    const profile = await loadStaffProfileData(admin, branchId, staffId);
+    const yearProfile = resolveStaffYearProfile(profile, yearName) ?? {};
+
+    return {
+      staff: shapeStaffRowForUi(
+        data as Record<string, unknown>,
+        profile,
+        yearProfile,
+        kind,
+        yearName
+      ),
+      profile: { ...profile, ...yearProfile },
+      staffKind: kind,
+    };
+  }
+
+  return null;
 }

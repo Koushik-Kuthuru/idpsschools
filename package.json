@@ -20,7 +20,20 @@
     "import:abc-students-2022-23": "node scripts/import-abc-students.mjs --year 2022-23 --file \"data/abc-3.xlsx\"",
     "import:abc-students-2023-24": "node scripts/import-abc-students.mjs --year 2023-24 --file \"data/abc-4.xlsx\"",
     "import:abc-students-2024-25": "node scripts/import-abc-students.mjs --year 2024-25 --file \"data/abc-5.xlsx\"",
-    "import:abc-students-2025-26": "node scripts/import-abc-students.mjs --year 2025-26 --file \"data/abc-6.xlsx\""
+    "import:abc-students-2025-26": "node scripts/import-abc-students.mjs --year 2025-26 --file \"data/abc-6.xlsx\"",
+    "setup:class-fee-structures-db": "node scripts/setup-class-fee-structures-db.mjs",
+    "import:cherukupalli-fee-structure-2026-27": "node scripts/import-cherukupalli-fee-structure.mjs --year 2026-27 --file \"data/IDPS_Fee_Structure_2026_2027_Final.xlsx\"",
+    "import:cherukupalli-fee-structure-2025-26": "node scripts/import-cherukupalli-fee-structure.mjs --year 2025-26 --file \"data/IDPS_Fee_Structure_2025_2026_Fresh.xlsx\"",
+    "import:cherukupalli-fee-structure-2024-25": "node scripts/import-cherukupalli-fee-structure.mjs --year 2024-25 --file \"data/IDPS_Fee_Structure_2024_2025_Summary.xlsx\"",
+    "import:cherukupalli-fee-structure-2023-24": "node scripts/import-cherukupalli-fee-structure.mjs --year 2023-24 --file \"data/IDPS_Fee_Structure_2023_2024_Summary.xlsx\"",
+    "import:cherukupalli-fee-structure-2022-23": "node scripts/import-cherukupalli-fee-structure.mjs --year 2022-23 --file \"data/IDPS_Fee_Structure_2022_2023_Summary.xlsx\"",
+    "check:transport-excel": "node scripts/import-cherukupalli-transport-excel.mjs --dry-run",
+    "import:transport-excel": "node scripts/import-cherukupalli-transport-excel.mjs --apply --clear-extra",
+    "apply:transport-quarterly-fees": "node scripts/apply-transport-quarterly-fees.mjs --apply",
+    "seed:idps-departments-catalog": "node scripts/seed-idps-departments-catalog.mjs --all-branches",
+    "generate:departments-migration": "node scripts/generate-departments-seed-migration.mjs",
+    "import:staff-details-excel": "node scripts/import-staff-details-excel.mjs",
+    "check:staff-excel": "node scripts/check-staff-excel-vs-db.mjs --file \"data/Staff Details.xlsx\""
   },
   "devDependencies": {
     "supabase": "^2.106.0",

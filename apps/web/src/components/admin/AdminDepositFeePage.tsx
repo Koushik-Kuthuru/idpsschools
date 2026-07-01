@@ -49,6 +49,11 @@ import {
   type FeeReceiptRow,
 } from "@/lib/feeDepositUtils";
 import { extractFeeDetails, extractFeeTransactions } from "@/lib/studentFeeResolver";
+import {
+  classStructureAsGradeRecord,
+  fetchHydratedFeeConfiguration,
+  findClassStructureForGrade,
+} from "@/lib/feeConfigurationStore";
 import { buildFeeReceiptPrintData } from "@/lib/buildFeeReceiptData";
 import { loadFeeReceiptTemplate, type FeeReceiptPrintData } from "@/lib/feeReceiptTemplate";
 import {
@@ -111,6 +116,7 @@ type StudentDetail = Record<string, unknown> & {
   siblingInfo?: string;
   siblings?: string;
   hasSibling?: string | boolean;
+  studentType?: string;
   feeStatus?: string;
   className?: string;
 };
@@ -165,6 +171,15 @@ function transactionIdForRow(mode: string, reference?: string): string {
   return id;
 }
 
+function studentBoardingCategory(student: StudentDetail | null | undefined): string {
+  const raw = String(student?.studentType ?? "").trim();
+  if (!raw) return "—";
+  const lower = raw.toLowerCase();
+  if (lower.includes("day")) return "Day Scholar";
+  if (lower.includes("board") || lower.includes("hostel") || lower.includes("residen")) return "Residential";
+  return raw;
+}
+
 function MonthCell({ value, variant }: { value: number; variant: "fee" | "paid" | "balance" | "bus" }) {
   if (variant === "balance") {
     if (value === 0) {
@@ -186,7 +201,7 @@ function MonthCell({ value, variant }: { value: number; variant: "fee" | "paid" 
   );
 }
 
-export default function AdminDepositFeePage() {
+export default function AdminDepositFeePage({ embedded = false }: { embedded?: boolean }) {
   const schoolId = useSchoolId();
   const { activeBranch } = useBranch();
   const branchName = activeBranch?.name ?? "IDPS Cherukupalli";
@@ -287,18 +302,14 @@ export default function AdminDepositFeePage() {
 
   const resolveGradeFeeStructure = useCallback(
     async (gradeRaw: string) => {
-      const target = normalizeGradeKey(gradeRaw);
-      if (!target) return null;
+      const grade = String(gradeRaw ?? "").trim();
+      if (!grade) return null;
 
-      const snap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "fee_structures")));
-      const match = snap.docs.find((d) => {
-        const data = d.data() as Record<string, unknown>;
-        const grade = normalizeGradeKey(String(data.grade ?? ""));
-        return grade === target || grade.includes(target) || target.includes(grade);
-      });
-      return match ? (match.data() as Record<string, unknown>) : null;
+      const config = await fetchHydratedFeeConfiguration(schoolId, currentYear?.name ?? null);
+      const entry = findClassStructureForGrade(config, grade, currentYear?.name ?? null);
+      return entry ? classStructureAsGradeRecord(entry) : null;
     },
-    [schoolId]
+    [schoolId, currentYear?.name]
   );
 
   const studentReceipts = useMemo(() => {
@@ -533,11 +544,13 @@ export default function AdminDepositFeePage() {
   }, [studentReceipts, txTab, feeAdjustments.discountLog]);
 
   return (
-    <div className="space-y-5 pb-10 animate-in fade-in duration-300">
-      <AdminPageHeader
-        title="Deposit Fee"
-        description="Search a student, review fee status, and record payments."
-      />
+    <div className={cn("space-y-5 animate-in fade-in duration-300", embedded ? "pb-6" : "pb-10")}>
+      {!embedded ? (
+        <AdminPageHeader
+          title="Deposit Fee"
+          description="Search a student, review fee status, and record payments."
+        />
+      ) : null}
 
       {/* Search */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-3">
@@ -846,7 +859,7 @@ export default function AdminDepositFeePage() {
               </div>
               <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <Info icon={Users} label="Father" value={String(student.fatherName ?? "—")} />
-                <Info icon={Building2} label="Category" value={student.feeDetails?.feeCategory ?? "GENERAL"} />
+                <Info icon={Building2} label="Student Type" value={studentBoardingCategory(student)} />
                 <Info icon={Users} label="Admission Type" value={admissionType} />
                 <Info icon={Phone} label="Mobile" value={String(mobile)} />
                 <Info icon={Users} label="Sibling" value={siblingText} />
@@ -974,7 +987,7 @@ export default function AdminDepositFeePage() {
           {/* Summary strip */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
             {[
-              { label: "Category", value: student.feeDetails?.feeCategory ?? "GENERAL" },
+              { label: "Student Type", value: studentBoardingCategory(student) },
               {
                 label: "Annual Fee",
                 value: formatInr(feeStatus.totals.gross),
@@ -1032,7 +1045,7 @@ export default function AdminDepositFeePage() {
                   className="h-8 px-3 rounded-lg border border-gray-300 bg-white text-gray-800 text-[11px] font-bold hover:bg-gray-50 flex items-center gap-1.5 shadow-sm"
                 >
                   <FileSpreadsheet size={14} className="text-gray-500" />
-                  [ See Payable Fee Structure ]
+                  See Payable Fee Structure
                 </button>
                 <SafeLink
                   href={`${base}/academic/students/${student.id}/profile?tab=Fee%20Details`}
@@ -1052,18 +1065,18 @@ export default function AdminDepositFeePage() {
               </div>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-center text-xs">
+              <table className="w-full min-w-[900px] text-center text-xs border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-[#144835] text-white">
-                    <th className="px-3 py-2.5 text-left font-bold sticky left-0 bg-[#144835] z-10 min-w-[120px]">
+                    <th className="px-3 py-2.5 text-left font-bold sticky left-0 bg-[#144835] z-10 min-w-[120px] !text-white border border-white/25">
                       Head
                     </th>
                     {FEE_MONTHS.map((m) => (
-                      <th key={m} className="px-1.5 py-2.5 font-bold text-[10px]">
+                      <th key={m} className="px-1.5 py-2.5 font-bold text-[10px] !text-white border border-white/25">
                         {m}
                       </th>
                     ))}
-                    <th className="px-2 py-2.5 font-bold bg-[#0f3a2a]">Total</th>
+                    <th className="px-2 py-2.5 font-bold bg-[#0f3a2a] !text-white border border-white/25">Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1074,17 +1087,22 @@ export default function AdminDepositFeePage() {
                       { label: "Paid Fee", values: feeStatus.paidFee, variant: "paid" as const },
                       { label: "Balance", values: feeStatus.balance, variant: "balance" as const },
                     ] as const
-                  ).map((row) => (
-                    <tr key={row.label} className="border-b border-gray-50 odd:bg-gray-50/30">
-                      <td className="px-3 py-2 text-left font-extrabold text-gray-800 sticky left-0 bg-inherit z-10">
+                  ).map((row, rowIdx) => (
+                    <tr key={row.label} className={cn(rowIdx % 2 === 1 && "bg-gray-50/50")}>
+                      <td
+                        className={cn(
+                          "px-3 py-2 text-left font-extrabold text-gray-800 sticky left-0 z-10 border border-gray-300",
+                          rowIdx % 2 === 1 ? "bg-gray-50" : "bg-white"
+                        )}
+                      >
                         {row.label}
                       </td>
                       {row.values.map((v, i) => (
-                        <td key={i} className="px-1 py-2">
+                        <td key={i} className="px-1 py-2 border border-gray-300">
                           <MonthCell value={v} variant={row.variant} />
                         </td>
                       ))}
-                      <td className="px-2 py-2 font-extrabold bg-gray-50">
+                      <td className="px-2 py-2 font-extrabold bg-gray-50 border border-gray-300">
                         {row.variant === "balance" ? (
                           <span className="text-rose-600">{sumRow(row.values).toLocaleString("en-IN")}</span>
                         ) : (

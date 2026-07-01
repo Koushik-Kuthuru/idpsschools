@@ -6,6 +6,7 @@ import {
   type AcademicYearChangedDetail,
 } from "@/lib/activeAcademicYear";
 import { compareGrades } from "@/lib/gradeOrder";
+import { fetchBranchStaffByIdViaApi } from "@/lib/fetchBranchStaffById";
 import {
   buildDbDocCacheKey,
   buildDbQueryCacheKey,
@@ -18,7 +19,13 @@ import {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Tables stored against branch_id in the hosted Supabase schema. */
-const BRANCH_SCOPED_TABLES = new Set(["students", "classes", "teachers", "non_teaching_staff"]);
+const BRANCH_SCOPED_TABLES = new Set([
+  "students",
+  "classes",
+  "teachers",
+  "non_teaching_staff",
+  "branch_class_fee_structures",
+]);
 
 /** Tables that store school_id as route slug (legacy). */
 const SLUG_SCHOOL_ID_TABLES = new Set(["homework", "study_materials"]);
@@ -32,6 +39,7 @@ const TABLE_ALIASES: Record<string, string> = {
   "non-teaching-staff": "non_teaching_staff",
   leaves: "leave_requests",
   sections: "classes",
+  fee_structures: "branch_class_fee_structures",
 };
 
 /** Legacy sort fields → columns that exist on the mapped table. */
@@ -113,6 +121,26 @@ function shapeApiClass(row: Record<string, unknown>): Record<string, unknown> {
     academicYear: row.academicYear ?? row.academic_year,
     status: row.status ?? "Active",
   };
+}
+
+async function fetchBranchFeeStructuresViaApi(
+  schoolSlug: string,
+  academicYear: string | null
+): Promise<Record<string, unknown>[]> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    if (academicYear) params.set("academicYear", academicYear);
+    const res = await fetch(`/api/admin/fee-structures?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.warn("Branch fee structures API:", data.error || res.status, { schoolSlug });
+      return [];
+    }
+    return (data.structures ?? []) as Record<string, unknown>[];
+  } catch (err) {
+    console.warn("Branch fee structures API fetch failed:", err);
+    return [];
+  }
 }
 
 async function fetchBranchDepartmentsViaApi(
@@ -397,6 +425,13 @@ async function applyQuery(collectionPath: string[], constraints: any[] = []) {
     return finishQuery(collectionPath, constraints, filtered);
   }
 
+  if (schoolSlug && table === "branch_class_fee_structures") {
+    const academicYear = getActiveAcademicYear(schoolSlug);
+    const apiRows = await fetchBranchFeeStructuresViaApi(schoolSlug, academicYear);
+    const filtered = applyClientConstraints(table, apiRows, constraints);
+    return finishQuery(collectionPath, constraints, filtered);
+  }
+
   let schoolFilter: string | null = null;
   if (isSubcollection && parentId) {
     schoolFilter = await resolveSchoolFilter(table, parentId);
@@ -465,6 +500,17 @@ async function applyQuery(collectionPath: string[], constraints: any[] = []) {
       }
       return legacy;
     }
+    if (table === "branch_class_fee_structures") {
+      return {
+        id: row.id,
+        grade: row.grade,
+        academicYear: row.academic_year,
+        feeGrid: row.fee_grid ?? [],
+        status: row.status ?? "Active",
+        remarks: row.remarks,
+        updatedAt: row.updated_at,
+      };
+    }
     return row;
   });
 
@@ -475,8 +521,13 @@ export async function fetchMany(queryOrPath: any, options: FetchOptions = {}) {
   const parsed = parseQueryInput(queryOrPath);
   if (!parsed) return new QueryResult([]);
 
+  const isFeeStructuresQuery =
+    parsed.collectionPath.length === 3 &&
+    parsed.collectionPath[0] === "schools" &&
+    resolveTable(parsed.collectionPath[2]) === "branch_class_fee_structures";
+
   const cacheKey = buildDbQueryCacheKey(parsed.collectionPath, parsed.constraints);
-  if (!options.skipCache) {
+  if (!options.skipCache && !isFeeStructuresQuery) {
     const cached = readDbRowsCache(cacheKey);
     if (cached) return new QueryResult(cached);
   }
@@ -530,6 +581,18 @@ export async function fetchOne(docPath: string[], options: FetchOptions = {}) {
     return new SingleResult(id, row);
   }
 
+  if (schoolSlug && (table === "teachers" || table === "non_teaching_staff")) {
+    const academicYear = getActiveAcademicYear(schoolSlug);
+    const kind = table === "teachers" ? "teaching" : "non_teaching";
+    const row = await fetchBranchStaffByIdViaApi(schoolSlug, id, academicYear, kind);
+    if (!row) {
+      writeDbDocCache(cacheKey, { id, data: null });
+      return new SingleResult(id, null);
+    }
+    writeDbDocCache(cacheKey, { id, data: row });
+    return new SingleResult(id, row);
+  }
+
   const { data, error } = await supabase.from(table).select("*").eq("id", id).single();
   if (error || !data) {
     writeDbDocCache(cacheKey, { id, data: null });
@@ -574,6 +637,48 @@ export async function upsertData(docPath: string[], data: any, options: any = {}
       throw new Error(body.error || "Failed to save department");
     }
     return;
+  }
+
+  if (schoolSlug && table === "branch_class_fee_structures") {
+    const res = await fetch("/api/admin/fee-structures", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schoolId: schoolSlug,
+        entry: {
+          id: data.id ?? id,
+          grade: data.grade,
+          academicYear: data.academicYear ?? data.academic_year,
+          status: data.status ?? "Active",
+          feeGrid: data.feeGrid ?? data.fee_grid ?? [],
+          remarks: data.remarks ?? null,
+        },
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(body.error || "Failed to save fee structure");
+    }
+    return;
+  }
+
+  if (table === "branch_class_fee_structures") {
+    if (data.academicYear !== undefined) {
+      data.academic_year = data.academicYear;
+      delete data.academicYear;
+    }
+    if (data.feeGrid !== undefined) {
+      data.fee_grid = data.feeGrid;
+      delete data.feeGrid;
+    }
+    if (data.updatedAt !== undefined) {
+      data.updated_at = data.updatedAt;
+      delete data.updatedAt;
+    }
+    if (!data.grade && data.grade_name) {
+      data.grade = data.grade_name;
+      delete data.grade_name;
+    }
   }
 
   data.id = id;

@@ -247,14 +247,18 @@ export default function DepartmentsManagementView({
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
-        {/* Left — Departments */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50/80">
-            <h2 className="text-sm font-bold text-gray-800">Departments</h2>
-          </div>
+        {/* Left — pinned in place; only the right designations column scrolls */}
+        <aside className="w-full min-w-0 xl:sticky xl:top-20 xl:z-10 xl:h-fit xl:self-start">
+          <div className="bg-white rounded-xl border border-gray-200">
+            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50/80">
+              <h2 className="text-sm font-bold text-gray-800">Departments</h2>
+            </div>
 
-          <form className="p-4 border-b border-gray-100 bg-white" onSubmit={(e) => void handleAddDepartment(e)}>
-            <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+            <form
+              className="p-4 border-b border-gray-100 bg-white"
+              onSubmit={(e) => void handleAddDepartment(e)}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-end gap-3">
               <div className="flex-1 space-y-1.5">
                 <label className="text-xs font-bold text-gray-700">Department Name:</label>
                 <input
@@ -272,19 +276,19 @@ export default function DepartmentsManagementView({
               >
                 {saving === "department" ? "Adding..." : "Add Record"}
               </button>
-            </div>
-          </form>
+              </div>
+            </form>
 
-          <div className="overflow-x-auto max-h-[640px] overflow-y-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="sticky top-0 z-10 bg-gray-50">
-                <tr className="border-b border-gray-200">
-                  <th className="w-12 px-3 py-2.5 text-xs font-bold text-gray-600">#</th>
-                  <th className="px-3 py-2.5 text-xs font-bold text-gray-600">DepartmentName</th>
-                  <th className="w-28 px-3 py-2.5 text-xs font-bold text-gray-600 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-gray-50">
+                  <tr className="border-b border-gray-200">
+                    <th className="w-12 px-3 py-2.5 text-xs font-bold text-gray-600">#</th>
+                    <th className="px-3 py-2.5 text-xs font-bold text-gray-600">DepartmentName</th>
+                    <th className="w-28 px-3 py-2.5 text-xs font-bold text-gray-600 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
                 {loading ? (
                   <tr>
                     <td colSpan={3} className="px-4 py-10 text-center text-xs font-bold text-gray-400">
@@ -397,11 +401,12 @@ export default function DepartmentsManagementView({
                 )}
               </tbody>
             </table>
+            </div>
           </div>
-        </div>
+        </aside>
 
-        {/* Right — Designations grouped by department */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Right — designations list drives page scroll */}
+        <section className="w-full min-w-0 bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 bg-gray-50/80">
             <h2 className="text-sm font-bold text-gray-800">Designations</h2>
           </div>
@@ -444,9 +449,9 @@ export default function DepartmentsManagementView({
             </button>
           </form>
 
-          <div className="overflow-x-auto max-h-[640px] overflow-y-auto">
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="sticky top-0 z-10 bg-gray-50">
+              <thead className="bg-gray-50">
                 <tr className="border-b border-gray-200">
                   <th className="w-12 px-3 py-2.5 text-xs font-bold text-gray-600">#</th>
                   <th className="px-3 py-2.5 text-xs font-bold text-gray-600">Designation Name</th>
@@ -597,7 +602,7 @@ export default function DepartmentsManagementView({
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -2,15 +2,21 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useBranchClasses } from "@/hooks/useBranchClasses";
+import { useBranchStaff } from "@/hooks/useBranchStaff";
 import { useAcademicYear } from "@/contexts/AcademicYearContext";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { useMemo, useState } from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { gradeDisplayLabel, sortGrades } from "@/lib/gradeOrder";
+import { gradeDisplayLabel, gradeIdentityKey, sortGrades } from "@/lib/gradeOrder";
+import { uniqueGradesFromClasses } from "@/lib/classSectionOptions";
 import {
-  BarChart3,
+  classTeachersForSection,
+  indexClassTeachersBySection,
+  type ClassTeacherInfo,
+} from "@/lib/classTeacherAssignments";
+import {
   ClipboardList,
   MapPin,
   Plus,
@@ -23,7 +29,6 @@ import {
   LayoutGrid,
   TrendingUp,
   Filter,
-  CheckCircle2,
   AlertCircle,
   Trash2,
 } from "lucide-react";
@@ -36,8 +41,8 @@ type SectionRow = {
   id: string;
   section: string;
   strength: number;
+  classTeachers: ClassTeacherInfo[];
   teacherCount: number;
-  teacherInitials?: string[];
   status: "Active" | "Inactive";
   room?: string;
 };
@@ -65,12 +70,59 @@ function strengthBg(strength: number) {
   return "bg-emerald-50";
 }
 
+function ClassTeacherCell({
+  sectionId,
+  teachers,
+  expandedId,
+  onToggle,
+}: {
+  sectionId: string;
+  teachers: ClassTeacherInfo[];
+  expandedId: string | null;
+  onToggle: (id: string) => void;
+}) {
+  const names = teachers.map((teacher) => teacher.name).join(", ");
+  const expanded = expandedId === sectionId;
+
+  if (!teachers.length) {
+    return <span className="text-xs font-medium text-gray-400">Unassigned</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(sectionId)}
+      className="mx-auto block min-w-0 max-w-[240px] rounded-md px-1 py-0.5 text-center transition-colors hover:bg-gray-50"
+      title={expanded ? undefined : names}
+    >
+      <p
+        className={cn(
+          "text-xs font-bold text-gray-700",
+          expanded ? "whitespace-normal break-words" : "truncate"
+        )}
+      >
+        {names}
+      </p>
+    </button>
+  );
+}
+
 export default function AdminClassesPage() {
   const schoolId = useSchoolId();
   const { currentYear, loading: yearLoading } = useAcademicYear();
   const { classes: branchClasses, loading, error: loadError, refresh } = useBranchClasses(
     schoolId,
     currentYear?.name
+  );
+  const { staff: teachingStaff, loading: staffLoading } = useBranchStaff(
+    schoolId,
+    "teaching",
+    currentYear?.name
+  );
+
+  const classTeacherIndex = useMemo(
+    () => indexClassTeachersBySection(teachingStaff),
+    [teachingStaff]
   );
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -83,47 +135,61 @@ export default function AdminClassesPage() {
   const [formTeacherCount, setFormTeacherCount] = useState<number>(0);
   const [formStatus, setFormStatus] = useState<"Active" | "Inactive">("Active");
   const [formError, setFormError] = useState<string | null>(null);
+  const [expandedClassTeacherId, setExpandedClassTeacherId] = useState<string | null>(null);
 
-  const isLoading = (loading && branchClasses.length === 0) || (yearLoading && !currentYear);
+  const isLoading =
+    ((loading || staffLoading) && branchClasses.length === 0) || (yearLoading && !currentYear);
 
   const gradeLabel = (g: string) => gradeDisplayLabel(g);
 
   const gradeCatalog = useMemo(
-    () => sortGrades([...new Set(branchClasses.map((c) => c.grade))]),
+    () => uniqueGradesFromClasses(branchClasses),
     [branchClasses]
   );
 
   const classes = useMemo((): GradeGroup[] => {
-    const classMap: Record<string, SectionRow[]> = {};
+    const classMap = new Map<string, GradeGroup>();
 
     branchClasses.forEach((e) => {
-      if (!classMap[e.grade]) classMap[e.grade] = [];
-      classMap[e.grade].push({
+      const key = gradeIdentityKey(e.grade);
+      if (!classMap.has(key)) {
+        classMap.set(key, { grade: e.grade, sections: [] });
+      }
+      const classTeachers = classTeachersForSection(classTeacherIndex, e.grade, e.section);
+      classMap.get(key)!.sections.push({
         id: e.id,
         section: e.section,
         strength: e.strength,
-        teacherCount: e.classTeacherId ? 1 : 0,
+        classTeachers,
+        teacherCount: classTeachers.length,
         status: e.status,
         room: "TBD",
       });
     });
 
-    return sortGrades(Object.keys(classMap)).map((grade) => ({
-      grade,
-      sections: classMap[grade].sort((a, b) => a.section.localeCompare(b.section)),
-    }));
-  }, [branchClasses]);
+    return sortGrades([...classMap.values()].map((g) => g.grade)).map((grade) => {
+      const group = classMap.get(gradeIdentityKey(grade))!;
+      return {
+        grade: group.grade,
+        sections: group.sections.sort((a, b) => a.section.localeCompare(b.section)),
+      };
+    });
+  }, [branchClasses, classTeacherIndex]);
 
   const stats = useMemo(() => {
     let totalSections = 0;
     let totalStudents = 0;
     let overcrowded = 0;
+    let assignedClassTeachers = 0;
+    let unassignedSections = 0;
 
     classes.forEach((g) => {
       g.sections.forEach((s) => {
         totalSections++;
         totalStudents += s.strength;
         if (s.strength > 50) overcrowded++;
+        if (s.teacherCount > 0) assignedClassTeachers += s.teacherCount;
+        else unassignedSections++;
       });
     });
 
@@ -133,6 +199,8 @@ export default function AdminClassesPage() {
       totalStudents,
       avgStrength: totalSections ? Math.round(totalStudents / totalSections) : 0,
       overcrowded,
+      assignedClassTeachers,
+      unassignedSections,
     };
   }, [classes]);
 
@@ -162,7 +230,7 @@ export default function AdminClassesPage() {
         title="Classes & Sections"
         description={
           currentYear
-            ? `Academic year ${currentYear.name} — ${stats.totalSections} sections, ${stats.totalStudents.toLocaleString()} students enrolled`
+            ? `Academic year ${currentYear.name} — ${stats.totalSections} sections, ${stats.totalStudents.toLocaleString()} students enrolled, ${stats.assignedClassTeachers} class teacher${stats.assignedClassTeachers === 1 ? "" : "s"} assigned`
             : "Manage grade levels, sections, and class assignments"
         }
       />
@@ -295,16 +363,15 @@ export default function AdminClassesPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
+          <table className="w-full border-collapse text-center">
+            <thead className="text-center">
               <tr className="bg-gray-50/80 border-b border-gray-100">
-                <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Grade</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Section</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Room</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Strength</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Teachers</th>
-                <th className="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="w-12 px-2 py-2.5 text-right" aria-label="Row actions" />
+                <th className="px-4 py-2.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider w-24">Grade</th>
+                <th className="px-4 py-2.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Section</th>
+                <th className="px-4 py-2.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Room</th>
+                <th className="px-4 py-2.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Strength</th>
+                <th className="px-4 py-2.5 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Class Teacher</th>
+                <th className="w-12 px-2 py-2.5 text-center" aria-label="Row actions" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -312,25 +379,22 @@ export default function AdminClassesPage() {
                 Array.from({ length: 6 }).map((_, i) => (
                   <tr key={`skeleton-${i}`} className="animate-pulse">
                     <td className="px-5 py-2.5">
-                      <div className="h-6 w-16 rounded bg-gray-100" />
+                      <div className="mx-auto h-6 w-16 rounded bg-gray-100" />
                     </td>
                     <td className="px-5 py-2.5">
-                      <div className="h-6 w-20 rounded bg-gray-100" />
+                      <div className="mx-auto h-6 w-20 rounded bg-gray-100" />
                     </td>
                     <td className="px-5 py-2.5">
-                      <div className="h-5 w-24 rounded bg-gray-100" />
+                      <div className="mx-auto h-5 w-24 rounded bg-gray-100" />
                     </td>
                     <td className="px-5 py-2.5">
-                      <div className="h-6 w-28 rounded bg-gray-100" />
+                      <div className="mx-auto h-6 w-28 rounded bg-gray-100" />
                     </td>
                     <td className="px-5 py-2.5">
-                      <div className="h-5 w-16 rounded bg-gray-100" />
+                      <div className="mx-auto h-5 w-16 rounded bg-gray-100" />
                     </td>
                     <td className="px-5 py-2.5">
-                      <div className="h-5 w-16 rounded bg-gray-100" />
-                    </td>
-                    <td className="px-5 py-2.5 text-right">
-                      <div className="h-6 w-20 rounded bg-gray-100 ml-auto" />
+                      <div className="mx-auto h-6 w-20 rounded bg-gray-100" />
                     </td>
                   </tr>
                 ))
@@ -345,28 +409,23 @@ export default function AdminClassesPage() {
                     return (
                       <tr key={s.id} className="hover:bg-gray-50/50 transition-colors group">
                         {showGrade ? (
-                          <td rowSpan={rowSpan} className="px-5 py-2.5 align-top border-r border-gray-100/50">
-                            <div className="flex items-center gap-2">
-                              <div className="h-7 w-7 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-xs font-bold text-gray-700">
-                                {g.grade.length > 4 ? g.grade.slice(0, 3) : g.grade}
-                              </div>
-                              <span className="text-xs font-bold text-gray-900">{gradeLabel(g.grade)}</span>
-                            </div>
+                          <td rowSpan={rowSpan} className="px-5 py-2.5 align-middle border-r border-gray-100/50">
+                            <span className="text-xs font-bold text-gray-900">{gradeLabel(g.grade)}</span>
                           </td>
                         ) : null}
                         <td className="px-5 py-2.5">
-                          <span className="text-xs font-bold text-gray-700 bg-gray-100/80 px-2 py-0.5 rounded">
+                          <span className="inline-block text-xs font-bold text-gray-700 bg-gray-100/80 px-2 py-0.5 rounded">
                             Sec {s.section}
                           </span>
                         </td>
                         <td className="px-5 py-2.5">
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-gray-600">
+                          <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-gray-600">
                             <MapPin size={12} className="text-gray-400" />
                             {s.room || "TBD"}
                           </div>
                         </td>
                         <td className="px-5 py-2.5">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-center gap-2">
                             <div
                               className={cn(
                                 "flex items-center justify-center min-w-[2rem] rounded px-1.5 py-0.5 text-xs font-bold border border-white/20",
@@ -390,22 +449,25 @@ export default function AdminClassesPage() {
                           </div>
                         </td>
                         <td className="px-5 py-2.5">
-                          <span className="text-xs font-bold text-gray-700">{s.teacherCount} Teachers</span>
+                          <ClassTeacherCell
+                            sectionId={s.id}
+                            teachers={s.classTeachers}
+                            expandedId={expandedClassTeacherId}
+                            onToggle={(id) =>
+                              setExpandedClassTeacherId((prev) => (prev === id ? null : id))
+                            }
+                          />
                         </td>
                         <td className="px-5 py-2.5">
-                          <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-100/50">
-                            <CheckCircle2 size={10} />
-                            {s.status}
-                          </span>
-                        </td>
-                        <td className="px-5 py-2.5 text-right">
-                          <TableRowActions
+                          <div className="flex justify-center">
+                            <TableRowActions
                             items={[
                               { label: "Edit Section", icon: Pencil, onClick: () => {} },
                               { label: "View Teachers", icon: Users, onClick: () => {} },
                               { label: "Student List", icon: ClipboardList, onClick: () => {} },
                             ]}
                           />
+                          </div>
                         </td>
                       </tr>
                     );
@@ -413,7 +475,7 @@ export default function AdminClassesPage() {
                 )
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center">
+                  <td colSpan={6} className="px-5 py-8 text-center">
                     <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 mb-2">
                       <Search size={20} className="text-gray-400" />
                     </div>
@@ -458,21 +520,6 @@ export default function AdminClassesPage() {
           </div>
         </div>
       ) : null}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button
-          type="button"
-          className="bg-white rounded-xl border border-gray-200 p-4 text-left hover:border-[#144835]/30 hover:shadow-md transition-all group"
-        >
-          <div className="h-10 w-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-            <BarChart3 size={18} />
-          </div>
-          <p className="mt-3 text-xs font-bold text-gray-900">Class Strength Report</p>
-          <p className="mt-1 text-xs font-medium text-gray-500 line-clamp-2">
-            Occupancy across all sections for the active academic year.
-          </p>
-        </button>
-      </div>
     </div>
   );
 }

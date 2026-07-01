@@ -31,11 +31,160 @@ import { useEffect, useMemo, useState } from "react";
 
 import StaffAttendanceLogTab from "@/components/admin/hr/attendance/StaffAttendanceLogTab";
 import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
-import { buildPath, fetchOne, subscribeData, sortBy, buildQuery, patchData, db, auth } from "@/lib/db-client";
+import { fetchBranchStaffByIdViaApi } from "@/lib/fetchBranchStaffById";
+import { useAcademicYear } from "@/contexts/AcademicYearContext";
+import { buildPath, subscribeData, sortBy, buildQuery, db } from "@/lib/db-client";
 
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+type ProfileField = { label: string; value: string; colSpan?: 1 | 2 };
+
+function hasProfileValue(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "number") return !Number.isNaN(value);
+  return String(value).trim() !== "";
+}
+
+function profileValue(raw: Record<string, unknown> | null | undefined, ...keys: string[]): string {
+  for (const key of keys) {
+    const value = raw?.[key];
+    if (!hasProfileValue(value)) continue;
+    const text = String(value).trim();
+    if (text === "0" && (key === "empCode" || key === "childrenCount")) continue;
+    return text;
+  }
+  return "";
+}
+
+function formatProfileDate(value: unknown): string {
+  if (!hasProfileValue(value)) return "";
+  const parsed = new Date(String(value));
+  return Number.isNaN(parsed.getTime()) ? String(value) : parsed.toLocaleDateString("en-IN");
+}
+
+function formatGender(value: unknown): string {
+  const text = profileValue({ gender: value }, "gender");
+  if (!text) return "";
+  const lower = text.toLowerCase();
+  if (lower === "male") return "Male";
+  if (lower === "female") return "Female";
+  return text;
+}
+
+function buildEmploymentFields(
+  staff: StaffDisplayRecord,
+  raw: Record<string, unknown> | null,
+  showAcademicLoad: boolean
+): ProfileField[] {
+  const fields: ProfileField[] = [];
+  const add = (label: string, value: string, colSpan?: 1 | 2) => {
+    if (value) fields.push({ label, value, colSpan });
+  };
+
+  add("Employment Type", staff.employmentType !== "Full-Time" ? staff.employmentType : profileValue(raw, "employmentStatus") || staff.employmentType);
+  add("Joining Date", staff.joinedDate !== "—" ? staff.joinedDate : formatProfileDate(raw?.joiningDate ?? raw?.joinDate));
+  add("Date of Confirmation", formatProfileDate(raw?.confirmationDate));
+  add("Trained Status", profileValue(raw, "trainedStatus"));
+  add("Reports To", staff.reportsTo !== "—" ? staff.reportsTo : profileValue(raw, "reportsTo", "reportingManager"));
+  add(
+    "Qualifications",
+    staff.qualifications.length ? staff.qualifications.join(", ") : profileValue(raw, "qualification")
+  );
+
+  const experienceMonths = raw?.experienceMonths;
+  if (hasProfileValue(experienceMonths) && Number(experienceMonths) > 0) {
+    add("Experience", `${experienceMonths} months`);
+  }
+
+  add("School Wing", profileValue(raw, "schoolWing"));
+  add("Previous School", profileValue(raw, "previousSchool"));
+
+  const probationMonths = raw?.probationMonths;
+  if (hasProfileValue(probationMonths) && Number(probationMonths) > 0) {
+    add("Probation Period", `${probationMonths} months`);
+  }
+
+  const transport = profileValue(raw, "availingTransport");
+  if (transport) {
+    add("School Transport", transport);
+    if (transport.toUpperCase() === "YES") {
+      add("Bus No.", profileValue(raw, "busNo"));
+      add("Route", profileValue(raw, "route"));
+      add("Stop", profileValue(raw, "stop"));
+    }
+  }
+
+  add("Locker No.", profileValue(raw, "lockerNo"));
+  add("Locker Key", profileValue(raw, "lockerKey"));
+  add("Remarks", profileValue(raw, "remarks"), 2);
+
+  if (showAcademicLoad && staff.classTeacher) {
+    add("Class Teacher Of", staff.classTeacher, 2);
+  }
+
+  return fields;
+}
+
+function buildPersonalFields(
+  staff: StaffDisplayRecord,
+  raw: Record<string, unknown> | null
+): ProfileField[] {
+  const fields: ProfileField[] = [];
+  const add = (label: string, value: string, colSpan?: 1 | 2) => {
+    if (value) fields.push({ label, value, colSpan });
+  };
+
+  add("Father's Name", profileValue(raw, "fatherName"));
+  add("Mother's Name", profileValue(raw, "motherName"));
+  add("Father's Occupation", profileValue(raw, "fatherOccupation"));
+  add("Mother's Occupation", profileValue(raw, "motherOccupation"));
+  add("Date of Birth", formatProfileDate(raw?.dob));
+  add("Gender", formatGender(raw?.gender));
+  add("Marital Status", profileValue(raw, "maritalStatus"));
+  add("Blood Group", profileValue(raw, "bloodGroup"));
+  add("Spouse Name", profileValue(raw, "spouseName"));
+  add("Spouse Contact", profileValue(raw, "spouseContact"));
+  add("Spouse Organisation", profileValue(raw, "spouseOrganisation"));
+
+  const childrenCount = raw?.childrenCount;
+  if (hasProfileValue(childrenCount) && Number(childrenCount) > 0) {
+    add("No. of Children", String(childrenCount));
+  }
+
+  add("Permanent Address", profileValue(raw, "permanentAddress"), 2);
+  const correspondence = profileValue(raw, "correspondenceAddress");
+  const permanent = profileValue(raw, "permanentAddress");
+  if (correspondence && correspondence !== permanent) {
+    add("Correspondence Address", correspondence, 2);
+  }
+
+  add("Aadhar", profileValue(raw, "aadharNo"));
+  add("PAN", profileValue(raw, "panNo"));
+  add("Employee Code", profileValue(raw, "empCode") || (staff.employeeId !== "—" ? staff.employeeId : ""));
+  add("Computer Knowledge", profileValue(raw, "computerKnowledge"));
+  add("Relatives", profileValue(raw, "relatives"), 2);
+
+  return fields;
+}
+
+function ProfileFieldGrid({ fields }: { fields: ProfileField[] }) {
+  if (!fields.length) {
+    return <p className="text-sm text-gray-500">No additional details recorded.</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+      {fields.map((field) => (
+        <div key={field.label} className={field.colSpan === 2 ? "col-span-2" : undefined}>
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">{field.label}</p>
+          <p className="mt-1 text-xs font-bold text-gray-900">{field.value}</p>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function formatInrMonthly(value: number) {
@@ -73,20 +222,16 @@ type LeaveRow = {
 async function loadStaffRecord(
   schoolId: string,
   employeeId: string,
-  variant?: "teaching" | "nonTeaching"
-): Promise<StaffDisplayRecord | null> {
-  const collections =
-    variant === "nonTeaching"
-      ? ["non_teaching_staff", "staff", "teachers"]
-      : ["teachers", "teaching_staff", "staff"];
-
-  for (const col of collections) {
-    const snap = await fetchOne(buildPath(db, "schools", schoolId, col, employeeId));
-    if (snap.exists()) {
-      return mapStaffDoc(snap.id, snap.data() as Record<string, unknown>);
-    }
-  }
-  return null;
+  variant?: "teaching" | "nonTeaching",
+  academicYear?: string | null
+): Promise<{ record: StaffDisplayRecord; raw: Record<string, unknown> } | null> {
+  const kind = variant === "nonTeaching" ? "non_teaching" : variant === "teaching" ? "teaching" : undefined;
+  const row = await fetchBranchStaffByIdViaApi(schoolId, employeeId, academicYear ?? null, kind);
+  if (!row) return null;
+  return {
+    record: mapStaffDoc(employeeId, row),
+    raw: row,
+  };
 }
 
 export default function EmployeeProfileView({
@@ -104,6 +249,7 @@ export default function EmployeeProfileView({
   backLabel?: string;
   variant?: "teaching" | "nonTeaching";
 }) {
+  const { currentYear } = useAcademicYear();
     const [staff, setStaff] = useState<StaffDisplayRecord | null>(null);
   const [rawEmployee, setRawEmployee] = useState<Record<string, unknown> | null>(null);
   const [leaves, setLeaves] = useState<LeaveRow[]>([]);
@@ -116,42 +262,23 @@ export default function EmployeeProfileView({
     if (!employeeId || !schoolId) return;
     setLoading(true);
 
-    loadStaffRecord(schoolId, employeeId, variant).then((record) => {
-      setStaff(record);
+    loadStaffRecord(schoolId, employeeId, variant, currentYear?.name).then((result) => {
+      if (result) {
+        setStaff(result.record);
+        const raw = result.raw;
+        if (!raw.username || !raw.portalPassword) {
+          const empId = String(raw.employeeId ?? employeeId).toLowerCase();
+          raw.username = empId;
+          raw.portalPassword = empId;
+        }
+        setRawEmployee(raw);
+      } else {
+        setStaff(null);
+        setRawEmployee(null);
+      }
       setLoading(false);
     });
-
-    const collections =
-      variant === "nonTeaching"
-        ? ["non_teaching_staff", "staff", "teachers"]
-        : ["teachers", "teaching_staff", "staff"];
-
-    let cancelled = false;
-    (async () => {
-      for (const col of collections) {
-        const docRef = buildPath(db, "schools", schoolId, col, employeeId);
-        const snap = await fetchOne(docRef);
-        if (!cancelled && snap.exists()) {
-          const data = snap.data() as Record<string, unknown>;
-          if (!data.username || !data.portalPassword) {
-            const empId = String(data.employeeId || snap.id).toLowerCase();
-            await patchData(docRef, {
-              username: empId,
-              portalPassword: empId,
-            });
-            data.username = empId;
-            data.portalPassword = empId;
-          }
-          setRawEmployee(data);
-          break;
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [employeeId, schoolId, variant]);
+  }, [employeeId, schoolId, variant, currentYear?.name]);
 
   useEffect(() => {
     if (!employeeId || !schoolId || !staff) return;
@@ -219,9 +346,10 @@ export default function EmployeeProfileView({
     .join("");
   const avatarColor = getAvatarColor(staff.name);
   const showAcademicLoad = variant === "teaching";
-  const emergencyContact = rawEmployee?.emergencyContact as
-    | { name?: string; relation?: string; phone?: string }
-    | undefined;
+  const employmentFields = buildEmploymentFields(staff, rawEmployee, showAcademicLoad);
+  const personalFields = buildPersonalFields(staff, rawEmployee);
+  const emergencyPerson = profileValue(rawEmployee, "emergencyPerson");
+  const emergencyPhone = profileValue(rawEmployee, "emergencyContact");
   const bankDetails = rawEmployee?.bankDetails as
     | { bankName?: string; accountNumber?: string; ifscCode?: string }
     | undefined;
@@ -362,26 +490,19 @@ export default function EmployeeProfileView({
                     <h2 className="text-base font-bold text-gray-900">Employment Details</h2>
                   </div>
                   <div className="p-4">
-                    <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Employment Type</p>
-                        <p className="mt-1 text-xs font-bold text-gray-900">{staff.employmentType}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Joining Date</p>
-                        <p className="mt-1 text-xs font-bold text-gray-900">{staff.joinedDate}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Reports To</p>
-                        <p className="mt-1 text-xs font-bold text-gray-900">{staff.reportsTo}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Qualifications</p>
-                        <p className="mt-1 text-xs font-bold text-gray-900">
-                          {staff.qualifications.length ? staff.qualifications.join(", ") : "—"}
-                        </p>
-                      </div>
+                    <ProfileFieldGrid fields={employmentFields} />
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                      <Users size={20} />
                     </div>
+                    <h2 className="text-base font-bold text-gray-900">Personal Details</h2>
+                  </div>
+                  <div className="p-4">
+                    <ProfileFieldGrid fields={personalFields} />
                   </div>
                 </div>
 
@@ -393,17 +514,20 @@ export default function EmployeeProfileView({
                     <h2 className="text-base font-bold text-gray-900">Emergency Contact</h2>
                   </div>
                   <div className="p-4">
-                    {emergencyContact?.name ? (
+                    {emergencyPerson || emergencyPhone ? (
                       <div className="space-y-4">
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Contact Name</p>
-                          <p className="mt-1 text-sm font-bold text-gray-900">{emergencyContact.name}</p>
-                          <p className="text-xs font-medium text-gray-500 mt-0.5">{emergencyContact.relation}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Phone</p>
-                          <p className="mt-1 text-sm font-bold text-gray-900">{emergencyContact.phone}</p>
-                        </div>
+                        {emergencyPerson ? (
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Contact Name</p>
+                            <p className="mt-1 text-sm font-bold text-gray-900">{emergencyPerson}</p>
+                          </div>
+                        ) : null}
+                        {emergencyPhone ? (
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Phone</p>
+                            <p className="mt-1 text-sm font-bold text-gray-900">{emergencyPhone}</p>
+                          </div>
+                        ) : null}
                       </div>
                     ) : (
                       <p className="text-sm text-gray-500">No emergency contact provided.</p>
@@ -465,6 +589,7 @@ export default function EmployeeProfileView({
                         <h2 className="text-base font-bold text-gray-900">Classes &amp; Subjects</h2>
                         <p className="text-xs text-gray-500 mt-0.5">
                           {staff.classes} · {staff.subjects}
+                          {staff.classTeacher ? ` · Class teacher: ${staff.classTeacher}` : ""}
                         </p>
                       </div>
                     </div>

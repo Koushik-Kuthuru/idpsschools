@@ -6,43 +6,49 @@ import {
   type FeeGridRow,
   type FeeReceiptRow,
 } from "@/lib/feeDepositUtils";
+import {
+  createStandardFeeGridFromConfig,
+  findClassStructureForGrade,
+  loadFeeConfiguration,
+  mergeFeeGridWithConfigTemplate,
+  studentAcademicYear,
+  studentEnrollmentGrade,
+  type FeeConfiguration,
+} from "@/lib/feeConfigurationStore";
 
-export function createStandardFeeGridTemplate(): FeeGridRow[] {
-  return [
-    { name: "LAST YEAR DUE", method: "-", values: Array(12).fill("0") },
-    { name: "ADMISSION FEE", method: "ONE TIME", values: Array(12).fill("0") },
-    { name: "TUITION FEE", method: "QUARTERLY", values: Array(12).fill("0") },
-    { name: "HOSTEL FEE", method: "QUARTERLY", values: Array(12).fill("0") },
-    { name: "IIT FEE", method: "-", values: Array(12).fill("0") },
-    { name: "OLYMPIAD FEE", method: "-", values: Array(12).fill("0") },
-    { name: "EXCURSION FEE", method: "-", values: Array(12).fill("0") },
-    { name: "CURRICULUM FEE", method: "-", values: Array(12).fill("0") },
-    { name: "FOOD FEE", method: "-", values: Array(12).fill("0") },
-    { name: "MISCELLANEOUS", method: "-", values: Array(12).fill("0") },
-    { name: "TRANSPORT FEE", method: "QUARTERLY", values: Array(12).fill("0") },
-  ];
+export function createStandardFeeGridTemplate(schoolId?: string): FeeGridRow[] {
+  return createStandardFeeGridFromConfig(schoolId);
 }
 
 export function mergeFeeGridWithTemplate(
   saved: FeeGridRow[] | undefined,
-  template: FeeGridRow[] = createStandardFeeGridTemplate()
+  template: FeeGridRow[] = createStandardFeeGridTemplate(),
+  schoolId?: string
 ): FeeGridRow[] {
-  if (!Array.isArray(saved) || saved.length === 0) return template;
+  const base =
+    schoolId != null
+      ? mergeFeeGridWithConfigTemplate(template, schoolId)
+      : template.map((row) => ({ ...row, values: [...row.values] }));
 
-  const byName = new Map(saved.map((row) => [row.name.toUpperCase(), row]));
-  const merged = template.map((row) => {
+  if (!Array.isArray(saved) || saved.length === 0) return base;
+
+  const overrides = saved.filter((row) => hasFeeGridData([row]));
+  if (overrides.length === 0) return base;
+
+  const byName = new Map(overrides.map((row) => [row.name.toUpperCase(), row]));
+  const merged = base.map((row) => {
     const match = byName.get(row.name.toUpperCase());
     if (!match) return row;
     return {
       ...row,
       ...match,
-      values: Array.isArray(match.values) && match.values.length === 12 ? match.values : row.values,
+      values: Array.isArray(match.values) && match.values.length === 12 ? [...match.values] : row.values,
     };
   });
 
-  for (const row of saved) {
-    if (!template.some((t) => t.name.toUpperCase() === row.name.toUpperCase())) {
-      merged.push(row);
+  for (const row of overrides) {
+    if (!base.some((t) => t.name.toUpperCase() === row.name.toUpperCase())) {
+      merged.push({ ...row, values: [...row.values] });
     }
   }
 
@@ -184,34 +190,89 @@ export function applyTransportFeesToGrid(
   return next;
 }
 
+function resolveClassBaseFeeGrid(
+  record: Record<string, unknown>,
+  gradeStructure?: Record<string, unknown> | null,
+  schoolId?: string,
+  feeConfig?: FeeConfiguration,
+  academicYearFallback?: string | null
+): FeeGridRow[] {
+  if (gradeStructure) {
+    const nestedGrid = gradeStructure.feeGrid;
+    if (Array.isArray(nestedGrid) && hasFeeGridData(nestedGrid as FeeGridRow[])) {
+      return nestedGrid as FeeGridRow[];
+    }
+    const fromStructure = buildFeeGridFromStructure(gradeStructure, schoolId);
+    if (hasFeeGridData(fromStructure)) return fromStructure;
+  }
+
+  if (!schoolId) return [];
+
+  const grade = studentEnrollmentGrade(record);
+  if (!grade) return [];
+
+  const config = feeConfig ?? (typeof window !== "undefined" ? loadFeeConfiguration(schoolId) : null);
+  if (!config) return [];
+
+  const academicYear = studentAcademicYear(record, academicYearFallback);
+  let classEntry = findClassStructureForGrade(config, grade, academicYear);
+  if (!classEntry && academicYear) {
+    classEntry = findClassStructureForGrade(config, grade, null);
+  }
+  if (classEntry && hasFeeGridData(classEntry.feeGrid)) {
+    return classEntry.feeGrid;
+  }
+
+  return [];
+}
+
 export function resolveStudentFeeGrid(
   record: Record<string, unknown>,
-  gradeStructure?: Record<string, unknown> | null
+  gradeStructure?: Record<string, unknown> | null,
+  schoolId?: string,
+  feeConfig?: FeeConfiguration,
+  academicYearFallback?: string | null
 ): FeeGridRow[] {
   const details = extractFeeDetails(record);
-  if (hasFeeGridData(details.feeGrid)) {
-    return applyTransportFeesToGrid(details.feeGrid!, record.transportDetails);
-  }
-
-  if (gradeStructure) {
-    const fromStructure = buildFeeGridFromStructure(gradeStructure);
-    if (hasFeeGridData(fromStructure)) {
-      return applyTransportFeesToGrid(fromStructure, record.transportDetails);
-    }
-  }
-
-  const transportOnly = applyTransportFeesToGrid([], record.transportDetails).filter((r) =>
-    hasFeeGridData([r])
+  const template = createStandardFeeGridTemplate(schoolId);
+  const classBase = resolveClassBaseFeeGrid(
+    record,
+    gradeStructure,
+    schoolId,
+    feeConfig,
+    academicYearFallback
   );
-  return transportOnly;
+
+  let merged: FeeGridRow[];
+  if (hasFeeGridData(classBase)) {
+    const baseWithTemplate = mergeFeeGridWithTemplate(classBase, template, schoolId);
+    merged = hasFeeGridData(details.feeGrid)
+      ? mergeFeeGridWithTemplate(details.feeGrid, baseWithTemplate, schoolId)
+      : baseWithTemplate;
+  } else if (hasFeeGridData(details.feeGrid)) {
+    merged = mergeFeeGridWithTemplate(details.feeGrid, template, schoolId);
+  } else {
+    merged = template;
+  }
+
+  return applyTransportFeesToGrid(merged, record.transportDetails);
 }
 
 export function resolveStudentFeeDetails(
   record: Record<string, unknown>,
-  gradeStructure?: Record<string, unknown> | null
+  gradeStructure?: Record<string, unknown> | null,
+  schoolId?: string,
+  feeConfig?: FeeConfiguration,
+  academicYearFallback?: string | null
 ): StudentFeeDetails {
   const extracted = extractFeeDetails(record);
-  const feeGrid = resolveStudentFeeGrid(record, gradeStructure);
+  const feeGrid = resolveStudentFeeGrid(
+    record,
+    gradeStructure,
+    schoolId,
+    feeConfig,
+    academicYearFallback
+  );
   return {
     ...extracted,
     feeGrid: hasFeeGridData(feeGrid) ? feeGrid : extracted.feeGrid,

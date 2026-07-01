@@ -19,6 +19,7 @@ export type StaffDisplayRecord = {
   classes: string;
   subjects: string;
   classLoads: ClassLoad[];
+  classTeacher: string;
   status: StaffStatus;
   employmentType: string;
   joinedDate: string;
@@ -29,10 +30,55 @@ export type StaffDisplayRecord = {
   portalPassword?: string;
 };
 
+function splitCsv(value: unknown): string[] {
+  return String(value ?? "")
+    .split(/[,;\n]+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function parseClassLoadsFromStrings(
+  classesValue: unknown,
+  subjectsValue: unknown,
+  classTeacherValue?: unknown
+): ClassLoad[] {
+  const classTeacherSections = splitCsv(classTeacherValue).filter((item) => item !== "-");
+  const classList = splitCsv(classesValue);
+  const subjectList = Array.isArray(subjectsValue)
+    ? subjectsValue.map((item) => String(item).trim()).filter(Boolean)
+    : splitCsv(subjectsValue);
+
+  const loads: ClassLoad[] = [];
+
+  for (const section of classTeacherSections) {
+    loads.push({
+      classSection: section,
+      subject: "Class Teacher",
+    });
+  }
+
+  if (classList.length) {
+    const subjectLabel = subjectList.length ? subjectList.join(", ") : "—";
+    for (const className of classList) {
+      loads.push({ classSection: className, subject: subjectLabel });
+    }
+    return loads;
+  }
+
+  if (subjectList.length) {
+    return subjectList.map((subject) => ({ classSection: "—", subject }));
+  }
+
+  return loads;
+}
+
 export function parseClassLoads(data: Record<string, unknown>): ClassLoad[] {
   if (Array.isArray(data.classLoads)) {
     return data.classLoads as ClassLoad[];
   }
+
+  const fromStrings = parseClassLoadsFromStrings(data.classes, data.subjects, data.classTeacher);
+  if (fromStrings.length) return fromStrings;
 
   const legacySubjects = Array.isArray(data.subjects) ? data.subjects : [];
   if (legacySubjects.length > 0) {
@@ -90,7 +136,17 @@ export function mapStaffDoc(docId: string, data: Record<string, unknown>): Staff
   const mobile = String(data.phone ?? data.mobile ?? data.contactNumber ?? "").trim() || "—";
   const email = String(data.email ?? "").trim() || "—";
   const classLoads = parseClassLoads(data);
-  const { classes, subjects } = summarizeClassLoads(classLoads);
+  const summarized = summarizeClassLoads(classLoads);
+  const classes =
+    summarized.classes !== "—"
+      ? summarized.classes
+      : String(data.classes ?? "").trim() || "—";
+  const subjects =
+    summarized.subjects !== "—"
+      ? summarized.subjects
+      : Array.isArray(data.subjects)
+        ? data.subjects.map(String).filter(Boolean).join(", ")
+        : String(data.subjects ?? data.subject ?? "").trim() || "—";
 
   const qualifications = Array.isArray(data.qualifications)
     ? data.qualifications.map(String).filter(Boolean)
@@ -118,8 +174,9 @@ export function mapStaffDoc(docId: string, data: Record<string, unknown>): Staff
     classes,
     subjects,
     classLoads,
+    classTeacher: String(data.classTeacher ?? "").trim(),
     status: (String(data.status ?? "Active") as StaffStatus) || "Active",
-    employmentType: String(data.employmentType ?? "Full-Time"),
+    employmentType: String(data.employmentType ?? data.employmentStatus ?? "Full-Time"),
     joinedDate,
     qualifications,
     reportsTo: String(data.reportsTo ?? data.reportingManager ?? "—"),

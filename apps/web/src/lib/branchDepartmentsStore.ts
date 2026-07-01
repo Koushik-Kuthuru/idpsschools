@@ -10,6 +10,7 @@ export type CatalogDesignation = {
 export type CatalogDepartment = {
   id: string;
   name: string;
+  category?: "teaching" | "non_teaching";
   designations: CatalogDesignation[];
 };
 
@@ -126,6 +127,7 @@ export async function persistCatalogToDb(
           branch_id: branchId,
           slug,
           name: normalizedName,
+          category: dept.category ?? null,
           status: "Active",
           updated_at: new Date().toISOString(),
         },
@@ -176,7 +178,7 @@ export async function loadBranchDepartmentsCatalog(
 
   const { data: departments, error: deptError } = await admin
     .from("departments")
-    .select("id, slug, name")
+    .select("id, slug, name, category")
     .eq("branch_id", branchId)
     .order("name", { ascending: true });
 
@@ -185,7 +187,7 @@ export async function loadBranchDepartmentsCatalog(
   }
   if (deptError) throw new Error(deptError.message);
 
-  const deptRows = (departments ?? []) as Pick<DbDepartment, "id" | "slug" | "name">[];
+  const deptRows = (departments ?? []) as Pick<DbDepartment, "id" | "slug" | "name" | "category">[];
   if (deptRows.length === 0) return { departments: [] };
 
   const deptIds = deptRows.map((d) => d.id);
@@ -209,6 +211,10 @@ export async function loadBranchDepartmentsCatalog(
     departments: deptRows.map((dept) => ({
       id: dept.slug,
       name: dept.name,
+      category:
+        dept.category === "teaching" || dept.category === "non_teaching"
+          ? dept.category
+          : undefined,
       designations: desigByDept.get(dept.id) ?? [],
     })),
     updatedAt: new Date().toISOString(),
