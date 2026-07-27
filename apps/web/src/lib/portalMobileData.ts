@@ -445,18 +445,18 @@ function percentFromSubjects(subjects: StudentMarkSubject[]) {
   );
 }
 
-/** Map school exam labels (PT1, MA TERM1, SE2, …) into UI term buckets. */
+/** Map school exam labels into the two student-facing terms. */
 function examToTermKey(exam: string): MarksTermKey {
   const compact = String(exam ?? "")
     .replace(/[\s_-]+/g, "")
     .toUpperCase();
-  if (!compact) return "annual";
-  if (/(FINAL|ANNUAL|YEAREND)/.test(compact)) return "annual";
-  if (/TERM?4|PT4|PPT4|NB4|MA4|SE4|PA4/.test(compact)) return "annual";
-  if (/TERM?3|PT3|PPT3|NB3|MA3|SE3|PA3/.test(compact)) return "term3";
+  if (!compact) return "term2";
+  // IDPS student app exposes Term 1 / Term 2 only — fold later codes into Term 2.
+  if (/(FINAL|ANNUAL|YEAREND)/.test(compact)) return "term2";
+  if (/TERM?[34]|PT[34]|PPT[34]|NB[34]|MA[34]|SE[34]|PA[34]/.test(compact)) return "term2";
   if (/TERM?2|PT2|PPT2|NB2|MA2|SE2|PA2/.test(compact)) return "term2";
   if (/TERM?1|PT1|PPT1|NB1|MA1|SE1|PA1/.test(compact)) return "term1";
-  return "annual";
+  return "term2";
 }
 
 function aggregateSubjects(rows: StudentExamMarkRow[]): StudentMarkSubject[] {

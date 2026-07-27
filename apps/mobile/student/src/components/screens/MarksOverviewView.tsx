@@ -29,7 +29,6 @@ const ICON_MAP: Record<string, keyof typeof MaterialIcons.glyphMap> = {
 const TERM_TABS: { key: AcademicTerm; label: string }[] = [
   { key: 'term1', label: 'Term 1' },
   { key: 'term2', label: 'Term 2' },
-  { key: 'term3', label: 'Term 3' },
 ];
 
 /** Mirror server exam → term mapping so older API payloads still group correctly. */
@@ -37,17 +36,17 @@ function examNameToTerm(examName: string): AcademicTerm {
   const compact = String(examName ?? '')
     .replace(/[\s_-]+/g, '')
     .toUpperCase();
-  if (!compact) return 'annual';
-  if (/(FINAL|ANNUAL|YEAREND)/.test(compact)) return 'annual';
-  if (/TERM?4|PT4|PPT4|NB4|MA4|SE4|PA4/.test(compact)) return 'annual';
-  if (/TERM?3|PT3|PPT3|NB3|MA3|SE3|PA3/.test(compact)) return 'term3';
+  if (!compact) return 'term2';
+  // School uses two terms only — fold Term 3 / annual-style codes into Term 2.
+  if (/(FINAL|ANNUAL|YEAREND)/.test(compact)) return 'term2';
+  if (/TERM?[34]|PT[34]|PPT[34]|NB[34]|MA[34]|SE[34]|PA[34]/.test(compact)) return 'term2';
   if (/TERM?2|PT2|PPT2|NB2|MA2|SE2|PA2/.test(compact)) return 'term2';
   if (/TERM?1|PT1|PPT1|NB1|MA1|SE1|PA1/.test(compact)) return 'term1';
-  return 'annual';
+  return 'term2';
 }
 
 function withTerm(exam: MarksExamBucket): MarksExamBucket {
-  return { ...exam, term: exam.term ?? examNameToTerm(exam.name) };
+  return { ...exam, term: examNameToTerm(exam.name) };
 }
 
 export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean }) {
@@ -66,21 +65,10 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
     return [];
   }, [data]);
 
-  const availableTerms = useMemo(() => {
-    const present = new Set(allExams.map((exam) => exam.term ?? 'annual'));
-    const tabs = TERM_TABS.filter((tab) => present.has(tab.key));
-    // Always offer Term 1 & Term 2 even when empty, so the structure is visible.
-    if (!tabs.some((t) => t.key === 'term1')) tabs.unshift(TERM_TABS[0]);
-    if (!tabs.some((t) => t.key === 'term2')) {
-      const insertAt = tabs.findIndex((t) => t.key === 'term1') + 1;
-      tabs.splice(insertAt, 0, TERM_TABS[1]);
-    }
-    if (present.has('term3') && !tabs.some((t) => t.key === 'term3')) tabs.push(TERM_TABS[2]);
-    return tabs;
-  }, [allExams]);
+  const availableTerms = useMemo(() => TERM_TABS, []);
 
   const termExams = useMemo(
-    () => allExams.filter((exam) => (exam.term ?? examNameToTerm(exam.name)) === term),
+    () => allExams.filter((exam) => examNameToTerm(exam.name) === term),
     [allExams, term],
   );
 
@@ -218,7 +206,7 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
       <View style={styles.termTabs}>
         {availableTerms.map((tab) => {
           const active = term === tab.key;
-          const count = allExams.filter((exam) => (exam.term ?? examNameToTerm(exam.name)) === tab.key).length;
+              const count = allExams.filter((exam) => examNameToTerm(exam.name) === tab.key).length;
           return (
             <TouchableOpacity
               key={tab.key}
