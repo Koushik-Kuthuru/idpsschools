@@ -3,7 +3,7 @@ import { useRouter, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/useTheme';
-import { useSettingsStore } from '@/store';
+import { useAuthStore, useSettingsStore } from '@/store';
 import { useLogout } from '@/hooks/useLogout';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { SectionHeader } from '@/components/ui/SectionHeader';
@@ -12,10 +12,24 @@ import { cardShadow } from '@/constants/shadows';
 export default function SettingsScreen() {
   const theme = useTheme();
   const router = useRouter();
-  const { notificationsEnabled, privacyAnalytics, setNotifications, setPrivacyAnalytics } = useSettingsStore();
+  const {
+    notificationsEnabled,
+    privacyAnalytics,
+    selectedAcademicYear,
+    setNotifications,
+    setPrivacyAnalytics,
+  } = useSettingsStore();
   const { confirmSignOut } = useLogout();
+  const profileYear = useAuthStore((s) => s.user?.academicYear);
+  const academicYearLabel = selectedAcademicYear || profileYear || 'School current';
 
   const menuItems: { icon: keyof typeof Ionicons.glyphMap; label: string; sub: string; route: Href }[] = [
+    {
+      icon: 'calendar-outline',
+      label: 'Academic year',
+      sub: selectedAcademicYear ? `Viewing AY ${academicYearLabel}` : `Using ${academicYearLabel}`,
+      route: '/settings/academic-year',
+    },
     { icon: 'lock-closed-outline', label: 'Change password', sub: 'Update your login password', route: '/settings/change-password' },
   ];
 
@@ -30,7 +44,7 @@ export default function SettingsScreen() {
           <View style={styles.heroCopy}>
             <Text style={styles.heroEyebrow}>APP PREFERENCES</Text>
             <Text style={styles.heroTitle}>Your settings</Text>
-            <Text style={styles.heroSub}>Manage notifications and account</Text>
+            <Text style={styles.heroSub}>Manage year, notifications and account</Text>
           </View>
         </View>
 

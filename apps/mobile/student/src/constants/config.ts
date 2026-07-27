@@ -1,9 +1,12 @@
-export const APP_NAME = 'ERP SYSTEM';
-export const APP_SUBTITLE = 'Educational Management App';
+import type { ImageSourcePropType } from 'react-native';
+import { resolveApiBaseUrl } from '@/lib/resolveApiBaseUrl';
+
+export const APP_NAME = 'IDPS STUDENT';
+export const APP_SUBTITLE = 'Student Portal';
 export const SCHOOL_NAME = 'International Delhi Public School';
-export const SCHOOL_LOGO_URI =
-  'https://lh3.googleusercontent.com/aida-public/AB6AXuBkV9dfMFaF3n1ILc_yjS92cBmQAoKXUq2g_RI1H2c_lvz8BJhID3zy1Lc126zrVF-CI8T3srddJGuj-21oNSDv8FInBeeLfbDY8Gf2ooxolni4u4bX-3ZCl2GlVnBkVxIWBkGD2k3csAvj5tSUveriJDbrWPMTlVPijZqKigzQhqva69aA7Ib-snNu5DGS1x3ebHdtohaXJeyvpak-p_WgFLaVEe8RYLq3fnpnoisTG_YKjJ43D99tPeeg8Z5-tc0rvXZXP35NuKsF';
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.idps-school.local';
+export const SCHOOL_LOGO = require('../../assets/images/idps-logo.png') as ImageSourcePropType;
+export const SCHOOL_LOGO_URI = `${resolveApiBaseUrl()}/idps-logo.png`;
+export const API_BASE_URL = resolveApiBaseUrl();
 export const MOCK_API_DELAY = 600;
 
 export const STORAGE_KEYS = {
@@ -16,4 +19,9 @@ export const STORAGE_KEYS = {
   HOMEWORK_SEEN: 'homework_seen',
   FEES_STATE: 'fees_state',
   SCHOOL_ID: 'school_id',
+  SELECTED_BRANCH: 'selected_branch',
+  SELECTED_BRANCH_NAME: 'selected_branch_name',
+  APP_SETTINGS: 'app_settings',
+  /** Student-selected academic year override (e.g. 2025-26). Empty = school current year. */
+  SELECTED_ACADEMIC_YEAR: 'selected_academic_year',
 } as const;
