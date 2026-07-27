@@ -43,7 +43,8 @@ export async function ensureBranchRbacRoles(
         .select("id")
         .single();
       if (error) throw new Error(error.message);
-      roleId = inserted.id;
+      roleId = inserted?.id;
+      if (!roleId) throw new Error("Failed to create RBAC role");
       rolesCreated += 1;
     } else {
       const { error } = await admin
@@ -65,13 +66,14 @@ export async function ensureBranchRbacRoles(
     }
 
     // Replace default permissions for system roles
-    const { error: delError } = await admin.from("rbac_role_permissions").delete().eq("role_id", roleId);
+    const ensuredRoleId = roleId;
+    const { error: delError } = await admin.from("rbac_role_permissions").delete().eq("role_id", ensuredRoleId);
     if (delError) throw new Error(delError.message);
 
     const rows: Array<{ role_id: string; module_key: string; action_key: string }> = [];
     for (const [moduleKey, actions] of Object.entries(template.permissions)) {
       for (const action of actions) {
-        rows.push({ role_id: roleId, module_key: moduleKey, action_key: action });
+        rows.push({ role_id: ensuredRoleId, module_key: moduleKey, action_key: action });
       }
     }
     if (rows.length) {

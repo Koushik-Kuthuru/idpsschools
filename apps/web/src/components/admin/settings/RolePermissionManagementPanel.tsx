@@ -94,7 +94,7 @@ export default function RolePermissionManagementPanel({
 
   const modulesByCategory = useMemo(() => {
     const q = moduleQuery.trim().toLowerCase();
-    const groups = new Map<string, typeof RBAC_MODULES>();
+    const groups = new Map<string, Array<(typeof RBAC_MODULES)[number]>>();
     for (const mod of RBAC_MODULES) {
       if (q && !mod.name.toLowerCase().includes(q) && !mod.key.includes(q)) continue;
       const list = groups.get(mod.category) ?? [];

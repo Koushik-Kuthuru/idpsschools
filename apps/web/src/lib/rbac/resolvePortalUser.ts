@@ -170,10 +170,15 @@ export async function resolvePortalStaffUser(params: {
       fullName = row.fullName;
       if (!email && row.email) email = row.email.toLowerCase();
       const profile = await loadStaffProfileData(admin, params.branchId, row.id);
-      const yearProfile = resolveStaffYearProfile(profile, params.academicYear ?? null);
+      const yearName = String(params.academicYear ?? profile.academicYear ?? "").trim();
+      const yearKeys = Object.keys(profile.years ?? {}).sort().reverse();
+      const yearProfile =
+        (yearName ? resolveStaffYearProfile(profile, yearName) : null) ??
+        (yearKeys[0] ? resolveStaffYearProfile(profile, yearKeys[0]) : null);
       if (!userId && profile.authUid) userId = String(profile.authUid).trim();
       if (!email && profile.loginEmail) email = String(profile.loginEmail).trim().toLowerCase();
-      if (!designation && yearProfile.designation) designation = String(yearProfile.designation).trim();
+      if (!designation && yearProfile?.designation) designation = String(yearProfile.designation).trim();
+      if (!designation && profile.designation) designation = String(profile.designation).trim();
       if (!employeeId && row.id) {
         // keep original employeeId param if provided
       }

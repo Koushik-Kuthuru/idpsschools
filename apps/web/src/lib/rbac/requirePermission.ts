@@ -132,8 +132,13 @@ export async function loadUserDesignation(
       const { loadStaffProfileData } = await import("@/lib/loadBranchStaff");
       const { resolveStaffYearProfile } = await import("@/lib/staffProfileStore");
       const profile = await loadStaffProfileData(admin, branchId, String(teacher.id));
-      const year = resolveStaffYearProfile(profile, null);
-      if (year.designation) return String(year.designation);
+      const yearName = String(profile.academicYear ?? "").trim();
+      const yearKeys = Object.keys(profile.years ?? {}).sort().reverse();
+      const resolvedYear =
+        (yearName ? resolveStaffYearProfile(profile, yearName) : null) ??
+        (yearKeys[0] ? resolveStaffYearProfile(profile, yearKeys[0]) : null);
+      const designation = String(resolvedYear?.designation ?? profile.designation ?? "").trim();
+      if (designation) return designation;
     }
   } catch {
     // auth_uid column may not exist
