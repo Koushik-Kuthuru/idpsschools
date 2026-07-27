@@ -5,13 +5,17 @@ import { Plus, RotateCw, Save, Settings2, Trash2, X } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import {
-  defaultTimetableTemplate,
+  defaultTimetableTemplateSet,
   formatTimeRange,
+  GRADE_BAND_LABELS,
   nextBreakId,
   nextPeriodId,
+  normalizeTimetableTemplateSet,
   type TimetableBreakConfig,
+  type TimetableGradeBand,
   type TimetablePeriodConfig,
   type TimetableTemplate,
+  type TimetableTemplateSet,
 } from "./timetableTemplate";
 
 function cn(...inputs: ClassValue[]) {
@@ -23,10 +27,11 @@ const inputCls =
 
 type TimetableTemplatePanelProps = {
   open: boolean;
-  template: TimetableTemplate;
+  /** Saved raw template doc or normalized set / single template. */
+  template: TimetableTemplate | TimetableTemplateSet | Record<string, unknown>;
   isSaving: boolean;
   onClose: () => void;
-  onSave: (template: TimetableTemplate) => void;
+  onSave: (templateSet: TimetableTemplateSet) => void;
 };
 
 export default function TimetableTemplatePanel({
@@ -36,10 +41,13 @@ export default function TimetableTemplatePanel({
   onClose,
   onSave,
 }: TimetableTemplatePanelProps) {
-  const [draft, setDraft] = useState<TimetableTemplate>(template);
+  const [draft, setDraft] = useState<TimetableTemplateSet>(() =>
+    normalizeTimetableTemplateSet(template)
+  );
+  const [band, setBand] = useState<TimetableGradeBand>("primary_senior");
 
   useEffect(() => {
-    if (open) setDraft(template);
+    if (open) setDraft(normalizeTimetableTemplateSet(template));
   }, [open, template]);
 
   useEffect(() => {
@@ -53,39 +61,63 @@ export default function TimetableTemplatePanel({
 
   if (!open) return null;
 
+  const active = draft.profiles[band];
+
   const updatePeriod = (index: number, patch: Partial<TimetablePeriodConfig>) => {
     setDraft((prev) => ({
       ...prev,
-      periods: prev.periods.map((p, i) => (i === index ? { ...p, ...patch } : p)),
+      profiles: {
+        ...prev.profiles,
+        [band]: {
+          ...prev.profiles[band],
+          periods: prev.profiles[band].periods.map((p, i) =>
+            i === index ? { ...p, ...patch } : p
+          ),
+        },
+      },
     }));
   };
 
   const removePeriod = (index: number) => {
     setDraft((prev) => {
-      if (prev.periods.length <= 1) return prev;
-      const removed = prev.periods[index];
+      const current = prev.profiles[band];
+      if (current.periods.length <= 1) return prev;
+      const removed = current.periods[index];
       return {
-        periods: prev.periods.filter((_, i) => i !== index),
-        breaks: prev.breaks.filter((b) => b.afterPeriodId !== removed.id),
+        ...prev,
+        profiles: {
+          ...prev.profiles,
+          [band]: {
+            periods: current.periods.filter((_, i) => i !== index),
+            breaks: current.breaks.filter((b) => b.afterPeriodId !== removed.id),
+          },
+        },
       };
     });
   };
 
   const addPeriod = () => {
     setDraft((prev) => {
-      const id = nextPeriodId(prev.periods);
-      const last = prev.periods[prev.periods.length - 1];
+      const current = prev.profiles[band];
+      const id = nextPeriodId(current.periods);
+      const last = current.periods[current.periods.length - 1];
       return {
         ...prev,
-        periods: [
-          ...prev.periods,
-          {
-            id,
-            label: id,
-            startTime: last?.endTime ?? "08:00",
-            endTime: "09:00",
+        profiles: {
+          ...prev.profiles,
+          [band]: {
+            ...current,
+            periods: [
+              ...current.periods,
+              {
+                id,
+                label: id,
+                startTime: last?.endTime ?? "09:00",
+                endTime: "09:50",
+              },
+            ],
           },
-        ],
+        },
       };
     });
   };
@@ -93,38 +125,61 @@ export default function TimetableTemplatePanel({
   const updateBreak = (index: number, patch: Partial<TimetableBreakConfig>) => {
     setDraft((prev) => ({
       ...prev,
-      breaks: prev.breaks.map((b, i) => (i === index ? { ...b, ...patch } : b)),
+      profiles: {
+        ...prev.profiles,
+        [band]: {
+          ...prev.profiles[band],
+          breaks: prev.profiles[band].breaks.map((b, i) =>
+            i === index ? { ...b, ...patch } : b
+          ),
+        },
+      },
     }));
   };
 
   const removeBreak = (index: number) => {
     setDraft((prev) => ({
       ...prev,
-      breaks: prev.breaks.filter((_, i) => i !== index),
+      profiles: {
+        ...prev.profiles,
+        [band]: {
+          ...prev.profiles[band],
+          breaks: prev.profiles[band].breaks.filter((_, i) => i !== index),
+        },
+      },
     }));
   };
 
   const addBreak = () => {
     setDraft((prev) => {
-      const after = prev.periods[Math.min(2, prev.periods.length - 1)]?.id ?? prev.periods[0]?.id;
+      const current = prev.profiles[band];
+      const after =
+        current.periods[Math.min(2, current.periods.length - 1)]?.id ??
+        current.periods[0]?.id;
       if (!after) return prev;
       return {
         ...prev,
-        breaks: [
-          ...prev.breaks,
-          {
-            id: nextBreakId(prev.breaks),
-            label: "Break",
-            startTime: "10:15",
-            endTime: "10:30",
-            afterPeriodId: after,
+        profiles: {
+          ...prev.profiles,
+          [band]: {
+            ...current,
+            breaks: [
+              ...current.breaks,
+              {
+                id: nextBreakId(current.breaks),
+                label: "Break",
+                startTime: "10:30",
+                endTime: "10:40",
+                afterPeriodId: after,
+              },
+            ],
           },
-        ],
+        },
       };
     });
   };
 
-  const resetDraft = () => setDraft(defaultTimetableTemplate);
+  const resetDraft = () => setDraft(defaultTimetableTemplateSet);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -146,8 +201,10 @@ export default function TimetableTemplatePanel({
                 <Settings2 size={18} />
               </span>
               <div className="min-w-0">
-                <h3 className="text-sm font-bold text-gray-900">Timetable Template</h3>
-                <p className="text-xs text-gray-500 mt-0.5">Set period times and breaks for all classes</p>
+                <h3 className="text-sm font-bold text-gray-900">Bell Timing Template</h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Official period times — lunch swaps for Grade 6–9
+                </p>
               </div>
             </div>
             <button
@@ -158,6 +215,24 @@ export default function TimetableTemplatePanel({
             >
               <X size={18} />
             </button>
+          </div>
+
+          <div className="mt-3 flex gap-1 rounded-lg bg-gray-100 p-1">
+            {(Object.keys(GRADE_BAND_LABELS) as TimetableGradeBand[]).map((key) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setBand(key)}
+                className={cn(
+                  "flex-1 h-8 rounded-md text-[11px] font-bold transition-colors",
+                  band === key
+                    ? "bg-white text-[#144835] shadow-sm"
+                    : "text-gray-500 hover:text-gray-800"
+                )}
+              >
+                {GRADE_BAND_LABELS[key]}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -175,7 +250,7 @@ export default function TimetableTemplatePanel({
               </button>
             </div>
             <div className="space-y-2">
-              {draft.periods.map((period, index) => (
+              {active.periods.map((period, index) => (
                 <div key={period.id} className="rounded-xl border border-gray-200 p-3 space-y-2 bg-white">
                   <div className="flex items-center gap-2">
                     <input
@@ -187,7 +262,7 @@ export default function TimetableTemplatePanel({
                     <button
                       type="button"
                       onClick={() => removePeriod(index)}
-                      disabled={draft.periods.length <= 1}
+                      disabled={active.periods.length <= 1}
                       className="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-40 transition-colors shrink-0"
                     >
                       <Trash2 size={14} />
@@ -213,7 +288,9 @@ export default function TimetableTemplatePanel({
                       />
                     </div>
                   </div>
-                  <p className="text-[11px] font-semibold text-gray-400">{formatTimeRange(period.startTime, period.endTime)}</p>
+                  <p className="text-[11px] font-semibold text-gray-400">
+                    Period {period.label}: {formatTimeRange(period.startTime, period.endTime)}
+                  </p>
                 </div>
               ))}
             </div>
@@ -231,13 +308,13 @@ export default function TimetableTemplatePanel({
                 Add break
               </button>
             </div>
-            {draft.breaks.length === 0 ? (
+            {active.breaks.length === 0 ? (
               <p className="text-xs text-gray-400 rounded-lg border border-dashed border-gray-200 px-3 py-4 text-center">
                 No breaks configured. Add one between periods.
               </p>
             ) : (
               <div className="space-y-2">
-                {draft.breaks.map((brk, index) => (
+                {active.breaks.map((brk, index) => (
                   <div key={brk.id} className="rounded-xl border border-amber-100 bg-amber-50/30 p-3 space-y-2">
                     <div className="flex items-center gap-2">
                       <input
@@ -261,8 +338,10 @@ export default function TimetableTemplatePanel({
                         onChange={(e) => updateBreak(index, { afterPeriodId: e.target.value })}
                         className={inputCls}
                       >
-                        {draft.periods.map((p) => (
-                          <option key={p.id} value={p.id}>{p.label}</option>
+                        {active.periods.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.label}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -300,7 +379,7 @@ export default function TimetableTemplatePanel({
               onClick={resetDraft}
               className="h-9 px-3 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors"
             >
-              Reset default
+              Reset bell timing
             </button>
             <button
               type="button"

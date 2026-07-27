@@ -8,7 +8,8 @@ const SafeLink = Link as any;
 import { useRouter } from "next/navigation";
 import { useRouteParam } from "@/hooks/useRouteParams";
 import { ArrowLeft, Save, User, Heart, Building, Users, Home, BookOpen, FileText, CheckCircle2, GraduationCap, Sparkles, HelpCircle, Upload, X } from "lucide-react";
-import { buildPath, insertData, fetchMany, buildQuery, fetchOne, patchData, db, auth } from "@/lib/db-client";
+import { buildPath, insertData, fetchMany, buildQuery, fetchOne, patchData, db, auth, uploadFile } from "@/lib/db-client";
+import { SkeletonForm, SkeletonPageHeader } from "@/components/ui/Skeleton";
 
 
 
@@ -26,6 +27,51 @@ const TooltipIcon = ({ text }: { text?: string }) => {
  </div>
  );
 };
+
+const DEFAULT_CERTIFICATES = [
+ "Admission Form",
+ "School Leaving Certificate(TC)",
+ "Bonafide Certificate",
+ "Birth Certificate",
+ "Caste Certificate",
+ "All Documents",
+ "Ration Card",
+ "Student Adhar Certificate",
+ "Father Adhar Certificate",
+ "Mother Adhar Certificate",
+].map((name, i) => ({
+ id: i + 1,
+ name,
+ status: "N/A",
+ remark: "",
+ fileUrl: "",
+ fileName: "",
+}));
+
+function normalizeCertificates(raw: unknown) {
+ const byId = new Map<number, Record<string, unknown>>();
+ if (Array.isArray(raw)) {
+  for (const row of raw) {
+   const id = Number((row as { id?: unknown })?.id);
+   if (!Number.isFinite(id)) continue;
+   byId.set(id, row as Record<string, unknown>);
+  }
+ }
+ return DEFAULT_CERTIFICATES.map((fallback) => {
+  const prev = byId.get(fallback.id) ?? {};
+  const fileUrl = String(prev.fileUrl ?? "").trim();
+  return {
+   ...fallback,
+   ...prev,
+   id: fallback.id,
+   name: fallback.name,
+   status: String(prev.status ?? fallback.status).toUpperCase() || "N/A",
+   remark: String(prev.remark ?? ""),
+   fileUrl: /^dummy/i.test(fileUrl) ? "" : fileUrl,
+   fileName: String(prev.fileName ?? ""),
+  };
+ });
+}
 
 // Reusable Components for Form Elements
 const FormGroup = ({ title, icon: Icon, children }: { title: string, icon?: any, children: React.ReactNode }) => (
@@ -134,6 +180,7 @@ export default function AdminEditStudentPage({
  setFormData(prev => ({
  ...prev,
  ...data,
+ certificates: normalizeCertificates(data.certificates),
  siblings: loadedSiblings
  }));
  } else {
@@ -185,8 +232,11 @@ export default function AdminEditStudentPage({
  sameAsPerm: false, corrAddress: "", corrMobile: "", corrWhatsapp: "", corrPlace: "", corrArea: "", corrLocation: "", corrState: "", corrCity: "",
 
  // Siblings (Array of 5)
- siblings: Array(5).fill({ name: "", age: "", gender: "", school: "", class: "" })
+ siblings: Array(5).fill({ name: "", age: "", gender: "", school: "", class: "" }),
+ certificates: DEFAULT_CERTIFICATES,
  });
+
+ const [uploadingCertId, setUploadingCertId] = useState<number | null>(null);
 
  const handleChange = (field: string, value: any) => {
  setFormData(prev => ({ ...prev, [field]: value }));
@@ -196,6 +246,38 @@ export default function AdminEditStudentPage({
  const newSiblings = [...formData.siblings];
  newSiblings[index] = { ...newSiblings[index], [field]: value };
  handleChange('siblings', newSiblings);
+ };
+
+ const certificates = normalizeCertificates(formData.certificates);
+
+ const updateCertificate = (index: number, patch: Record<string, unknown>) => {
+  const next = certificates.map((row, i) => (i === index ? { ...row, ...patch } : row));
+  handleChange("certificates", next);
+ };
+
+ const handleCertificateUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+  const file = e.target.files?.[0];
+  if (!file || !studentId) return;
+  if (file.size > 5 * 1024 * 1024) {
+   alert("Document size must be 5 MB or less.");
+   e.target.value = "";
+   return;
+  }
+  const cert = certificates[index];
+  setUploadingCertId(cert.id);
+  try {
+   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+   const path = `schools/${schoolId}/students/${studentId}/certificates/${cert.id}_${Date.now()}_${safeName}`;
+   const url = await uploadFile(path, file);
+   const nextStatus =
+    cert.status === "NO" || cert.status === "N/A" || !cert.status ? "YES" : cert.status;
+   updateCertificate(index, { fileUrl: url, fileName: file.name, status: nextStatus });
+  } catch (err: any) {
+   alert(`Failed to upload: ${err.message || "Please try again."}`);
+  } finally {
+   setUploadingCertId(null);
+   e.target.value = "";
+  }
  };
 
  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,7 +398,14 @@ export default function AdminEditStudentPage({
  </div>
  );
 
- if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="w-8 h-8 border-4 border-[#144835] border-t-transparent rounded-full animate-spin" /></div>;
+ if (loading) return (
+ <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-8 max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-6 pt-2">
+ <SkeletonPageHeader />
+ <div className="rounded-xl border border-gray-200 bg-white p-6">
+ <SkeletonForm fields={10} columns={2} />
+ </div>
+ </div>
+ );
 
  return (
  <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-8 max-w-[1600px] mx-auto px-2 sm:px-4 lg:px-6 pt-2">
@@ -743,31 +832,76 @@ export default function AdminEditStudentPage({
  Submissive Documents:
  <TooltipIcon text="Mark the status of documents submitted by the student during admission" />
  </h3>
- <table className="w-full text-left min-w-[800px]">
+ <table className="w-full text-left min-w-[900px]">
  <thead>
  <tr className="border-b border-gray-200">
  <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase w-12">SR</th>
  <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase">CERTIFICATES</th>
  <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase text-center">COLLECTED</th>
  <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase">REMARKS</th>
+ <th className="py-2 px-3 text-xs font-bold text-gray-500 uppercase">UPLOAD</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
- {[
- "Admission Form", "School Leaving Certificate(TC)", "Bonafide Certificate", "Birth Certificate", "Caste Certificate", "All Documents", "Ration Card", "Student Adhar Certificate", "Father Adhar Certificate", "Mother Adhar Certificate"
- ].map((buildPath, i) => (
- <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+ {certificates.map((cert, i) => (
+ <tr key={cert.id} className="hover:bg-gray-50/50 transition-colors">
  <td className="py-2 px-3 text-xs font-bold text-gray-500">{i + 1}</td>
- <td className="py-2 px-3 text-xs font-bold text-gray-700">{buildPath}</td>
+ <td className="py-2 px-3 text-xs font-bold text-gray-700">{cert.name}</td>
  <td className="py-2 px-3">
  <div className="flex items-center justify-center gap-4">
- <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`buildPath-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">YES</span></label>
- <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`buildPath-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" defaultChecked /> <span className="group-hover:text-[#144835]">NO</span></label>
- <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`buildPath-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">N/A</span></label>
- <label className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group"><input type="radio" name={`buildPath-${i}`} className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all" /> <span className="group-hover:text-[#144835]">PARTIAL</span></label>
+ {["YES", "NO", "N/A", "PARTIAL"].map((opt) => (
+ <label key={opt} className="flex items-center gap-1 cursor-pointer text-xs font-extrabold text-gray-600 uppercase group">
+ <input
+ type="radio"
+ name={`cert-status-${cert.id}`}
+ className="text-[#144835] focus:ring-[#144835] w-3 h-3 transition-all"
+ checked={cert.status === opt}
+ onChange={() => updateCertificate(i, { status: opt })}
+ />
+ <span className="group-hover:text-[#144835]">{opt}</span>
+ </label>
+ ))}
  </div>
  </td>
- <td className="py-2 px-3"><input className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all" /></td>
+ <td className="py-2 px-3">
+ <input
+ value={cert.remark}
+ onChange={(e) => updateCertificate(i, { remark: e.target.value })}
+ className="w-full h-8 rounded-md border border-gray-200 bg-gray-50/50 px-2 text-xs outline-none focus:bg-white focus:border-[#144835] focus:ring-2 focus:ring-[#144835]/10 transition-all"
+ />
+ </td>
+ <td className="py-2 px-3">
+ <div className="flex items-center gap-2">
+ {cert.fileUrl ? (
+ <>
+ <a
+ href={cert.fileUrl}
+ target="_blank"
+ rel="noopener noreferrer"
+ className="text-[10px] font-bold text-[#144835] uppercase hover:underline"
+ >
+ Preview
+ </a>
+ <span className="text-[10px] font-semibold text-gray-500 truncate max-w-[100px]" title={cert.fileName || "Uploaded"}>
+ {cert.fileName || "Uploaded"}
+ </span>
+ </>
+ ) : (
+ <span className="text-[10px] font-bold text-gray-300 uppercase">No Doc</span>
+ )}
+ <label className="inline-flex items-center gap-1 cursor-pointer text-[10px] font-bold uppercase text-gray-600 hover:text-[#144835]">
+ <Upload size={12} />
+ {uploadingCertId === cert.id ? "Uploading…" : "Upload"}
+ <input
+ type="file"
+ className="hidden"
+ accept=".pdf,.jpg,.jpeg,.png"
+ disabled={uploadingCertId === cert.id}
+ onChange={(e) => void handleCertificateUpload(e, i)}
+ />
+ </label>
+ </div>
+ </td>
  </tr>
  ))}
  </tbody>

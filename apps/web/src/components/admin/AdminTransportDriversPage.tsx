@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -97,7 +98,7 @@ export default function AdminTransportDriversPage() {
     try {
       const params = new URLSearchParams({ schoolId });
       if (currentYear?.name) params.set("academicYear", currentYear.name);
-      const res = await fetch(`/api/admin/transport/drivers?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/transport/drivers?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed to load drivers");
       setDrivers((data.drivers ?? []) as TransportDriverRow[]);
@@ -149,7 +150,7 @@ export default function AdminTransportDriversPage() {
         academicYear: currentYear.name,
         date: attendanceDate,
       });
-      const res = await fetch(`/api/admin/transport/driver-attendance?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/transport/driver-attendance?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed to load attendance");
 
@@ -199,7 +200,7 @@ export default function AdminTransportDriversPage() {
       const marks = Object.fromEntries(
         roster.map((row) => [row.id, { status: row.markStatus, remarks: row.remarks || undefined }])
       );
-      const res = await fetch("/api/admin/transport/driver-attendance", {
+      const res = await adminFetch("/api/admin/transport/driver-attendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -255,7 +256,7 @@ export default function AdminTransportDriversPage() {
         academicYear: currentYear.name,
         month: registerMonth,
       });
-      const res = await fetch(`/api/admin/transport/driver-attendance?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/transport/driver-attendance?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed to load register");
       setMonthMarks(data.marks ?? {});

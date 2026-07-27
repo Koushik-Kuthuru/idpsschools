@@ -1,5 +1,3 @@
-"use client";
-
 export default function StaffDocumentsPage() {
   return (
     <div className="font-jost space-y-4">

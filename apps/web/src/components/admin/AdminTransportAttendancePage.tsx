@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -17,6 +18,7 @@ import { twMerge } from "tailwind-merge";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import ExportButton from "@/components/ui/ExportButton";
 import SelectMenu from "@/components/ui/SelectMenu";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import AttendanceMarkCell from "@/components/admin/attendance/AttendanceMarkCell";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useAcademicYear } from "@/contexts/AcademicYearContext";
@@ -129,7 +131,7 @@ export default function AdminTransportAttendancePage() {
         academicYear: currentYear.name,
         date: attendanceDate,
       });
-      const res = await fetch(`/api/admin/transport/attendance?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/transport/attendance?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed to load attendance");
 
@@ -182,7 +184,7 @@ export default function AdminTransportAttendancePage() {
           { status: row.markStatus, remarks: row.remarks || undefined },
         ])
       );
-      const res = await fetch("/api/admin/transport/attendance", {
+      const res = await adminFetch("/api/admin/transport/attendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -238,7 +240,7 @@ export default function AdminTransportAttendancePage() {
         academicYear: currentYear.name,
         month: registerMonth,
       });
-      const res = await fetch(`/api/admin/transport/attendance?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/transport/attendance?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed to load register");
       setMonthMarks(data.marks ?? {});
@@ -451,7 +453,7 @@ export default function AdminTransportAttendancePage() {
             </div>
             <div className="overflow-x-auto">
               {listLoading || marksLoading ? (
-                <div className="px-4 py-12 text-center text-xs font-bold text-gray-400">Loading...</div>
+                <SkeletonTable rows={8} columns={7} showHeader={false} className="rounded-none border-0" />
               ) : (
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -569,9 +571,7 @@ export default function AdminTransportAttendancePage() {
           ) : null}
 
           {registerLoading && !registerSummary ? (
-            <div className="bg-white rounded-xl border border-gray-200 px-4 py-12 text-center text-xs font-bold text-gray-400">
-              Loading register...
-            </div>
+            <SkeletonTable rows={10} columns={8} />
           ) : null}
 
           {registerSummary ? (

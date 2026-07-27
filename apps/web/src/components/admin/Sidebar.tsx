@@ -9,7 +9,9 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { getNavGroupsForRole, type NavGroup } from "./navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStaffPortalPermissions } from "@/hooks/useStaffPortalPermissions";
 import { getRoleLabel } from "@/lib/auth/roles";
+import { IdpsLogo } from "@/components/ui/IdpsLogo";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -91,7 +93,12 @@ export default function Sidebar({
     return match ? match[1] : "idpskalaburagi";
   }, [pathname]);
 
-  const navGroups = useMemo(() => getNavGroupsForRole(schoolId, role), [schoolId, role]);
+  const permissionContext = useStaffPortalPermissions(schoolId);
+
+  const navGroups = useMemo(
+    () => getNavGroupsForRole(schoolId, role, permissionContext),
+    [schoolId, role, permissionContext]
+  );
   const dashboardHref = `/schools/${schoolId}/admin`;
 
   const sidebarExpanded = isSidebarOpen || isMobileMenuOpen;
@@ -254,7 +261,7 @@ export default function Sidebar({
           <div className="relative z-10 flex h-16 items-center justify-between gap-2 px-4">
             <SafeLink href={dashboardHref} className="flex min-w-0 items-center gap-3" aria-label="Dashboard">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/15 bg-white p-1 shadow-sm">
-                <img src="/idps-logo.png" alt="IDPS Logo" className="h-full w-full object-contain" />
+                <IdpsLogo size={36} className="h-full w-full object-contain" />
               </div>
               <div className="flex min-w-0 flex-col">
                 <span className="text-sm font-bold leading-none tracking-wide text-white">IDPS ERP</span>
@@ -281,7 +288,7 @@ export default function Sidebar({
                   headerHovered && "scale-105"
                 )}
               >
-                <img src="/idps-logo.png" alt="IDPS Logo" className="h-full w-full object-contain" />
+                <IdpsLogo size={36} className="h-full w-full object-contain" />
               </div>
               <div className="flex min-w-0 flex-col">
                 <span className="whitespace-nowrap text-sm font-bold leading-none tracking-wide text-white">IDPS ERP</span>

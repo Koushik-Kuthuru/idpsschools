@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 const SafeLink = Link as any;
+import { SkeletonPage } from "@/components/ui/Skeleton";
 ;
 import { useRouter } from "next/navigation";
 import { 
@@ -195,11 +196,7 @@ export default function BranchDetailsPage({ params }: { params: Promise<{ id: st
  };
 
  if (loading) {
- return (
- <div className="flex h-96 items-center justify-center">
- <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin"></div>
- </div>
- );
+ return <SkeletonPage stats={4} rows={6} columns={4} toolbar={false} />;
  }
 
  if (!branch) {

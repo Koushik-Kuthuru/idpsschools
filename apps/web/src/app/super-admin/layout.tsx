@@ -47,13 +47,13 @@ export default function SuperAdminLayout({
 
  {/* Main Content Area */}
  <div className={cn(
- "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out",
+ "flex-1 flex flex-col min-h-screen min-w-0 w-full transition-all duration-300 ease-in-out",
  (isSidebarOpen || isSidebarHovered) ? "lg:ml-72" : "lg:ml-20"
  )}>
  <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
  {/* Page Content */}
- <main className="erp-portal flex-1 p-4 sm:p-4 lg:p-8">
+ <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-clip p-4 sm:p-4 lg:p-8">
  {children}
  </main>
  </div>

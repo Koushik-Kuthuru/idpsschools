@@ -1,4 +1,6 @@
 import { ROLE_NAV_GROUPS, type UserRole } from "@/lib/auth/roles";
+import type { StaffPermissionContext } from "@/lib/resolveStaffPortalPermissions";
+import { filterAdminNavGroupsByPermissions } from "@/lib/resolveStaffPortalPermissions";
 import {
   BedDouble,
   BookOpen,
@@ -11,6 +13,8 @@ import {
   FileText,
   GraduationCap,
   LayoutDashboard,
+  Library,
+  Megaphone,
   MessageSquare,
   Receipt,
   User,
@@ -54,7 +58,34 @@ export function buildNavGroups(schoolId: string): NavGroup[] {
         { name: "Subjects",   href: `${base}/academic/subjects`,   icon: BookOpen },
         { name: "Classes",    href: `${base}/academic/classes`,    icon: BookOpen },
         { name: "Timetable",  href: `${base}/academic/timetable`,  icon: Calendar },
+        { name: "Teacher TT", href: `${base}/academic/timetable/teachers`, icon: Users },
+        { name: "Certificates", href: `${base}/academic/certificates`, icon: FileText },
         { name: "Calendar",   href: `${base}/academic/calendar`,   icon: CalendarDays },
+      ],
+    },
+    {
+      id: "staff_hr",
+      name: "Staff & HR",
+      icon: Users,
+      items: [
+        { name: "Teaching Staff",     href: `${base}/hr/teaching-staff`,     icon: Users },
+        { name: "Non-Teaching Staff", href: `${base}/hr/non-teaching-staff`, icon: Users },
+        { name: "Attendance",         href: `${base}/hr/attendance`,         icon: CalendarCheck },
+        { name: "Departments",        href: `${base}/hr/departments`,        icon: ClipboardList },
+        { name: "Leaves",             href: `${base}/hr/leaves`,             icon: Calendar },
+      ],
+    },
+    {
+      id: "finance",
+      name: "Finance",
+      icon: Wallet,
+      items: [
+        { name: "Fees",               href: `${base}/finance/fees`,          icon: Wallet },
+        { name: "Annual Fee Collection", href: `${base}/finance/annual-fee-collection`, icon: CalendarDays },
+        { name: "Cheques",            href: `${base}/finance/cheques`,       icon: Receipt },
+        { name: "Expenses",           href: `${base}/finance/expenses`,      icon: Wallet },
+        { name: "Payroll",            href: `${base}/finance/payroll`,       icon: Wallet },
+        { name: "Financial Reports",  href: `${base}/finance/reports`,       icon: FileText },
       ],
     },
     {
@@ -86,32 +117,10 @@ export function buildNavGroups(schoolId: string): NavGroup[] {
       icon: UtensilsCrossed,
       items: [
         { name: "Menu", href: `${base}/mess/menu`, icon: CalendarDays },
+        { name: "Dishes & Recipes", href: `${base}/mess/dishes`, icon: UtensilsCrossed },
         { name: "Meal Attendance", href: `${base}/mess/attendance`, icon: ClipboardList },
         { name: "Billing", href: `${base}/mess/billing`, icon: Receipt },
         { name: "Feedback", href: `${base}/mess/feedback`, icon: MessageSquare },
-      ],
-    },
-    {
-      id: "staff_hr",
-      name: "Staff & HR",
-      icon: Users,
-      items: [
-        { name: "Teaching Staff",     href: `${base}/hr/teaching-staff`,     icon: Users },
-        { name: "Non-Teaching Staff", href: `${base}/hr/non-teaching-staff`, icon: Users },
-        { name: "Attendance",         href: `${base}/hr/attendance`,         icon: CalendarCheck },
-        { name: "Departments",        href: `${base}/hr/departments`,        icon: ClipboardList },
-        { name: "Leaves",             href: `${base}/hr/leaves`,             icon: Calendar },
-      ],
-    },
-    {
-      id: "finance",
-      name: "Finance",
-      icon: Wallet,
-      items: [
-        { name: "Fees",               href: `${base}/finance/fees`,          icon: Wallet },
-        { name: "Expenses",           href: `${base}/finance/expenses`,      icon: Wallet },
-        { name: "Payroll",            href: `${base}/finance/payroll`,       icon: Wallet },
-        { name: "Financial Reports",  href: `${base}/finance/reports`,       icon: FileText },
       ],
     },
     {
@@ -122,6 +131,16 @@ export function buildNavGroups(schoolId: string): NavGroup[] {
         { name: "Stock",           href: `${base}/inventory/stock`,           icon: ClipboardList },
         { name: "Purchase Orders", href: `${base}/inventory/purchase-orders`, icon: ClipboardList },
         { name: "Assets",          href: `${base}/inventory/assets`,          icon: ClipboardList },
+      ],
+    },
+    {
+      id: "library",
+      name: "Library",
+      icon: Library,
+      items: [
+        { name: "Book Stock", href: `${base}/library/book-stock`, icon: BookOpen },
+        { name: "Issued Books", href: `${base}/library/issued`, icon: ClipboardList },
+        { name: "Summary", href: `${base}/library/summary`, icon: FileText },
       ],
     },
     {
@@ -139,6 +158,7 @@ export function buildNavGroups(schoolId: string): NavGroup[] {
       name: "Communication",
       icon: MessageSquare,
       items: [
+        { name: "Announcements", href: `${base}/communication/announcements`, icon: Megaphone },
         { name: "Messages",      href: `${base}/communication/messages`, icon: MessageSquare },
         { name: "Notifications", href: `${base}/notifications`,          icon: FileText },
       ],
@@ -160,8 +180,17 @@ export function getActiveNavGroup(pathname: string, schoolId: string): NavGroup 
   );
 }
 
-export function getNavGroupsForRole(schoolId: string, role: string | null): NavGroup[] {
+export function getNavGroupsForRole(
+  schoolId: string,
+  role: string | null,
+  permissionContext?: StaffPermissionContext | null
+): NavGroup[] {
   const all = buildNavGroups(schoolId);
+
+  if (permissionContext) {
+    return filterAdminNavGroupsByPermissions(all, permissionContext);
+  }
+
   if (!role || role === "admin" || role === "super_admin") return all;
 
   const allowed = ROLE_NAV_GROUPS[role as UserRole];

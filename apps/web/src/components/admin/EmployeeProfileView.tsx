@@ -18,7 +18,6 @@ import {
   AlertCircle,
   FileText,
   Building,
-  HeartPulse,
   BookOpen,
   Key,
   Eye,
@@ -30,6 +29,8 @@ import { useEffect, useMemo, useState } from "react";
 
 
 import StaffAttendanceLogTab from "@/components/admin/hr/attendance/StaffAttendanceLogTab";
+import StaffUserPermissionsPanel from "@/components/admin/hr/StaffUserPermissionsPanel";
+import { SkeletonProfile } from "@/components/ui/Skeleton";
 import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
 import { fetchBranchStaffByIdViaApi } from "@/lib/fetchBranchStaffById";
 import { useAcademicYear } from "@/contexts/AcademicYearContext";
@@ -266,10 +267,14 @@ export default function EmployeeProfileView({
       if (result) {
         setStaff(result.record);
         const raw = result.raw;
-        if (!raw.username || !raw.portalPassword) {
-          const empId = String(raw.employeeId ?? employeeId).toLowerCase();
-          raw.username = empId;
-          raw.portalPassword = empId;
+        const hasCustomPassword = Boolean(
+          raw.hasCustomPassword || raw.portalPasswordHash || raw.passwordChangedAt
+        );
+        if (!raw.username) {
+          raw.username = String(raw.employeeId ?? employeeId).toLowerCase();
+        }
+        if (!hasCustomPassword && !raw.portalPassword) {
+          raw.portalPassword = String(raw.username ?? employeeId).toLowerCase();
         }
         setRawEmployee(raw);
       } else {
@@ -321,8 +326,8 @@ export default function EmployeeProfileView({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="w-8 h-8 border-4 border-[#144835] border-t-transparent rounded-full animate-spin" />
+      <div className="mx-auto max-w-[1600px] pb-10 font-jost">
+        <SkeletonProfile />
       </div>
     );
   }
@@ -348,8 +353,6 @@ export default function EmployeeProfileView({
   const showAcademicLoad = variant === "teaching";
   const employmentFields = buildEmploymentFields(staff, rawEmployee, showAcademicLoad);
   const personalFields = buildPersonalFields(staff, rawEmployee);
-  const emergencyPerson = profileValue(rawEmployee, "emergencyPerson");
-  const emergencyPhone = profileValue(rawEmployee, "emergencyContact");
   const bankDetails = rawEmployee?.bankDetails as
     | { bankName?: string; accountNumber?: string; ifscCode?: string }
     | undefined;
@@ -458,7 +461,7 @@ export default function EmployeeProfileView({
 
           <div className="bg-white rounded-xl border border-gray-200 p-3">
             <nav className="space-y-1">
-              {["Profile Overview", "Payroll & Slips", "Attendance & Logs", "Leave Requests"].map((tab) => (
+              {["Profile Overview", "Permissions", "Payroll & Slips", "Attendance & Logs", "Leave Requests"].map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -505,35 +508,6 @@ export default function EmployeeProfileView({
                     <ProfileFieldGrid fields={personalFields} />
                   </div>
                 </div>
-
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <div className="px-6 py-5 border-b border-gray-100 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
-                      <HeartPulse size={20} />
-                    </div>
-                    <h2 className="text-base font-bold text-gray-900">Emergency Contact</h2>
-                  </div>
-                  <div className="p-4">
-                    {emergencyPerson || emergencyPhone ? (
-                      <div className="space-y-4">
-                        {emergencyPerson ? (
-                          <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Contact Name</p>
-                            <p className="mt-1 text-sm font-bold text-gray-900">{emergencyPerson}</p>
-                          </div>
-                        ) : null}
-                        {emergencyPhone ? (
-                          <div>
-                            <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Phone</p>
-                            <p className="mt-1 text-sm font-bold text-gray-900">{emergencyPhone}</p>
-                          </div>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500">No emergency contact provided.</p>
-                    )}
-                  </div>
-                </div>
               </div>
 
               {/* Login Credentials Section */}
@@ -558,7 +532,13 @@ export default function EmployeeProfileView({
                         <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Portal Password</p>
                         <div className="mt-1 relative flex items-center">
                           <p className="text-sm font-bold text-gray-900 bg-gray-50/50 px-3 py-2 rounded-lg border border-gray-100 w-full font-mono tracking-widest">
-                            {showPassword ? String(rawEmployee.portalPassword || "") : "••••••••"}
+                            {rawEmployee.hasCustomPassword || rawEmployee.portalPasswordHash
+                              ? showPassword
+                                ? `Custom password · changed ${String(rawEmployee.passwordChangedAt ?? "").slice(0, 10) || "by staff"}`
+                                : "•••••••• (staff-set)"
+                              : showPassword
+                                ? String(rawEmployee.portalPassword || "")
+                                : "••••••••"}
                           </p>
                           <button
                             type="button"
@@ -568,6 +548,11 @@ export default function EmployeeProfileView({
                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                           </button>
                         </div>
+                        {rawEmployee.hasCustomPassword || rawEmployee.portalPasswordHash ? (
+                          <p className="mt-1 text-[11px] text-amber-700">
+                            Staff changed this password. Reset from Portal Users if needed.
+                          </p>
+                        ) : null}
                       </div>
                     </>
                   ) : (
@@ -737,6 +722,29 @@ export default function EmployeeProfileView({
                   </table>
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "Permissions" && (
+            <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <StaffUserPermissionsPanel
+                schoolId={schoolId}
+                employeeId={String(rawEmployee?.employeeId ?? rawEmployee?.employee_id ?? employeeId)}
+                authUid={
+                  String(rawEmployee?.authUid ?? "").trim() ||
+                  undefined
+                }
+                email={
+                  String(
+                    rawEmployee?.loginEmail ??
+                      (staff?.email && staff.email !== "—" ? staff.email : "") ??
+                      rawEmployee?.email ??
+                      ""
+                  ).trim() || undefined
+                }
+                designation={staff?.designation && staff.designation !== "—" ? staff.designation : undefined}
+                academicYear={currentYear?.name ?? null}
+              />
             </div>
           )}
 

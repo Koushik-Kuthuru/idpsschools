@@ -5,41 +5,16 @@ import React, { useState, useEffect, useMemo } from "react";
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { Search, Save, User, XCircle, RotateCw, AlertCircle } from "lucide-react";
+import { SkeletonTableRows } from "@/components/ui/Skeleton";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { buildPath, fetchOne, fetchMany, upsertData, subscribeData, db, auth } from "@/lib/db-client";
-
+import { useAcademicYearOptional } from "@/contexts/AcademicYearContext";
+import { marksDocId as buildMarksDocId } from "@/lib/loadBranchMarks";
+import { gradeForMarks, gradeTone } from "@/lib/marksGrades";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
-}
-
-function keyPart(v: string) {
-  return encodeURIComponent(String(v || "").trim()).replace(/%/g, "_");
-}
-
-function marksDocId(exam: string, grade: string, section: string, subject: string) {
-  return `${keyPart(exam)}__${keyPart(grade)}__${keyPart(section)}__${keyPart(subject)}`;
-}
-
-function gradeForMarks(marks: number | "") {
-  if (marks === "") return "-";
-  if (marks >= 90) return "A+";
-  if (marks >= 80) return "A";
-  if (marks >= 70) return "B";
-  if (marks >= 60) return "C";
-  if (marks >= 50) return "D";
-  return "F";
-}
-
-function gradeTone(grade: string) {
-  if (grade === "A+") return "bg-emerald-100 text-emerald-800 border-emerald-200";
-  if (grade === "A") return "bg-green-100 text-green-800 border-green-200";
-  if (grade === "B") return "bg-blue-100 text-blue-800 border-blue-200";
-  if (grade === "C") return "bg-amber-100 text-amber-800 border-amber-200";
-  if (grade === "D") return "bg-orange-100 text-orange-800 border-orange-200";
-  if (grade === "F") return "bg-red-100 text-red-800 border-red-200";
-  return "bg-slate-100 text-slate-700 border-slate-200";
 }
 
 type Student = {
@@ -54,10 +29,12 @@ type SubjectMarks = {
   subject: string;
   marks: number | "";
   originalMarks: number | "";
+  maxMarks: number;
 };
 
 export default function MarksUpdateLogTab() {
   const schoolId = useSchoolId();
+  const academicYear = useAcademicYearOptional()?.currentYear?.name ?? null;
   const [exam, setExam] = useState("");
   const [examOptions, setExamOptions] = useState<string[]>([]);
   
@@ -69,6 +46,9 @@ export default function MarksUpdateLogTab() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [banner, setBanner] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const marksDocId = (examName: string, grade: string, section: string, subjectName: string) =>
+    buildMarksDocId(examName, grade, section, subjectName, academicYear);
 
   // Load Exam Types
   useEffect(() => {
@@ -124,8 +104,11 @@ export default function MarksUpdateLogTab() {
       setIsLoading(true);
       setBanner(null);
       try {
-        // 1. Fetch subjects for this student's class
-        const subSnap = await fetchMany(buildPath(db, "schools", schoolId, "subjects"));
+        const [subSnap, marksSnap] = await Promise.all([
+          fetchMany(buildPath(db, "schools", schoolId, "subjects")),
+          fetchMany(buildPath(db, "schools", schoolId, "marks")),
+        ]);
+
         const classSubjects = subSnap.docs
           .map((d: any) => d.data())
           .filter(s => 
@@ -135,24 +118,36 @@ export default function MarksUpdateLogTab() {
           .map(s => String(s.name || "").trim())
           .filter(Boolean);
 
-        const uniqueSubjects = Array.from(new Set(classSubjects)).sort((a: any, b: any) => a.localeCompare(b));
+        const fromMarks = marksSnap.docs
+          .map((d: any) => d.data() as any)
+          .filter((m) =>
+            String(m.exam ?? "") === exam &&
+            String(m.grade ?? "").trim() === selectedStudent!.grade &&
+            String(m.section ?? "").trim().toUpperCase() === selectedStudent!.section
+          )
+          .map((m) => String(m.subject ?? "").trim())
+          .filter(Boolean);
 
-        // 2. Fetch marks for each subject
+        const uniqueSubjects = Array.from(new Set([...classSubjects, ...fromMarks])).sort((a: any, b: any) => a.localeCompare(b));
+
         const subMarks: SubjectMarks[] = [];
         for (const sub of uniqueSubjects) {
           const docId = marksDocId(exam, selectedStudent!.grade, selectedStudent!.section, sub);
           const snap = await fetchOne(buildPath(db, "schools", schoolId, "marks", docId));
           let val: number | "" = "";
+          let rowMax = 100;
           
           if (snap.exists()) {
             const data = snap.data();
+            if (typeof data.maxMarks === "number" && data.maxMarks > 0) rowMax = data.maxMarks;
             const row = (data.rows || []).find((r: any) => r.studentId === selectedStudent!.id);
+            if (row && typeof row.maxMarks === "number" && row.maxMarks > 0) rowMax = row.maxMarks;
             if (row && typeof row.marks === "number") {
               val = row.marks;
             }
           }
           
-          subMarks.push({ subject: sub, marks: val, originalMarks: val });
+          subMarks.push({ subject: sub, marks: val, originalMarks: val, maxMarks: rowMax });
         }
         
         setSubjects(subMarks);
@@ -190,30 +185,39 @@ export default function MarksUpdateLogTab() {
           const data = snap.data();
           let rows = [...(data.rows || [])];
           const idx = rows.findIndex(r => r.studentId === selectedStudent.id);
+          const marks = typeof s.marks === "number" ? s.marks : null;
+          const nextRow = {
+            studentId: selectedStudent.id,
+            roll: selectedStudent.roll,
+            marks,
+            maxMarks: s.maxMarks,
+            gradeLabel: marks == null ? "" : gradeForMarks(marks, s.maxMarks),
+          };
           
           if (idx >= 0) {
-            rows[idx].marks = typeof s.marks === "number" ? s.marks : null;
+            rows[idx] = { ...rows[idx], ...nextRow };
           } else {
-            rows.push({
-              studentId: selectedStudent.id,
-              roll: selectedStudent.roll,
-              marks: typeof s.marks === "number" ? s.marks : null
-            });
+            rows.push(nextRow);
           }
           
-          await upsertData(ref, { rows, updatedAt: new Date().toISOString() }, { merge: true });
+          await upsertData(ref, { rows, maxMarks: s.maxMarks, updatedAt: new Date().toISOString() }, { merge: true });
         } else {
           // Document doesn't exist, create it
+          const marks = typeof s.marks === "number" ? s.marks : null;
           await upsertData(ref, {
             exam,
             grade: selectedStudent.grade,
             section: selectedStudent.section,
             subject: s.subject,
+            maxMarks: s.maxMarks,
+            academicYear: academicYear ?? undefined,
             updatedAt: new Date().toISOString(),
             rows: [{
               studentId: selectedStudent.id,
               roll: selectedStudent.roll,
-              marks: typeof s.marks === "number" ? s.marks : null
+              marks,
+              maxMarks: s.maxMarks,
+              gradeLabel: marks == null ? "" : gradeForMarks(marks, s.maxMarks),
             }]
           });
         }
@@ -350,14 +354,7 @@ export default function MarksUpdateLogTab() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {isLoading ? (
-                  <tr>
-                    <td colSpan={3} className="px-5 py-12 text-center">
-                      <div className="flex flex-col items-center justify-center gap-3">
-                        <div className="w-6 h-6 border-2 border-[#144835] border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs font-bold text-gray-500">Loading student marks...</span>
-                      </div>
-                    </td>
-                  </tr>
+                  <SkeletonTableRows rows={6} columns={3} />
                 ) : subjects.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-5 py-12 text-center text-xs font-bold text-gray-400">
@@ -366,8 +363,8 @@ export default function MarksUpdateLogTab() {
                   </tr>
                 ) : (
                   subjects.map((sub, idx) => {
-                    const grade = gradeForMarks(sub.marks);
-                    const isLow = typeof sub.marks === 'number' && sub.marks < 50;
+                    const grade = gradeForMarks(sub.marks, sub.maxMarks);
+                    const isLow = grade === "E" || grade === "D";
                     const isChanged = sub.marks !== sub.originalMarks;
 
                     return (
@@ -380,13 +377,13 @@ export default function MarksUpdateLogTab() {
                           <input
                             type="number"
                             min={0}
-                            max={100}
+                            max={sub.maxMarks}
                             value={sub.marks === "" ? "" : sub.marks}
                             onChange={(e) => {
                               const val = e.target.value;
                               let next: number | "" = val === "" ? "" : parseInt(val);
                               if (typeof next === 'number') {
-                                next = isNaN(next) ? "" : Math.max(0, Math.min(100, next));
+                                next = isNaN(next) ? "" : Math.max(0, Math.min(sub.maxMarks, next));
                               }
                               setSubjects((prev) => prev.map((x, i) => (i === idx ? { ...x, marks: next } : x)));
                             }}

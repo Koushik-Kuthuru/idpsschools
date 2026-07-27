@@ -1,9 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
+import { portalAuthStorage } from '@/lib/auth/portalAuthStorage'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: portalAuthStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+})
 
 const SCHOOL_CODE_TO_SLUG: Record<string, string> = {
   'IDPS-CHER': 'idpscherukupalli',

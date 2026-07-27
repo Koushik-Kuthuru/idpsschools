@@ -73,9 +73,11 @@ const PAGE_KEYWORDS: Record<string, string> = {
   Calendar: "calendar events holidays",
   "Teaching Staff": "teacher faculty employee hr",
   "Non-Teaching Staff": "staff employee admin support",
+  "Micro Schedule": "teacher timetable schedule period class assignment hr",
   Departments: "department hr organization",
   Leaves: "leave vacation holiday absence",
   Fees: "fee payment tuition billing collection",
+  "Annual Fee Collection": "annual fee collection yearly tuition student paid",
   Invoices: "invoice bill payment receipt",
   Payments: "payment transaction receipt",
   Expenses: "expense spending cost",
@@ -134,9 +136,11 @@ const PAGE_SCOPES: Record<string, SearchScope[]> = {
   Calendar: ["classes"],
   "Teaching Staff": ["teachers"],
   "Non-Teaching Staff": ["staff"],
+  "Micro Schedule": ["teachers", "timetable"],
   Departments: ["departments"],
   Leaves: ["leaves"],
   Fees: ["fees"],
+  "Annual Fee Collection": ["fees", "payments"],
   Invoices: ["invoices"],
   Payments: ["payments"],
   Expenses: ["expenses"],
@@ -194,11 +198,13 @@ export function buildPageSearchIndex(schoolId: string): AdminSearchResult[] {
                 ? "pages"
                 : group.id === "inventory"
                   ? "pages"
-                  : group.id === "admission"
+                  : group.id === "library"
                     ? "pages"
-                    : group.id === "communication"
+                    : group.id === "admission"
                       ? "pages"
-                      : "settings";
+                      : group.id === "communication"
+                        ? "pages"
+                        : "settings";
 
       const keywords = PAGE_KEYWORDS[item.name] ?? "";
       const scopes = PAGE_SCOPES[item.name] ?? ["settings"];

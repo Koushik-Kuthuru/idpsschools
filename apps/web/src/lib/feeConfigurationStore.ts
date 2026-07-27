@@ -1,3 +1,4 @@
+import { adminFetch } from "@/lib/adminApi";
 import type { FeeGridRow } from "@/lib/feeDepositUtils";
 import { buildFeeGridFromStructure, hasFeeGridData } from "@/lib/feeDepositUtils";
 import {
@@ -306,7 +307,7 @@ export async function fetchHydratedFeeConfiguration(
   try {
     const params = new URLSearchParams({ schoolId });
     if (academicYear) params.set("academicYear", academicYear);
-    const res = await fetch(`/api/admin/fee-structures?${params.toString()}`, { cache: "no-store" });
+    const res = await adminFetch(`/api/admin/fee-structures?${params.toString()}`, { cache: "no-store" });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) return local;
 

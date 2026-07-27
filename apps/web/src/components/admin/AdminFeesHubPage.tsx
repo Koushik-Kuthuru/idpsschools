@@ -10,6 +10,7 @@ import FeeTransactionsTab from "@/components/admin/fees/FeeTransactionsTab";
 import ClasswiseFeeCollectionsTab from "@/components/admin/fees/ClasswiseFeeCollectionsTab";
 import AnnualFeeCalculationsTab from "@/components/admin/fees/AnnualFeeCalculationsTab";
 import TransportFeeCollectionsTab from "@/components/admin/fees/TransportFeeCollectionsTab";
+import StudentFeePaidUnpaidTab from "@/components/admin/fees/StudentFeePaidUnpaidTab";
 import { useAcademicYear } from "@/contexts/AcademicYearContext";
 
 function cn(...inputs: ClassValue[]) {
@@ -21,7 +22,9 @@ const TABS = [
   { id: "transactions", label: "Fee Transactions" },
   { id: "classwise", label: "Classwise Collections" },
   { id: "annual", label: "Annual Calculations" },
-  { id: "transport", label: "Transport Collections" },
+  { id: "transport", label: "Transport Fee" },
+  { id: "fee-paid", label: "Students Fee Paid" },
+  { id: "fee-unpaid", label: "Students Fee Unpaid" },
 ] as const;
 
 type FeesTabId = (typeof TABS)[number]["id"];
@@ -81,6 +84,8 @@ export default function AdminFeesHubPage() {
       {activeTab === "classwise" ? <ClasswiseFeeCollectionsTab /> : null}
       {activeTab === "annual" ? <AnnualFeeCalculationsTab /> : null}
       {activeTab === "transport" ? <TransportFeeCollectionsTab /> : null}
+      {activeTab === "fee-paid" ? <StudentFeePaidUnpaidTab list="paid" /> : null}
+      {activeTab === "fee-unpaid" ? <StudentFeePaidUnpaidTab list="unpaid" /> : null}
     </div>
   );
 }

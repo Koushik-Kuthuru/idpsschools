@@ -15,6 +15,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import ExportButton from "@/components/ui/ExportButton";
+import { SkeletonStats, SkeletonTableRows } from "@/components/ui/Skeleton";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import {
   collectionBreakdown,
@@ -145,24 +146,28 @@ export default function AdminFeeCollectionReport() {
         }
       />
 
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-        {[
-          { label: "Total Collected", value: formatInr(stats.total), icon: IndianRupee, tone: "text-emerald-700 bg-emerald-50" },
-          { label: "Receipts", value: String(stats.count), icon: Receipt, tone: "text-blue-700 bg-blue-50" },
-          { label: "Cash", value: formatInr(stats.cash), icon: Banknote, tone: "text-sky-700 bg-sky-50" },
-          { label: "UPI", value: formatInr(stats.upi), icon: CreditCard, tone: "text-violet-700 bg-violet-50" },
-          { label: "Cheque", value: formatInr(stats.cheque), icon: Receipt, tone: "text-rose-700 bg-rose-50" },
-          { label: "NEFT / Bank", value: formatInr(stats.neft), icon: CalendarDays, tone: "text-amber-700 bg-amber-50" },
-        ].map((kpi) => (
-          <div key={kpi.label} className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center mb-2", kpi.tone)}>
-              <kpi.icon size={18} />
+      {loading && receipts.length === 0 ? (
+        <SkeletonStats count={6} className="md:grid-cols-3 xl:grid-cols-6" />
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+          {[
+            { label: "Total Collected", value: formatInr(stats.total), icon: IndianRupee, tone: "text-emerald-700 bg-emerald-50" },
+            { label: "Receipts", value: String(stats.count), icon: Receipt, tone: "text-blue-700 bg-blue-50" },
+            { label: "Cash", value: formatInr(stats.cash), icon: Banknote, tone: "text-sky-700 bg-sky-50" },
+            { label: "UPI", value: formatInr(stats.upi), icon: CreditCard, tone: "text-violet-700 bg-violet-50" },
+            { label: "Cheque", value: formatInr(stats.cheque), icon: Receipt, tone: "text-rose-700 bg-rose-50" },
+            { label: "NEFT / Bank", value: formatInr(stats.neft), icon: CalendarDays, tone: "text-amber-700 bg-amber-50" },
+          ].map((kpi) => (
+            <div key={kpi.label} className="bg-white rounded-xl border border-gray-200 p-4">
+              <div className={cn("h-9 w-9 rounded-lg flex items-center justify-center mb-2", kpi.tone)}>
+                <kpi.icon size={18} />
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">{kpi.label}</p>
+              <p className="text-lg font-extrabold text-gray-900 mt-0.5">{kpi.value}</p>
             </div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">{kpi.label}</p>
-            <p className="text-lg font-extrabold text-gray-900 mt-0.5">{kpi.value}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <div className="xl:col-span-1 bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -180,10 +185,12 @@ export default function AdminFeeCollectionReport() {
                 </tr>
               </thead>
               <tbody>
-                {collectors.length === 0 ? (
+                {loading && receipts.length === 0 ? (
+                  <SkeletonTableRows rows={6} columns={3} />
+                ) : collectors.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-4 py-8 text-center text-gray-400 font-semibold">
-                      {loading ? "Loading…" : "No collections in this period"}
+                      No collections in this period
                     </td>
                   </tr>
                 ) : (
@@ -249,10 +256,12 @@ export default function AdminFeeCollectionReport() {
                 </tr>
               </thead>
               <tbody>
-                {filteredLedger.length === 0 ? (
+                {loading && receipts.length === 0 ? (
+                  <SkeletonTableRows rows={8} columns={7} />
+                ) : filteredLedger.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-4 py-10 text-center text-gray-400 font-semibold">
-                      {loading ? "Loading collections…" : "No receipts found"}
+                      No receipts found
                     </td>
                   </tr>
                 ) : (

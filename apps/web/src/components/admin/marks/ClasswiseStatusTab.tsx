@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 
 
 import { useSchoolId } from "@/hooks/useSchoolId";
-import { PieChart, RotateCw, LayoutGrid, List, Search } from "lucide-react";
+import { PieChart, LayoutGrid, List } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { buildPath, fetchMany, subscribeData, db, auth } from "@/lib/db-client";
+import { SkeletonCard, SkeletonTable } from "@/components/ui/Skeleton";
 
 
 function cn(...inputs: ClassValue[]) {
@@ -48,7 +49,28 @@ export default function ClasswiseStatusTab() {
   }, [schoolId, exam]);
 
   useEffect(() => {
-    if (!exam) return;
+    if (!exam) {
+      // Fallback: also derive exam names from marks docs if exam_types empty
+      void (async () => {
+        try {
+          const marksSnap = await fetchMany(buildPath(db, "schools", schoolId, "marks"));
+          const names = Array.from(
+            new Set(
+              marksSnap.docs
+                .map((d: any) => String(d.data()?.exam ?? "").trim())
+                .filter(Boolean)
+            )
+          ).sort((a, b) => a.localeCompare(b));
+          if (names.length) {
+            setExamOptions(names);
+            setExam(names[0]);
+          }
+        } catch {
+          /* ignore */
+        }
+      })();
+      return;
+    }
     async function loadStatus() {
       setIsLoading(true);
       try {
@@ -61,31 +83,45 @@ export default function ClasswiseStatusTab() {
         const marksSnap = await fetchMany(buildPath(db, "schools", schoolId, "marks"));
         const marksData = marksSnap.docs.map((d: any) => d.data() as any);
 
-        const data: ClassStatus[] = [];
-
-        classes.forEach(c => {
+        // Also build class list from marks if classes table is incomplete for this year
+        const classKeys = new Map<string, { grade: string; section: string }>();
+        classes.forEach((c: any) => {
           const grade = String(c.grade ?? c.name ?? "").trim();
           const section = String(c.section ?? "").trim().toUpperCase();
-          if (!grade || !section) return;
+          if (grade && section) classKeys.set(`${grade}:::${section}`, { grade, section });
+        });
+        marksData
+          .filter((m) => m.exam === exam)
+          .forEach((m) => {
+            const grade = String(m.grade ?? "").trim();
+            const section = String(m.section ?? "").trim().toUpperCase();
+            if (grade && section) classKeys.set(`${grade}:::${section}`, { grade, section });
+          });
 
-          // Find total subjects for this class
-          const totalSubjects = subjectsData.filter(s => {
+        const data: ClassStatus[] = [];
+
+        classKeys.forEach(({ grade, section }) => {
+          const catalogSubjects = subjectsData.filter((s: any) => {
             return String(s.classId || "").trim() === grade && String(s.section || "").trim().toUpperCase() === section;
           }).length;
 
-          // Find completed subjects (at least one row has a number mark)
-          const completedSubjects = marksData.filter(m => {
+          const marksSubjects = marksData.filter((m) => {
             if (m.exam !== exam) return false;
             if (String(m.grade || "").trim() !== grade) return false;
             if (String(m.section || "").trim().toUpperCase() !== section) return false;
-            const validRows = m.rows?.filter((r: any) => typeof r.marks === "number");
+            return Boolean(String(m.subject ?? "").trim());
+          });
+
+          const totalSubjects = Math.max(catalogSubjects, marksSubjects.length);
+
+          const completedSubjects = marksSubjects.filter((m) => {
+            const validRows = m.rows?.filter((r: any) => typeof r.marks === "number" || r.absent);
             return validRows && validRows.length > 0;
           }).length;
 
           data.push({ grade, section, totalSubjects, completedSubjects });
         });
 
-        // Sort properly
         data.sort((a: any, b: any) => {
           const gA = parseInt(a.grade) || 0;
           const gB = parseInt(b.grade) || 0;
@@ -126,12 +162,19 @@ export default function ClasswiseStatusTab() {
           </div>
         </div>
         
-        {isLoading && (
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-500 animate-pulse">
-            <RotateCw size={14} className="animate-spin" /> Fetching Status...
-          </div>
-        )}
       </div>
+
+      {isLoading && !statusData ? (
+        viewMode === "card" ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <SkeletonCard key={i} lines={3} />
+            ))}
+          </div>
+        ) : (
+          <SkeletonTable rows={8} columns={6} />
+        )
+      ) : null}
 
       {statusData && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

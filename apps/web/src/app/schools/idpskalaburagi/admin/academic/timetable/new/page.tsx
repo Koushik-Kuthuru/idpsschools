@@ -10,6 +10,7 @@ import { ArrowLeft, Save, Plus, ChevronRight } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { buildPath, fetchOne, fetchMany, buildQuery, upsertData, db, auth } from "@/lib/db-client";
+import { SkeletonPage } from "@/components/ui/Skeleton";
 
 
 
@@ -248,8 +249,8 @@ export default function AdminCreateTimetableSchedulePage() {
 
  if (loading) {
  return (
- <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto flex items-center justify-center min-h-[60vh]">
- <div className="w-8 h-8 border-4 border-[#144835] border-t-transparent rounded-full animate-spin" />
+ <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
+ <SkeletonPage toolbar rows={6} columns={5} />
  </div>
  );
  }

@@ -1,14 +1,15 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import { loadBranchStaffRecords } from "@/lib/loadBranchStaff";
 
-export async function GET(req: Request) {
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   const url = new URL(req.url);
   const schoolSlug = url.searchParams.get("schoolId");
   const kind = url.searchParams.get("kind") ?? "all";
   const academicYear = url.searchParams.get("academicYear");
 
   if (!schoolSlug) {
-    return Response.json({ error: "schoolId required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId required" }, { status: 400 });
   }
 
   const validKind =
@@ -16,9 +17,9 @@ export async function GET(req: Request) {
 
   try {
     const staff = await loadBranchStaffRecords(supabaseAdmin, schoolSlug, validKind, academicYear);
-    return Response.json({ staff });
+    return noStoreJson({ staff });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load staff";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});

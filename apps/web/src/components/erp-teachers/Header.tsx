@@ -8,9 +8,10 @@ import { Bell, CheckCheck, ChevronDown, ChevronRight, CircleHelp, LogOut, Menu, 
 import { getTeacherNavigation } from "./navigation";
 import { notificationIcon, notificationIconStyles } from "@/components/admin/notificationStyles";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStaffPortalPermissions } from "@/hooks/useStaffPortalPermissions";
 import { useAdminNotifications } from "@/contexts/AdminNotificationsContext";
 import { formatRelativeTime } from "@/lib/adminNotifications";
-import { auth } from "@/lib/db-client";
+import { getPortalLoginPath } from "@/lib/auth/roles";
 
 interface HeaderProps {
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -22,7 +23,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const { user, role } = useAuth();
+  const { user, role, logout } = useAuth();
   const { notifications, unreadCount, markAllRead, openNotification } = useAdminNotifications();
 
   const schoolId = useMemo(() => {
@@ -30,16 +31,18 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
     return match ? match[1] : "idpscherukupalli";
   }, [pathname]);
 
+  const permissionContext = useStaffPortalPermissions(schoolId);
+
   const headerTitle = useMemo(() => {
     if (pathname.includes("/teachers/profile")) return "My Profile";
     if (pathname.includes("/teachers/help")) return "Help Center";
     if (pathname.includes("/teachers/notifications")) return "Notifications";
-    const nav = getTeacherNavigation(schoolId);
+    const nav = getTeacherNavigation(schoolId, user?.designation ?? role, permissionContext);
     const exact = nav.find((n) => n.href === pathname);
     if (exact) return exact.name;
     const nested = nav.find((n) => n.href !== `/schools/${schoolId}/teachers` && pathname.startsWith(n.href));
     return nested?.name ?? "Dashboard";
-  }, [pathname, schoolId]);
+  }, [pathname, schoolId, user?.designation, role, permissionContext]);
 
   const helpHref = `/schools/${schoolId}/teachers/help`;
   const settingsHref = `/schools/${schoolId}/teachers/profile`;
@@ -73,13 +76,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   }, [userDisplayName]);
 
   const handleLogout = async () => {
-    try {
-      setUserMenuOpen(false);
-      await auth.signOut();
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
+    setUserMenuOpen(false);
+    await logout(getPortalLoginPath(schoolId, role));
   };
 
   useEffect(() => {

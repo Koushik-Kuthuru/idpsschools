@@ -7,6 +7,8 @@ import { twMerge } from "tailwind-merge";
 import Sidebar from "@/components/erp-teachers/Sidebar";
 import Header from "@/components/erp-teachers/Header";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import PortalPermissionGuard from "@/components/auth/PortalPermissionGuard";
+import { PortalActionProvider, PortalDomActionEnforcer } from "@/contexts/PortalActionContext";
 import { BranchProvider } from "@/components/admin/BranchContext";
 import { TeacherPortalScopeProvider } from "@/contexts/TeacherPortalScopeContext";
 import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
@@ -39,6 +41,8 @@ export default function TeacherLayout({
       <AcademicYearProvider schoolSlug="idpskalaburagi">
       <TeacherPortalScopeProvider schoolId="idpskalaburagi">
       <AdminNotificationsProvider>
+      <PortalActionProvider schoolId="idpskalaburagi" portal="teacher">
+      <PortalDomActionEnforcer schoolId="idpskalaburagi" portal="teacher" />
       <div className="min-h-screen bg-[#F8FAFB] flex">
         {isMobileMenuOpen && (
           <div
@@ -63,10 +67,13 @@ export default function TeacherLayout({
           <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
           <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-hidden p-4 sm:p-4 lg:p-8">
-            {children}
+            <PortalPermissionGuard schoolId="idpskalaburagi" portal="teacher">
+              {children}
+            </PortalPermissionGuard>
           </main>
         </div>
       </div>
+      </PortalActionProvider>
       </AdminNotificationsProvider>
       </TeacherPortalScopeProvider>
       </AcademicYearProvider>

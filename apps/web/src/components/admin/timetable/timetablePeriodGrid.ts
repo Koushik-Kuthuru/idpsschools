@@ -20,7 +20,7 @@ export type PeriodEntry = {
 
 export type PeriodGrid = Record<TimetableDay, Record<PeriodId, PeriodEntry[]>>;
 
-export const DEFAULT_TERM_KEY = "2025-26";
+export const DEFAULT_TERM_KEY = "2026-27";
 
 export function periodIdsFromTemplate(template: TimetableTemplate = defaultTimetableTemplate) {
   return template.periods.map((p) => p.id);
@@ -93,4 +93,13 @@ export function keyPart(v: string) {
 
 export function timetableDocId(termKey: string, grade: string, section: string) {
   return `term__${keyPart(termKey)}__${keyPart(grade)}__${keyPart(section)}`;
+}
+
+export function teacherTimetableDocId(termKey: string, teacherName: string) {
+  const slug = String(teacherName)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return `term__${keyPart(termKey)}__teacher__${keyPart(slug)}`;
 }

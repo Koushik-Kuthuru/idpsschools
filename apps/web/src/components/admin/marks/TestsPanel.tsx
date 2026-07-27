@@ -698,7 +698,7 @@ export default function TestsPanel() {
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto">
             <table className="w-full min-w-[720px] text-left">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/80">
@@ -798,6 +798,64 @@ export default function TestsPanel() {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="lg:hidden divide-y divide-gray-100">
+            {filtered.map((entry) => (
+              <div key={entry.id} className="p-4">
+                <div className="flex items-start gap-2.5">
+                  <div className="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <BookOpen size={14} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-gray-900 truncate">{entry.name}</p>
+                    <p className="text-[11px] text-gray-500 mt-0.5">
+                      {gradeLabel(entry.classId)} · Section {entry.section}
+                    </p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">
+                      {entry.startDate ?? "—"}
+                      {entry.endDate && entry.endDate !== entry.startDate ? ` to ${entry.endDate}` : ""}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <StatusBadge status={entry.status} />
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(entry.id)}
+                      disabled={deletingId === entry.id}
+                      className="h-7 w-7 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center shrink-0 disabled:opacity-50"
+                    >
+                      {deletingId === entry.id ? (
+                        <RotateCw size={13} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={13} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                  <div className="rounded-lg bg-gray-50 py-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Students</p>
+                    <p className="text-xs font-bold text-gray-800 mt-0.5">{entry.stats.totalStudents}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 py-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Passed</p>
+                    <p className="text-xs font-bold text-emerald-700 mt-0.5">{entry.stats.hasMarks ? entry.stats.passed : "—"}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 py-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Failed</p>
+                    <p className="text-xs font-bold text-red-600 mt-0.5">{entry.stats.hasMarks ? entry.stats.failed : "—"}</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 py-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Pass %</p>
+                    <p className="text-xs font-bold text-gray-800 mt-0.5">
+                      {entry.stats.hasMarks ? `${entry.stats.passPct}%` : entry.status === "completed" ? "Pending" : "—"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

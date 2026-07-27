@@ -37,6 +37,8 @@ type SettingsPageShellProps = {
   mobileNavOpen: boolean;
   setMobileNavOpen: (open: boolean) => void;
   saved?: boolean;
+  /** Fill viewport height and disable page scroll (for split-pane settings like Roles). */
+  flushContent?: boolean;
 };
 
 export default function SettingsPageShell({
@@ -49,6 +51,7 @@ export default function SettingsPageShell({
   mobileNavOpen,
   setMobileNavOpen,
   saved,
+  flushContent = false,
 }: SettingsPageShellProps) {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -77,7 +80,12 @@ export default function SettingsPageShell({
   const sidebarExpanded = isSidebarOpen || mobileNavOpen;
 
   return (
-    <div className="flex flex-col lg:flex-row bg-white rounded-2xl border border-gray-200 overflow-hidden font-jost" style={{ minHeight: 'calc(100vh - 8rem)' }}>
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white font-jost lg:flex-row",
+        flushContent ? "h-[calc(100vh-8rem)]" : "min-h-[calc(100vh-8rem)]"
+      )}
+    >
 
 
       <div className="relative flex min-h-0 flex-1">
@@ -161,8 +169,13 @@ export default function SettingsPageShell({
           <div className="mt-auto border-t border-gray-100 p-3 lg:hidden" />
         </aside>
 
-        <main className="min-w-0 flex-1 overflow-y-auto bg-gray-50/30">
-          <div className="border-b border-gray-100 bg-white px-4 py-3 lg:hidden flex items-center gap-3">
+        <main
+          className={cn(
+            "min-w-0 flex-1 bg-gray-50/30",
+            flushContent ? "flex flex-col overflow-hidden" : "overflow-y-auto"
+          )}
+        >
+          <div className="border-b border-gray-100 bg-white px-4 py-3 lg:hidden flex items-center gap-3 shrink-0">
             <button onClick={() => setMobileNavOpen(true)} className="p-2 rounded-lg border border-gray-200 text-gray-600 bg-gray-50">
               <Menu size={18} />
             </button>
@@ -180,7 +193,7 @@ export default function SettingsPageShell({
               />
             </div>
           </div>
-          {children}
+          {flushContent ? <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div> : children}
         </main>
       </div>
     </div>

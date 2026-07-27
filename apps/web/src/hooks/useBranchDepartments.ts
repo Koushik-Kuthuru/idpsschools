@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { useCallback, useState } from "react";
 import { clientCacheKey, writeClientCache } from "@/lib/clientCache";
 import { useCachedQuery } from "@/hooks/useCachedQuery";
@@ -23,8 +24,18 @@ function mapDepartments(rows: Record<string, unknown>[]): DepartmentRecord[] {
   }));
 }
 
-export function useBranchDepartments(schoolId: string, academicYear?: string | null) {
-  const cacheKey = clientCacheKey("departments", schoolId, academicYear ?? "current");
+export function useBranchDepartments(
+  schoolId: string,
+  academicYear?: string | null,
+  options?: { lite?: boolean }
+) {
+  const lite = options?.lite === true;
+  const cacheKey = clientCacheKey(
+    "departments",
+    schoolId,
+    academicYear ?? "current",
+    lite ? "lite" : "full"
+  );
 
   const query = useCachedQuery({
     cacheKey,
@@ -32,7 +43,8 @@ export function useBranchDepartments(schoolId: string, academicYear?: string | n
     fetcher: async () => {
       const params = new URLSearchParams({ schoolId });
       if (academicYear) params.set("academicYear", academicYear);
-      const res = await fetch(`/api/admin/departments?${params.toString()}`);
+      if (lite) params.set("lite", "1");
+      const res = await adminFetch(`/api/admin/departments?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed to load departments");
       return mapDepartments(data.departments ?? []);
@@ -83,7 +95,7 @@ export function useBranchDepartments(schoolId: string, academicYear?: string | n
     refresh: query.refresh,
     addDepartment: (name: string) =>
       runMutation(() =>
-        fetch("/api/admin/departments", {
+        adminFetch("/api/admin/departments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: body("addDepartment", { name }),
@@ -91,7 +103,7 @@ export function useBranchDepartments(schoolId: string, academicYear?: string | n
       ),
     updateDepartment: (departmentId: string, name: string) =>
       runMutation(() =>
-        fetch("/api/admin/departments", {
+        adminFetch("/api/admin/departments", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: body("updateDepartment", { departmentId, name }),
@@ -105,11 +117,11 @@ export function useBranchDepartments(schoolId: string, academicYear?: string | n
           departmentId,
         });
         if (academicYear) params.set("academicYear", academicYear);
-        return fetch(`/api/admin/departments?${params.toString()}`, { method: "DELETE" });
+        return adminFetch(`/api/admin/departments?${params.toString()}`, { method: "DELETE" });
       }),
     addDesignation: (departmentId: string, name: string) =>
       runMutation(() =>
-        fetch("/api/admin/departments", {
+        adminFetch("/api/admin/departments", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: body("addDesignation", { departmentId, name }),
@@ -117,7 +129,7 @@ export function useBranchDepartments(schoolId: string, academicYear?: string | n
       ),
     updateDesignation: (departmentId: string, designationId: string, name: string) =>
       runMutation(() =>
-        fetch("/api/admin/departments", {
+        adminFetch("/api/admin/departments", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: body("updateDesignation", { departmentId, designationId, name }),
@@ -132,7 +144,7 @@ export function useBranchDepartments(schoolId: string, academicYear?: string | n
           designationId,
         });
         if (academicYear) params.set("academicYear", academicYear);
-        return fetch(`/api/admin/departments?${params.toString()}`, { method: "DELETE" });
+        return adminFetch(`/api/admin/departments?${params.toString()}`, { method: "DELETE" });
       }),
   };
 }

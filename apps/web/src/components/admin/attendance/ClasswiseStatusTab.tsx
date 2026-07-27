@@ -4,7 +4,8 @@ import React, { useState } from "react";
 
 
 import { Search, RotateCw, Users, AlertCircle, LayoutGrid, List } from "lucide-react";
-import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
+import AttendanceTabGuide from "./AttendanceTabGuide";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { classwiseGuide } from "./attendanceGuidePresets";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -127,7 +128,7 @@ export default function ClasswiseStatusTab({ schoolId }: ClasswiseStatusTabProps
       )}
 
       {!statusData && !isLoading ? <AttendanceTabGuide {...classwiseGuide} /> : null}
-      {isLoading && !statusData ? <AttendanceTabLoading label="Checking class status…" /> : null}
+      {isLoading && !statusData ? <SkeletonTable rows={8} columns={6} /> : null}
 
       {statusData && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

@@ -1,118 +1,199 @@
-import { withSupabaseRoute } from "@/lib/supabase/route-handler";
 import { getSchoolSlugFromCode } from "@/lib/supabase/client";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { resolveStaffSessionForPortal } from "@/lib/auth/resolve-staff-session";
+import { resolvePortalAuthUser } from "@/lib/auth/resolvePortalAuthUser";
+import {
+  appendPortalSessionCookies,
+  extractPortalRememberMe,
+} from "@/lib/auth/portalSessionCookies";
+import { loadStudentDetailForAuth } from "@/lib/portalMobileData";
+import type { UserRole } from "@/lib/auth/roles";
 
-export const GET = withSupabaseRoute("user", async (_req, ctx) => {
-  const authId = ctx.userClaims?.id;
-  if (!authId) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+export async function GET(req: Request) {
+  const resolved = await resolvePortalAuthUser(req);
+  if (!resolved) {
+    return Response.json(
+      { message: "Invalid credentials", code: "INVALID_CREDENTIALS" },
+      { status: 401 }
+    );
   }
 
-  const email = ctx.userClaims?.email ?? null;
+  const authId = resolved.user.id;
+  const email = resolved.user.email ?? null;
+  const authMetadata = (resolved.user.user_metadata ?? {}) as Record<string, unknown>;
 
-  const { data: profile, error: profileError } = await ctx.supabaseAdmin
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from("users")
     .select("*")
     .eq("id", authId)
     .maybeSingle();
 
-  if (profileError) {
+  const usersTableMissing =
+    profileError?.code === "PGRST205" ||
+    String(profileError?.message ?? "").includes("Could not find the table");
+
+  if (profileError && !usersTableMissing) {
     return Response.json({ error: profileError.message }, { status: 500 });
   }
 
+  const metaRole = String(authMetadata.role ?? "").trim() || null;
+  const metaSchoolSlug = String(authMetadata.school_id ?? "").trim() || null;
+  const metaName = String(authMetadata.full_name ?? "").trim() || null;
+  const metaEmployeeId = String(authMetadata.employee_id ?? "").trim() || null;
+  const metaDesignation = String(authMetadata.designation ?? "").trim() || null;
+  const metaDepartment = String(authMetadata.department ?? "").trim() || null;
+
   let schoolSlug: string | null = null;
   if (profile?.school_id) {
-    const { data: school } = await ctx.supabaseAdmin
+    const { data: school } = await supabaseAdmin
       .from("schools")
       .select("code")
       .eq("id", profile.school_id)
       .single();
     schoolSlug = school?.code ? getSchoolSlugFromCode(school.code) : null;
+  } else if (metaSchoolSlug) {
+    schoolSlug = metaSchoolSlug;
   }
 
   const baseUser = {
     uid: authId,
     email: email || profile?.email || null,
-    displayName: profile?.full_name || null,
+    displayName: profile?.full_name || metaName || null,
     photoURL: profile?.avatar_url || null,
     phone: profile?.phone || undefined,
   };
 
-  let enrollment: Awaited<ReturnType<typeof loadEnrollment>> = null;
-  if (profile?.role === "student" && schoolSlug) {
-    enrollment = await loadEnrollment(ctx, schoolSlug, authId);
+  let role = (profile?.role ?? metaRole) as UserRole | string | null;
+  let staffSession: Awaited<ReturnType<typeof resolveStaffSessionForPortal>> = null;
+
+  if (schoolSlug && role !== "student" && role !== "super_admin") {
+    staffSession = await resolveStaffSessionForPortal({
+      admin: supabaseAdmin,
+      authId,
+      email,
+      schoolSlug,
+      employeeIdMeta: metaEmployeeId,
+    });
+    if (staffSession) {
+      role = staffSession.role;
+    }
   }
 
-  let staff: { designation?: string; department?: string } | null = null;
-  if (profile?.role === "teacher" && profile?.school_id) {
-    const { data } = await ctx.supabaseAdmin
+  let enrollment: Awaited<ReturnType<typeof loadStudentEnrollment>> = null;
+  if ((role === "student" || metaRole === "student") && schoolSlug) {
+    enrollment = await loadStudentEnrollment(schoolSlug, authId, email);
+  }
+
+  let staff: {
+    designation?: string;
+    department?: string;
+    qualification?: string;
+    joinedDate?: string;
+    experienceYears?: number | null;
+    status?: string;
+  } | null = null;
+  if (staffSession) {
+    staff = {
+      designation: staffSession.designation,
+      department: staffSession.department,
+    };
+    if (profile?.school_id) {
+      const { data: staffProfile } = await supabaseAdmin
+        .from("staff_profiles")
+        .select("qualification, date_of_joining, experience_years, status")
+        .eq("user_id", authId)
+        .eq("school_id", profile.school_id)
+        .maybeSingle();
+      if (staffProfile) {
+        staff = {
+          ...staff,
+          qualification: staffProfile.qualification ?? undefined,
+          joinedDate: staffProfile.date_of_joining
+            ? new Date(String(staffProfile.date_of_joining)).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : undefined,
+          experienceYears:
+            typeof staffProfile.experience_years === "number" ? staffProfile.experience_years : null,
+          status: staffProfile.status ?? undefined,
+        };
+      }
+    }
+  } else if (role === "teacher" && profile?.school_id) {
+    const { data } = await supabaseAdmin
       .from("staff_profiles")
-      .select("designation, department")
+      .select("designation, department, qualification, date_of_joining, experience_years, status")
       .eq("user_id", authId)
       .eq("school_id", profile.school_id)
       .maybeSingle();
-    staff = data;
+    staff = data
+      ? {
+          designation: data.designation ?? undefined,
+          department: data.department ?? undefined,
+          qualification: data.qualification ?? undefined,
+          joinedDate: data.date_of_joining
+            ? new Date(String(data.date_of_joining)).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })
+            : undefined,
+          experienceYears:
+            typeof data.experience_years === "number" ? data.experience_years : null,
+          status: data.status ?? undefined,
+        }
+      : null;
   }
 
-  return Response.json({
+  const body = {
     user: {
       ...baseUser,
+      displayName: baseUser.displayName || staffSession?.displayName || null,
       ...(enrollment ?? {}),
-      designation: staff?.designation,
-      department: staff?.department,
+      designation: staff?.designation ?? metaDesignation ?? undefined,
+      department: staff?.department ?? metaDepartment ?? undefined,
+      employeeId: staffSession?.employeeId ?? metaEmployeeId ?? undefined,
+      qualification: staff?.qualification,
+      joinedDate: staff?.joinedDate,
+      experienceYears: staff?.experienceYears,
+      status: staff?.status,
     },
-    role: profile?.role ?? null,
+    role,
     schoolId: schoolSlug,
-  });
-});
+  };
 
-async function loadEnrollment(
-  ctx: { supabaseAdmin: import("@supabase/supabase-js").SupabaseClient<any> },
+  let response = Response.json(body);
+  if (resolved.refreshed && resolved.refreshToken) {
+    response = appendPortalSessionCookies(response, resolved.accessToken, resolved.refreshToken, {
+      rememberMe: extractPortalRememberMe(req),
+    });
+  }
+  return response;
+}
+
+async function loadStudentEnrollment(
   schoolSlug: string,
-  userId: string
+  authId: string,
+  email: string | null
 ) {
-  const { getSchoolCodeFromSlug } = await import("@/lib/supabase/client");
-  const code = getSchoolCodeFromSlug(schoolSlug);
-  if (!code) return null;
+  const detail = await loadStudentDetailForAuth(supabaseAdmin, {
+    schoolSlug,
+    authId,
+    email,
+  });
+  if (!detail) return null;
 
-  const { data: school } = await ctx.supabaseAdmin.from("schools").select("id").eq("code", code).single();
-  if (!school?.id) return null;
-
-  const { data: year } = await ctx.supabaseAdmin
-    .from("academic_years")
-    .select("id, name")
-    .eq("school_id", school.id)
-    .eq("is_current", true)
-    .maybeSingle();
-
-  const { data: student } = await ctx.supabaseAdmin
-    .from("students")
-    .select("id")
-    .eq("school_id", school.id)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!student?.id || !year?.id) return null;
-
-  const { data: row } = await ctx.supabaseAdmin
-    .from("student_section_enrollments")
-    .select("roll_number, sections ( name, grades ( name ) )")
-    .eq("school_id", school.id)
-    .eq("student_id", student.id)
-    .eq("academic_year_id", year.id)
-    .maybeSingle();
-
-  if (!row) return null;
-
-  const sections = row.sections as { name?: string; grades?: { name?: string } | { name?: string }[] | null };
-  const grades = sections?.grades;
-  const grade = String(Array.isArray(grades) ? grades[0]?.name : grades?.name ?? "").trim();
-  const section = String(sections?.name ?? "").trim();
+  const className = String(detail.className ?? detail.classId ?? detail.grade ?? "").trim();
+  const section = String(detail.section ?? "").trim();
+  const admissionNo = String(detail.admissionNo ?? detail.admission_number ?? "").trim();
 
   return {
-    grade,
+    grade: className,
     section,
-    className: grade && section ? `${grade}-${section}` : grade || section,
-    rollNumber: String(row.roll_number ?? ""),
-    academicYearName: year.name,
+    className: className && section ? `${className}-${section}` : className || section,
+    rollNumber: String(detail.rollNumber ?? admissionNo),
+    academicYearName: String(detail.academicYear ?? ""),
   };
 }

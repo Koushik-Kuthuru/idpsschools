@@ -1,3 +1,4 @@
+import { adminFetch } from "@/lib/adminApi";
 import { auth, db } from "@/lib/db-client";
 
 
@@ -41,7 +42,7 @@ export async function provisionPortalUser(
 ): Promise<ProvisionResponse> {
   const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
 
-  const res = await fetch("/api/admin/users/provision", {
+  const res = await adminFetch("/api/admin/users/provision", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

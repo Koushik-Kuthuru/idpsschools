@@ -19,6 +19,7 @@ import { twMerge } from "tailwind-merge";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useAcademicYear } from "@/contexts/AcademicYearContext";
 import { computeTransportHostelMetrics } from "@/lib/adminDashboardLive";
@@ -304,7 +305,7 @@ export default function AdminTransportView({ page }: AdminTransportViewProps = {
       { label: "Active Routes", value: String(routes.filter((r) => r.status !== "Inactive").length || metrics.routeNames.size), icon: MapPin },
       { label: "Students", value: String(metrics.studentsUsingTransport), icon: Users },
       { label: "Drivers", value: String(drivers.length || metrics.driverNames.size), icon: User },
-      { label: "Fee Pending", value: formatInr(metrics.transportFeePending), icon: Wallet },
+      { label: "Transport Due", value: formatInr(metrics.transportFeePending), icon: Wallet },
     ],
     [buses.length, routes, metrics, drivers.length]
   );
@@ -607,7 +608,12 @@ export default function AdminTransportView({ page }: AdminTransportViewProps = {
 
         <div className="overflow-x-auto">
           {tabLoading ? (
-            <div className="px-4 py-12 text-center text-xs font-bold text-gray-400">Loading...</div>
+            <SkeletonTable
+              rows={8}
+              columns={activeTab === "buses" || activeTab === "drivers" ? 6 : 7}
+              showHeader={false}
+              className="rounded-none border-0"
+            />
           ) : activeTab === "routes" ? (
             <table className="w-full text-left border-collapse">
               <thead>

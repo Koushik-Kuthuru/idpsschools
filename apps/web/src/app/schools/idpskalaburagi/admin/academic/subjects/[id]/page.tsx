@@ -10,6 +10,7 @@ import { ArrowLeft, Edit3, ListChecks } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { buildPath, fetchOne, db, auth } from "@/lib/db-client";
+import { SkeletonPage } from "@/components/ui/Skeleton";
 
 
 
@@ -33,7 +34,6 @@ export type AcademicSubject = {
  grade: string;
  section: string;
  name: string;
- code: string;
  description: string;
  portions: SubjectPortion[];
 };
@@ -71,7 +71,6 @@ export default function AdminSubjectDetailPage({
  grade: data.classId || "-",
  section: data.section || "-",
  name: data.name || "Unnamed Subject",
- code: data.code || "",
  description: data.description || "",
  portions: data.portions || []
  });
@@ -98,8 +97,8 @@ export default function AdminSubjectDetailPage({
 
  if (loading) {
  return (
- <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto flex items-center justify-center min-h-[60vh]">
- <div className="w-8 h-8 border-4 border-[#144835] border-t-transparent rounded-full animate-spin" />
+ <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
+ <SkeletonPage stats={3} rows={6} columns={4} toolbar={false} />
  </div>
  );
  }
@@ -126,7 +125,7 @@ export default function AdminSubjectDetailPage({
  </SafeLink>
  <div className="min-w-0">
  <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
- {subject.grade}-{String(subject.section).toUpperCase()} • {subject.code || "—"}
+ {subject.grade}-{String(subject.section).toUpperCase()}
  </p>
  <h1 className="text-xl sm:text-xl font-bold text-gray-900 tracking-tight truncate">{subject.name}</h1>
  <p className="text-xs text-gray-500 mt-1 truncate">{subject.description || "—"}</p>

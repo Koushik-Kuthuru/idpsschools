@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { SkeletonList, SkeletonPageHeader } from "@/components/ui/Skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   MessageSquare, 
   Megaphone, 
@@ -13,6 +15,7 @@ import {
 } from "lucide-react";
 
 export default function MessagesView() {
+  const { loading } = useAuth();
   const [selectedMessage, setSelectedMessage] = useState(0);
   const [newMessage, setNewMessage] = useState("");
   const [activeInboxTab, setActiveInboxTab] = useState("direct");
@@ -67,6 +70,17 @@ export default function MessagesView() {
     setInboxThreads(updatedThreads);
     setNewMessage("");
   };
+
+  if (loading) {
+    return (
+      <div className="erp-body space-y-4 sm:space-y-6 pb-10 max-w-[1600px] mx-auto">
+        <SkeletonPageHeader />
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
+          <SkeletonList rows={6} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">

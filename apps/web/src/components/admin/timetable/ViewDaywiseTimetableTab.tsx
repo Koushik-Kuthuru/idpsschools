@@ -9,27 +9,14 @@ import {
   Coffee,
 } from "lucide-react";
 
-
 import { useSchoolId } from "@/hooks/useSchoolId";
-import {
-  DEFAULT_TERM_KEY,
-  timetableDocId,
-  type PeriodGrid,
-  timetableDays,
-  type TimetableDay,
-} from "./timetablePeriodGrid";
-import {
-  defaultTimetableTemplate,
-  normalizeTimetableTemplate,
-  TIMETABLE_TEMPLATE_DOC,
-  type TimetableTemplate,
-  buildTableColumns,
-} from "./timetableTemplate";
+import { timetableDays, type TimetableDay } from "./timetablePeriodGrid";
+import { buildTableColumns } from "./timetableTemplate";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { buildPath, fetchOne, fetchMany, subscribeData, db, auth } from "@/lib/db-client";
+import { buildPath, subscribeData, db } from "@/lib/db-client";
 import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
-
+import { useClassTimetable } from "./useTimetableData";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -45,30 +32,24 @@ function formatTimeRange(start: string, end: string) {
   return `${start} - ${end}`;
 }
 
+function gradeLabel(grade: string) {
+  if (!grade) return "—";
+  if (/^\d+$/.test(grade)) return `Grade ${grade}`;
+  return grade;
+}
+
 export default function ViewDaywiseTimetableTab() {
   const schoolId = useSchoolId();
-  const { grades: classOptionsFromHook, sectionsByClass } = useBranchClassOptions(schoolId);
+  const { grades: classOptions, sectionsByClass } = useBranchClassOptions(schoolId);
   const [grade, setGrade] = useState("");
   const [section, setSection] = useState("");
-  const classOptions = classOptionsFromHook;
-  const [isLoading, setIsLoading] = useState(false);
-  const [template, setTemplate] = useState<TimetableTemplate>(defaultTimetableTemplate);
-  const [grid, setGrid] = useState<PeriodGrid | null>(null);
   const [holidays, setHolidays] = useState<HolidayEntry[]>([]);
 
-  // Calendar State
   const [currentMonth, setCurrentMonth] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-
-  const columns = useMemo(() => buildTableColumns(template), [template]);
-
-  useEffect(() => {
-    if (!classOptions.length) return;
-    setGrade((prev) => (classOptions.includes(prev) ? prev : classOptions[0]));
-  }, [classOptions]);
 
   const sectionOptions = useMemo(
     () => (grade ? sectionsByClass[grade] ?? [] : []),
@@ -76,48 +57,39 @@ export default function ViewDaywiseTimetableTab() {
   );
 
   useEffect(() => {
-    if (section && sectionOptions.length > 0 && !sectionOptions.includes(section)) {
-      setSection(sectionOptions[0] ?? "");
-    }
-  }, [grade, section, sectionOptions]);
+    if (!classOptions.length) return;
+    setGrade((prev) => (classOptions.includes(prev) ? prev : classOptions[0]));
+  }, [classOptions]);
 
-  // Load Template & Timetable
   useEffect(() => {
-    async function fetchData() {
-      if (!grade || !section) return;
-      setIsLoading(true);
-      try {
-        const tplRef = buildPath(db, "schools", schoolId, "settings", TIMETABLE_TEMPLATE_DOC);
-        const tplSnap = await fetchOne(tplRef);
-        if (tplSnap.exists()) {
-          setTemplate(normalizeTimetableTemplate(tplSnap.data()));
-        }
-
-        const ttRef = buildPath(
-          db,
-          "schools",
-          schoolId,
-          "timetables",
-          timetableDocId(DEFAULT_TERM_KEY, grade, section)
-        );
-        const ttSnap = await fetchOne(ttRef);
-        if (ttSnap.exists()) {
-          const data = ttSnap.data();
-          setGrid(data?.periodGrid ?? data?.timetable ?? null);
-        } else {
-          setGrid(null);
-        }
-      } catch (err) {
-        console.error("Failed to fetch timetable", err);
-      } finally {
-        setIsLoading(false);
-      }
+    if (!grade) {
+      setSection("");
+      return;
     }
-    fetchData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [grade, section]);
+    const sections = sectionsByClass[grade] ?? [];
+    if (!sections.length) {
+      setSection("");
+      return;
+    }
+    setSection((prev) =>
+      prev && sections.some((s) => s.toUpperCase() === prev.toUpperCase()) ? prev : sections[0]
+    );
+  }, [grade, sectionsByClass]);
 
-  // Load Holidays
+  const handleGradeChange = (nextGrade: string) => {
+    setGrade(nextGrade);
+    const sections = sectionsByClass[nextGrade] ?? [];
+    setSection(sections[0] ?? "");
+  };
+
+  const { grid, template, loading: isLoading, term } = useClassTimetable(
+    schoolId,
+    grade,
+    section
+  );
+
+  const columns = useMemo(() => buildTableColumns(template), [template]);
+
   useEffect(() => {
     const unsub = subscribeData(buildPath(db, "schools", schoolId, "holidays"), (snap: any) => {
       setHolidays(
@@ -134,17 +106,16 @@ export default function ViewDaywiseTimetableTab() {
       );
     });
     return () => unsub();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [schoolId]);
 
-  // Calendar Helpers
   const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
-  // Adjust so Monday is 0
   const startOffset = (firstDayOfMonth + 6) % 7;
 
-  const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
-  const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  const nextMonth = () =>
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  const prevMonth = () =>
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
 
   const formatLocalDate = (d: Date) => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -189,6 +160,20 @@ export default function ViewDaywiseTimetableTab() {
       );
     }
 
+    if (!section) {
+      return (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <div className="h-16 w-16 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mb-4">
+            <CalendarRange size={32} />
+          </div>
+          <h3 className="text-lg font-bold text-gray-800">No Section</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Select a section for {gradeLabel(grade)} to view the day schedule.
+          </p>
+        </div>
+      );
+    }
+
     if (!grid || !selectedWeekday || !grid[selectedWeekday]) {
       return (
         <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -197,7 +182,7 @@ export default function ViewDaywiseTimetableTab() {
           </div>
           <h3 className="text-lg font-bold text-gray-800">No Timetable</h3>
           <p className="text-sm text-gray-500 mt-1">
-            No schedule has been created for {grade}-{section} yet.
+            No schedule has been created for {gradeLabel(grade)} — {section} ({term}) yet.
           </p>
         </div>
       );
@@ -208,7 +193,7 @@ export default function ViewDaywiseTimetableTab() {
     return (
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
-          {selectedWeekday}'s Schedule
+          {selectedWeekday}&apos;s Schedule
         </h3>
         <div className="flex flex-col gap-3">
           {columns.map((col, idx) => {
@@ -284,12 +269,12 @@ export default function ViewDaywiseTimetableTab() {
             <label className="text-xs font-bold text-gray-500 uppercase">Grade:</label>
             <select
               value={grade}
-              onChange={(e) => setGrade(e.target.value)}
+              onChange={(e) => handleGradeChange(e.target.value)}
               className="h-8 rounded-md border border-gray-200 bg-white px-2 text-[11px] font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#144835]/30 focus:border-[#144835]"
             >
               {classOptions.map((g) => (
                 <option key={g} value={g}>
-                  {/^\d+$/.test(g) ? `Grade ${g}` : g}
+                  {gradeLabel(g)}
                 </option>
               ))}
             </select>
@@ -299,8 +284,8 @@ export default function ViewDaywiseTimetableTab() {
             <select
               value={section}
               onChange={(e) => setSection(e.target.value)}
-              disabled={!grade}
-              className="h-8 rounded-md border border-gray-200 bg-white px-2 text-[11px] font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#144835]/30 focus:border-[#144835] disabled:opacity-50"
+              disabled={!grade || sectionOptions.length === 0}
+              className="h-8 min-w-[140px] rounded-md border border-gray-200 bg-white px-2 text-[11px] font-medium text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#144835]/30 focus:border-[#144835] disabled:opacity-50"
             >
               {sectionOptions.map((s) => (
                 <option key={s} value={s}>
@@ -309,6 +294,8 @@ export default function ViewDaywiseTimetableTab() {
               ))}
             </select>
           </div>
+
+          <span className="text-[11px] font-semibold text-gray-400">{term}</span>
 
           <div className="flex-1" />
 
@@ -321,7 +308,6 @@ export default function ViewDaywiseTimetableTab() {
         </div>
 
         <div className="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Calendar View */}
           <div className="rounded-[16px] border border-gray-100 overflow-hidden bg-white shadow-sm">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
               <h2 className="text-sm font-bold text-gray-800">
@@ -335,7 +321,9 @@ export default function ViewDaywiseTimetableTab() {
                   <ChevronLeft size={16} />
                 </button>
                 <button
-                  onClick={() => setCurrentMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))}
+                  onClick={() =>
+                    setCurrentMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+                  }
                   className="h-8 px-2 rounded-md hover:bg-gray-200 text-xs font-bold text-gray-600 transition-colors"
                 >
                   Today
@@ -414,8 +402,8 @@ export default function ViewDaywiseTimetableTab() {
                             ? "bg-[#144835] text-white"
                             : "bg-gray-200 text-gray-900"
                           : isSelected
-                          ? "text-[#144835]"
-                          : "text-gray-700",
+                            ? "text-[#144835]"
+                            : "text-gray-700",
                         isSun && !isSelected && !isToday ? "text-gray-400" : ""
                       )}
                     >
@@ -439,7 +427,6 @@ export default function ViewDaywiseTimetableTab() {
             </div>
           </div>
 
-          {/* Details Panel */}
           <div className="rounded-[16px] border border-gray-100 overflow-hidden bg-gray-50/30">
             <div className="p-4 border-b border-gray-100 bg-white flex items-center justify-between">
               <div>
@@ -449,6 +436,7 @@ export default function ViewDaywiseTimetableTab() {
                 </h2>
                 <p className="text-xs font-semibold text-gray-500 mt-0.5">
                   {selectedDate.toLocaleString("default", { weekday: "long" })}
+                  {section ? ` · ${gradeLabel(grade)} — ${section}` : ""}
                 </p>
               </div>
               {isLoading && <RotateCw size={16} className="animate-spin text-[#144835]" />}

@@ -3,6 +3,7 @@
 import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { SkeletonPage } from "@/components/ui/Skeleton";
 import { 
   Calendar, 
   ArrowUpRight, 
@@ -14,8 +15,12 @@ import {
 } from "lucide-react";
 
 export default function AttendanceView() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const student = user || {};
+
+  if (loading) {
+    return <SkeletonPage stats={3} rows={6} columns={5} />;
+  }
 
   const subjects = [
     { name: "English Literature", conducted: 40, attended: 38, absent: 2, pct: 95.0, status: "Good" },

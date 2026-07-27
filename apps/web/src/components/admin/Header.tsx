@@ -5,18 +5,16 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 const SafeLink = Link as any;
 ;
-import { Bell, CheckCheck, ChevronDown, ChevronRight, CircleHelp, LogOut, Menu, Settings, User, X } from "lucide-react";
+import { Bell, CheckCheck, ChevronDown, ChevronRight, CircleHelp, LogOut, Menu, Search, Settings, User, X } from "lucide-react";
 import AdminGlobalSearch from "@/components/admin/AdminGlobalSearch";
+import AcademicYearSwitcher from "@/components/admin/AcademicYearSwitcher";
 import { notificationIcon, notificationIconStyles } from "@/components/admin/notificationStyles";
 import { getActiveNavGroup } from "./navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useAcademicYearOptional } from "@/contexts/AcademicYearContext";
-import { getActiveAcademicYear } from "@/lib/activeAcademicYear";
 import { useAdminNotifications } from "@/contexts/AdminNotificationsContext";
 import { formatRelativeTime } from "@/lib/adminNotifications";
-import { auth, db } from "@/lib/db-client";
-
+import { getPortalLoginPath } from "@/lib/auth/roles";
 
 interface HeaderProps {
   setIsMobileMenuOpen: (open: boolean) => void;
@@ -46,14 +44,11 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [yearMenuOpen, setYearMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const { user, role } = useAuth();
-  const academicYear = useAcademicYearOptional();
-  const cachedYearLabel = useMemo(
-    () => getActiveAcademicYear(schoolId),
-    [schoolId]
-  );
+  const { user, role, logout } = useAuth();
   const { notifications, unreadCount, markAllRead, openNotification } = useAdminNotifications();
 
   const handleOpenNotification = (notification: (typeof notifications)[number]) => {
@@ -86,13 +81,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   }, [userDisplayName]);
 
   const handleLogout = async () => {
-    try {
-      setUserMenuOpen(false);
-      await auth.signOut();
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
+    setUserMenuOpen(false);
+    await logout(getPortalLoginPath(schoolId, role));
   };
 
   useEffect(() => {
@@ -112,6 +102,13 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [userMenuOpen]);
+
+  useEffect(() => {
+    if (yearMenuOpen) {
+      setNotificationsOpen(false);
+      setUserMenuOpen(false);
+    }
+  }, [yearMenuOpen]);
 
   useEffect(() => {
     if (!notificationsOpen) return;
@@ -145,11 +142,11 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
             <h2 className="text-sm sm:text-lg font-bold text-[#1A1A1A] truncate">
               {headerTitle}
             </h2>
-            {(academicYear?.currentYear?.name ?? cachedYearLabel) ? (
-              <span className="hidden shrink-0 rounded-full bg-[#144835]/10 px-2 py-0.5 text-[10px] font-bold text-[#144835] sm:inline">
-                {academicYear?.currentYear?.name ?? cachedYearLabel}
-              </span>
-            ) : null}
+            <AcademicYearSwitcher
+              schoolId={schoolId}
+              open={yearMenuOpen}
+              onOpenChange={setYearMenuOpen}
+            />
           </div>
 
           <div className="hidden md:flex w-full min-w-0 justify-center px-2">
@@ -166,6 +163,20 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
           </div>
 
           <div className="flex items-center justify-end gap-1 sm:gap-2 shrink-0 col-start-2 md:col-start-3">
+            <button
+              type="button"
+              aria-label="Search"
+              className="md:hidden p-1.5 text-gray-400 hover:text-[#144835] transition-colors rounded-full hover:bg-gray-100"
+              onClick={() => {
+                setNotificationsOpen(false);
+                setUserMenuOpen(false);
+                setMobileSearchOpen(true);
+                setSearchOpen(true);
+              }}
+            >
+              <Search size={18} />
+            </button>
+
             <div className="relative">
               {unreadCount > 0 ? (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-500 rounded-full ring-2 ring-white z-10 flex items-center justify-center text-[10px] font-bold text-white">
@@ -178,6 +189,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                 aria-expanded={notificationsOpen}
                 onClick={() => {
                   setUserMenuOpen(false);
+                  setYearMenuOpen(false);
                   setNotificationsOpen((open) => !open);
                 }}
                 className="relative p-1.5 text-gray-400 hover:text-[#144835] transition-colors rounded-full hover:bg-gray-100"
@@ -192,6 +204,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
               title="Help center"
               onClick={() => {
                 setUserMenuOpen(false);
+                setYearMenuOpen(false);
                 setNotificationsOpen(false);
               }}
               className={`p-1.5 rounded-full transition-colors ${
@@ -209,6 +222,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
               title="Settings"
               onClick={() => {
                 setUserMenuOpen(false);
+                setYearMenuOpen(false);
                 setNotificationsOpen(false);
               }}
               className={`p-1.5 rounded-full transition-colors ${
@@ -220,9 +234,9 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
               <Settings size={18} />
             </SafeLink>
 
-            <div className="h-6 w-px bg-gray-200 hidden sm:block" />
+            <div className="h-6 w-px bg-gray-200 hidden md:block" />
 
-            <div className="relative hidden sm:block" ref={userMenuRef}>
+            <div className="relative" ref={userMenuRef}>
               <button
                 type="button"
                 aria-label="Account menu"
@@ -230,6 +244,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                 aria-haspopup="menu"
                 onClick={() => {
                   setNotificationsOpen(false);
+                  setYearMenuOpen(false);
                   setUserMenuOpen((open) => !open);
                 }}
                 className={`flex items-center gap-2 rounded-xl border px-1.5 py-1 transition-colors shrink-0 xl:gap-2.5 xl:max-w-[220px] ${
@@ -251,7 +266,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
                 </div>
                 <ChevronDown
                   size={14}
-                  className={`text-gray-400 shrink-0 transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`}
+                  className={`hidden sm:block text-gray-400 shrink-0 transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
@@ -292,6 +307,42 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
           </div>
         </div>
       </header>
+
+      {mobileSearchOpen ? (
+        <div className="fixed inset-0 z-[60] md:hidden">
+          <button
+            type="button"
+            aria-label="Close search"
+            className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
+            onClick={() => {
+              setMobileSearchOpen(false);
+              setSearchOpen(false);
+            }}
+          />
+          <div className="relative bg-white border-b border-gray-200 px-4 py-3 shadow-lg">
+            <div className="flex items-center gap-2">
+              <AdminGlobalSearch
+                schoolId={schoolId}
+                onOpenChange={(open) => {
+                  setSearchOpen(open);
+                  if (!open) setMobileSearchOpen(false);
+                }}
+              />
+              <button
+                type="button"
+                aria-label="Close"
+                className="shrink-0 p-2 rounded-lg text-gray-400 hover:text-[#144835] hover:bg-gray-100"
+                onClick={() => {
+                  setMobileSearchOpen(false);
+                  setSearchOpen(false);
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {notificationsOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">

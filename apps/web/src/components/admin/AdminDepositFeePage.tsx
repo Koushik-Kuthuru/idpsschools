@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 const SafeLink = Link as any;
@@ -29,6 +30,7 @@ import { twMerge } from "tailwind-merge";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import PayableFeeStructureModal from "@/components/admin/PayableFeeStructureModal";
 import FeeReceiptModal from "@/components/admin/FeeReceiptModal";
+import { Skeleton, SkeletonProfile, SkeletonTable } from "@/components/ui/Skeleton";
 import { useBranch } from "@/components/admin/BranchContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolId } from "@/hooks/useSchoolId";
@@ -36,29 +38,31 @@ import { useAcademicYear } from "@/contexts/AcademicYearContext";
 import { useBranchStudents } from "@/hooks/useBranchStudents";
 import {
   FEE_MONTHS,
-  buildPaidMonthsFromReceipts,
   computeFeeStatus,
   formatInr,
   hasFeeGridData,
   monthLabelFromIndex,
   mapPaymentDocToReceipt,
   formatReceiptDateTime,
+  formatTxnDateDmy,
+  formatFeeMonthRange,
+  formatReceiptNumber,
+  excelModeGroupLabel,
+  isSyntheticImportedReceipt,
+  cleanTransactionId,
   nextReceiptNo,
   parseAmount,
   type FeeGridRow,
   type FeeReceiptRow,
 } from "@/lib/feeDepositUtils";
 import { extractFeeDetails, extractFeeTransactions, hydrateStudentFeeDetails } from "@/lib/studentFeeResolver";
-import { buildFeeReceiptPrintData } from "@/lib/buildFeeReceiptData";
+import { buildFeeReceiptPrintData, lineItemsFromReceipt } from "@/lib/buildFeeReceiptData";
 import { loadFeeReceiptTemplate, type FeeReceiptPrintData } from "@/lib/feeReceiptTemplate";
 import {
   buildPath,
-  buildQuery,
-  fetchMany,
-  getTimestamp,
-  sortBy,
-  upsertData,
   db,
+  getTimestamp,
+  upsertData,
 } from "@/lib/db-client";
 
 function cn(...inputs: ClassValue[]) {
@@ -91,7 +95,16 @@ type StudentDetail = Record<string, unknown> & {
     lateFine?: string | number;
     feeGrid?: FeeGridRow[];
     paidMonths?: string[];
-    discountLog?: Array<{ date?: string; amount?: string | number; remark?: string }>;
+    /** Paid totals by APR–MAR month from head-wise month reports. */
+    headwisePaidMonths?: Array<string | number | null>;
+    /** Due totals by APR–MAR from head-wise month reports. */
+    headwiseDueMonths?: Array<string | number | null>;
+    discountLog?: Array<{
+      date?: string;
+      amount?: string | number;
+      remark?: string;
+      particular?: string;
+    }>;
   };
   transportDetails?: {
     facility?: string;
@@ -121,18 +134,43 @@ function mapPaymentDoc(id: string, data: Record<string, unknown>): FeeReceiptRow
 }
 
 function formatLegacyTxDate(row: Pick<FeeReceiptRow, "date" | "dateDisplay" | "time">): string {
-  const { date, time } = formatReceiptDateTime(row);
-  return time !== "—" ? `${date} · ${time}` : date;
+  return formatTxnDateDmy(row);
 }
 
 function isUpiPaymentMode(mode: string): boolean {
-  return String(mode ?? "").toUpperCase().includes("UPI");
+  const upper = String(mode ?? "").toUpperCase();
+  return (
+    upper.includes("UPI") ||
+    upper.includes("PAYZAAP") ||
+    upper.includes("PAY TM") ||
+    upper === "ONLINE" ||
+    upper === "LIVE"
+  );
 }
 
-function transactionIdForRow(mode: string, reference?: string): string {
-  if (!isUpiPaymentMode(mode)) return "";
-  const id = String(reference ?? "").trim();
-  return id;
+/** Show Excel Trans. No. only for UPI payments — never invent or fall back to import refs. */
+function transactionIdForRow(receipt: {
+  mode?: string;
+  transNo?: string;
+  transactionId?: string;
+}): string {
+  if (!isUpiPaymentMode(String(receipt.mode ?? ""))) return "";
+  return cleanTransactionId(String(receipt.transNo ?? receipt.transactionId ?? "").trim());
+}
+
+function normalizeReceiptForDisplay(r: FeeReceiptRow): FeeReceiptRow {
+  return {
+    ...r,
+    receiptNo: formatReceiptNumber(r.receiptNo, {
+      particular: r.particular,
+      exHead: r.exHead,
+      remark: r.remark,
+    }),
+    month: formatFeeMonthRange(r.month),
+    mode: excelModeGroupLabel(r.mode) || r.mode,
+    transNo: cleanTransactionId(String(r.transNo ?? r.transactionId ?? "")),
+    transactionId: cleanTransactionId(String(r.transactionId ?? r.transNo ?? "")),
+  };
 }
 
 function studentBoardingCategory(student: StudentDetail | null | undefined): string {
@@ -170,18 +208,42 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
   const { activeBranch } = useBranch();
   const branchName = activeBranch?.name ?? "IDPS Cherukupalli";
   const { user } = useAuth();
-  const { currentYear } = useAcademicYear();
+  const { currentYear, loading: yearLoading } = useAcademicYear();
   const base = `/schools/${schoolId}/admin`;
-  const { students, classOptions, sectionOptions, loading: studentsLoading } = useBranchStudents(
-    schoolId,
-    currentYear?.name
-  );
+  const {
+    students: enrolledStudents,
+    classOptions,
+    sectionOptions,
+    loading: enrolledLoading,
+    error: enrolledError,
+  } = useBranchStudents(schoolId, currentYear?.name, "enrolled");
+  const {
+    students: nsoStudents,
+    loading: nsoLoading,
+    error: nsoError,
+  } = useBranchStudents(schoolId, currentYear?.name, "nso");
+
+  const students = useMemo(() => {
+    const byAdmission = new Map<string, (typeof enrolledStudents)[number]>();
+    for (const row of enrolledStudents) {
+      if (row.admissionNo) byAdmission.set(row.admissionNo, row);
+    }
+    for (const row of nsoStudents) {
+      if (!row.admissionNo || byAdmission.has(row.admissionNo)) continue;
+      if (row.id.startsWith("nso-registry:")) continue;
+      byAdmission.set(row.admissionNo, row);
+    }
+    return Array.from(byAdmission.values());
+  }, [enrolledStudents, nsoStudents]);
+
+  const studentsLoading = enrolledLoading || nsoLoading;
+  const studentsError = enrolledError ?? nsoError;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [classFilter, setClassFilter] = useState("All");
   const [sectionFilter, setSectionFilter] = useState("All");
   const [studentSort, setStudentSort] = useState<StudentSort>("name");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("Active");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("All");
   const [filterOpen, setFilterOpen] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [student, setStudent] = useState<StudentDetail | null>(null);
@@ -249,7 +311,16 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
     filteredStudents.length > 0 &&
     Boolean(searchQuery.trim() || classFilter !== "All" || sectionFilter !== "All");
 
-  const showEmptyPlaceholder = !student && !studentLoading && !selectedId && !showStudentList;
+  const showEmptyPlaceholder =
+    !student && !studentLoading && !selectedId && !showStudentList && !studentsLoading && !yearLoading;
+
+  const showNoSearchResults =
+    !student &&
+    !studentLoading &&
+    !studentsLoading &&
+    !yearLoading &&
+    Boolean(searchQuery.trim() || classFilter !== "All" || sectionFilter !== "All") &&
+    filteredStudents.length === 0;
 
   const displayStudents = filteredStudents;
 
@@ -258,7 +329,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
     setClassFilter("All");
     setSectionFilter("All");
     setStudentSort("name");
-    setStatusFilter("Active");
+    setStatusFilter("All");
     setSelectedId(null);
     setStudent(null);
     setStudentLoadError(null);
@@ -266,48 +337,72 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
 
   const studentReceipts = useMemo(() => {
     if (!student) return [];
-    const adm = String(student.admissionNo ?? "").toLowerCase();
-    const sid = student.id;
-    const name = String(student.name ?? student.studentName ?? "").toLowerCase();
-    const fromPayments = allReceipts.filter(
-      (r) =>
-        r.studentId === sid ||
-        (r.admissionNo && r.admissionNo.toLowerCase() === adm) ||
-        (r.studentName && r.studentName.toLowerCase() === name)
-    );
+    const year = String(currentYear?.name ?? student.academicYear ?? "").trim();
     const fromProfile = extractFeeTransactions(student as Record<string, unknown>, {
-      id: sid,
+      id: student.id,
       admissionNo: String(student.admissionNo ?? ""),
       name: String(student.name ?? student.studentName ?? ""),
+    }).filter((r) => {
+      if (!year) return true;
+      const receiptYear = String(r.academicYear ?? "").trim();
+      if (!receiptYear) return true;
+      return receiptYear === year;
     });
     const seen = new Set<string>();
-    return [...fromProfile, ...fromPayments].filter((r) => {
-      const key = `${r.receiptNo}|${r.date}|${r.amount}|${r.reference ?? ""}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-  }, [allReceipts, student]);
+    const merged = [...allReceipts, ...fromProfile]
+      .filter((r) => !isSyntheticImportedReceipt(r))
+      .filter((r) => {
+        if (!year) return true;
+        const receiptYear = String(r.academicYear ?? "").trim();
+        if (!receiptYear) return true;
+        return receiptYear === year;
+      })
+      .map(normalizeReceiptForDisplay)
+      .filter((r) => {
+        const id = String(r.id ?? "").trim();
+        const key = id
+          ? `id:${id}`
+          : `${r.receiptNo}|${r.date}|${r.amount}|${r.transNo ?? ""}|${r.reference ?? ""}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .sort((a, b) => String(a.date).localeCompare(String(b.date)) || a.receiptNo.localeCompare(b.receiptNo));
+    return merged;
+  }, [allReceipts, student, currentYear?.name]);
 
-  const loadPayments = useCallback(async () => {
-    try {
-      const snap = await fetchMany(buildQuery(buildPath(db, "schools", schoolId, "payments"), sortBy("createdAt", "desc")));
-      const rows = snap.docs.map((d) => mapPaymentDoc(d.id, d.data() as Record<string, unknown>));
-      setAllReceipts(rows);
-    } catch {
-      setAllReceipts([]);
-    }
-  }, [schoolId]);
+  // Instant path: do NOT load the whole branch payment table. Load only this student's year.
+  const loadPaymentsForStudent = useCallback(
+    async (detail: StudentDetail) => {
+      try {
+        const params = new URLSearchParams({ schoolId });
+        if (currentYear?.name) params.set("academicYear", currentYear.name);
+        if (detail.id) params.set("studentId", detail.id);
+        else if (detail.admissionNo) params.set("admissionNo", String(detail.admissionNo));
+        const res = await adminFetch(`/api/admin/fee-payments?${params.toString()}`, { cache: "no-store" });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to load payments");
+        const rows = ((data.payments ?? []) as Array<Record<string, unknown>>).map((row) =>
+          mapPaymentDoc(String(row.id ?? ""), row)
+        );
+        setAllReceipts(rows);
+      } catch {
+        setAllReceipts([]);
+      }
+    },
+    [schoolId, currentYear?.name]
+  );
 
   const loadStudent = useCallback(
     async (studentId: string) => {
       setStudentLoading(true);
       setStudentLoadError(null);
       setSelectedId(studentId);
+      setAllReceipts([]);
       try {
         const params = new URLSearchParams({ schoolId });
         if (currentYear?.name) params.set("academicYear", currentYear.name);
-        const res = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}?${params.toString()}`);
+        const res = await adminFetch(`/api/admin/students/${encodeURIComponent(studentId)}?${params.toString()}`);
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Student not found");
 
@@ -318,13 +413,16 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
           currentYear?.name ?? null
         );
 
-        setStudent({
+        const merged = {
           ...detail,
           feeDetails: {
             ...(detail.feeDetails ?? {}),
             ...feeDetails,
           },
-        });
+        };
+        setStudent(merged);
+        // Background top-up from payments API (scoped) — UI already shows profile txs instantly
+        void loadPaymentsForStudent(merged);
       } catch (err) {
         setStudent(null);
         setStudentLoadError(err instanceof Error ? err.message : "Failed to load student");
@@ -332,29 +430,33 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
         setStudentLoading(false);
       }
     },
-    [schoolId, currentYear?.name]
+    [schoolId, currentYear?.name, loadPaymentsForStudent]
   );
+
+  useEffect(() => {
+    const raw = searchQuery.trim();
+    if (!raw || student || studentLoading || studentsLoading) return;
+
+    const admissionQuery = raw.split("·")[0]?.trim() ?? raw;
+    const exactMatches = students.filter((row) => {
+      if (row.id.startsWith("nso-registry:")) return false;
+      return row.admissionNo === admissionQuery || row.admissionNo === raw;
+    });
+    if (exactMatches.length !== 1) return;
+
+    const match = exactMatches[0];
+    if (selectedId === match.id) return;
+    void loadStudent(match.id);
+  }, [searchQuery, student, studentLoading, studentsLoading, students, selectedId, loadStudent]);
 
   useEffect(() => {
     setReceiptTemplate(loadFeeReceiptTemplate(schoolId, branchName));
   }, [schoolId, branchName]);
 
-  useEffect(() => {
-    void loadPayments();
-  }, [loadPayments]);
-
   const feeGrid = useMemo(() => {
     const grid = student?.feeDetails?.feeGrid;
     return (Array.isArray(grid) ? grid : []) as FeeGridRow[];
   }, [student]);
-
-  const paidMonths = useMemo(() => {
-    const fromProfile = student?.feeDetails?.paidMonths;
-    if (Array.isArray(fromProfile) && fromProfile.some((v) => parseAmount(v) > 0)) {
-      return fromProfile.map((v) => parseAmount(v));
-    }
-    return buildPaidMonthsFromReceipts(studentReceipts);
-  }, [student, studentReceipts]);
 
   const feeAdjustments = useMemo(() => {
     const details = extractFeeDetails(student ?? {});
@@ -367,6 +469,8 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
       grossFee: parseAmount(details.grossFee),
       lateFine,
       discountLog: details.discountLog ?? [],
+      paymentStatus: details.paymentStatus,
+      feePaid: parseAmount(details.feePaid),
     };
   }, [student, studentReceipts]);
 
@@ -375,13 +479,18 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
       computeFeeStatus({
         feeGrid,
         transportFees: student?.transportDetails?.fees,
-        paidMonths,
+        receipts: studentReceipts,
+        profilePaidMonths: student?.feeDetails?.paidMonths,
+        headwisePaidMonths: student?.feeDetails?.headwisePaidMonths,
+        headwiseDueMonths: student?.feeDetails?.headwiseDueMonths,
+        feePaidTotal: feeAdjustments.feePaid,
         lastYearDue: student?.feeDetails?.lastYearDue,
         grossFee: feeAdjustments.grossFee,
         totalDiscount: feeAdjustments.totalDiscount,
         lateFine: feeAdjustments.lateFine,
+        academicYear: currentYear?.name,
       }),
-    [feeGrid, student, paidMonths, feeAdjustments]
+    [feeGrid, student, studentReceipts, feeAdjustments, currentYear?.name]
   );
 
   const handleSelectStudent = (id: string, admissionNo: string, name: string) => {
@@ -423,10 +532,12 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
         remark: payForm.remark.trim(),
         collectedBy: user?.uid ?? null,
         collectedByName: collectorName,
+        academicYear: currentYear?.name ?? null,
         createdAt: getTimestamp(),
       });
 
-      await loadPayments();
+      await loadPaymentsForStudent(student);
+      await loadStudent(student.id);
       setPayOpen(false);
       setPayForm((f) => ({ ...f, amount: "", remark: "" }));
     } catch (err) {
@@ -457,7 +568,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
     setReceiptTemplate(loadFeeReceiptTemplate(schoolId, branchName));
     setReceiptData(
       buildFeeReceiptPrintData({
-        receipt,
+        receipt: { ...receipt, lineItems: lineItemsFromReceipt(receipt) },
         student,
         academicYear: currentYear?.name,
         feeTotals: { balance: feeStatus.totals.balance, fee: feeStatus.totals.fee },
@@ -480,10 +591,13 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
         mode: "Discount",
         fine: 0,
         status: "Completed",
+        particular: String(row.particular ?? "").trim() || "Fee discount",
         remark: row.remark ? String(row.remark) : undefined,
       }));
     }
-    return studentReceipts.filter((r) => r.status === "Completed" || r.status === "Live");
+    return studentReceipts.filter(
+      (r) => r.status === "Completed" || r.status === "Live" || r.status === "Cancelled"
+    );
   }, [studentReceipts, txTab, feeAdjustments.discountLog]);
 
   return (
@@ -551,9 +665,13 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
             <RotateCw size={16} />
           </button>
 
-          <span className="hidden sm:inline text-[11px] font-bold text-gray-400 whitespace-nowrap shrink-0">
-            {studentsLoading ? "Loading…" : `${filteredStudents.length} students`}
-          </span>
+          <div className="hidden sm:block text-[11px] font-bold text-gray-400 whitespace-nowrap shrink-0">
+            {studentsLoading ? (
+              <Skeleton className="h-3 w-16" />
+            ) : (
+              `${filteredStudents.length} students`
+            )}
+          </div>
         </div>
 
         {filterOpen ? (
@@ -755,10 +873,20 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
         ) : null}
       </div>
 
+      {studentsError ? (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700">
+          {studentsError}
+        </div>
+      ) : null}
+
       {studentLoadError ? (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700">
           {studentLoadError}
         </div>
+      ) : null}
+
+      {(studentsLoading || yearLoading) && !student ? (
+        <SkeletonTable rows={6} columns={5} />
       ) : null}
 
       {showEmptyPlaceholder && (
@@ -767,21 +895,32 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
           <p className="text-sm font-bold text-gray-500">
             Search by admission number or name, or pick a class and section to browse students.
           </p>
+          {currentYear?.name ? (
+            <p className="text-xs font-semibold text-gray-400 mt-2">Academic year: {currentYear.name}</p>
+          ) : null}
         </div>
       )}
 
-      {studentLoading && (
-        <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center animate-pulse">
-          <p className="text-sm font-bold text-gray-400">Loading student…</p>
+      {showNoSearchResults ? (
+        <div className="rounded-2xl border border-dashed border-amber-200 bg-amber-50/40 p-12 text-center">
+          <Users size={40} className="mx-auto text-amber-300 mb-3" />
+          <p className="text-sm font-bold text-gray-600">No students match your search or filters.</p>
+          <p className="text-xs font-semibold text-gray-500 mt-2">
+            Try setting Status to &quot;All Students&quot;, or search by admission number (e.g. 743).
+          </p>
         </div>
+      ) : null}
+
+      {studentLoading && (
+        <SkeletonProfile />
       )}
 
       {student && !studentLoading && (
         <>
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 xl:items-stretch">
             {/* Student card */}
-            <div className="xl:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-[#144835]/5 to-transparent flex gap-4">
+            <div className="xl:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-[400px] min-h-[320px]">
+              <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-[#144835]/5 to-transparent flex gap-4 shrink-0">
                 <div className="h-20 w-16 rounded-xl overflow-hidden bg-gray-100 shrink-0 border border-gray-200">
                   {photo ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -800,7 +939,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
                   <p className="text-xs text-gray-500 font-semibold mt-1">Adm. {student.admissionNo ?? "—"}</p>
                 </div>
               </div>
-              <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar [scrollbar-gutter:stable] p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs content-start">
                 <Info icon={Users} label="Father" value={String(student.fatherName ?? "—")} />
                 <Info icon={Building2} label="Student Type" value={studentBoardingCategory(student)} />
                 <Info icon={Users} label="Admission Type" value={admissionType} />
@@ -816,7 +955,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
                   <Info icon={MapPin} label="Address" value={String(address)} />
                 </div>
               </div>
-              <div className="p-4 pt-0 flex flex-wrap gap-2">
+              <div className="p-4 pt-3 border-t border-gray-100 flex flex-wrap gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => setPayOpen(true)}
@@ -840,8 +979,8 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
             </div>
 
             {/* Transactions */}
-            <div className="xl:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col min-h-[320px]">
-              <div className="flex flex-wrap gap-1 p-3 border-b border-gray-100 bg-gray-50/60">
+            <div className="xl:col-span-3 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-[400px] min-h-[320px]">
+              <div className="flex flex-wrap gap-1 p-3 border-b border-gray-100 bg-gray-50/60 shrink-0">
                 {TX_TABS.map((tab) => (
                   <button
                     key={tab}
@@ -856,48 +995,127 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
                   </button>
                 ))}
               </div>
-              <div className="px-4 py-2 flex gap-4 text-[11px] font-bold text-gray-500 border-b border-gray-50">
+              <div className="px-4 py-2 flex gap-4 text-[11px] font-bold text-gray-500 border-b border-gray-50 shrink-0">
                 <span>
-                  Receipts: <strong className="text-gray-900">{filteredTx.length}</strong>
+                  {txTab === "Discount Log" ? "Entries" : "Receipts"}:{" "}
+                  <strong className="text-gray-900">{filteredTx.length}</strong>
                 </span>
-                <span>
-                  Deposited:{" "}
-                  <strong className="text-emerald-700">{formatInr(feeStatus.totals.paid)}</strong>
-                </span>
+                {txTab === "Discount Log" ? (
+                  <span>
+                    Total discount:{" "}
+                    <strong className="text-emerald-700">
+                      {formatInr(feeAdjustments.totalDiscount || feeStatus.totals.discount)}
+                    </strong>
+                  </span>
+                ) : txTab === "Previous Transaction" ? (
+                  <>
+                    <span>
+                      Live:{" "}
+                      <strong className="text-emerald-700">
+                        {
+                          filteredTx.filter(
+                            (r) => r.status !== "Cancelled" && r.status !== "Failed"
+                          ).length
+                        }
+                      </strong>
+                    </span>
+                    <span>
+                      Cancelled:{" "}
+                      <strong className="text-rose-600">
+                        {filteredTx.filter((r) => r.status === "Cancelled").length}
+                      </strong>
+                    </span>
+                    <span>
+                      Deposited:{" "}
+                      <strong className="text-emerald-700">
+                        {formatInr(
+                          filteredTx
+                            .filter((r) => r.status !== "Cancelled" && r.status !== "Failed")
+                            .reduce((sum, r) => sum + r.amount, 0)
+                        )}
+                      </strong>
+                    </span>
+                  </>
+                ) : (
+                  <span>
+                    Deposited:{" "}
+                    <strong className="text-emerald-700">{formatInr(feeStatus.totals.paid)}</strong>
+                  </span>
+                )}
               </div>
-              <div className="flex-1 overflow-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="sticky top-0 bg-white border-b border-gray-100">
+              <div className="flex-1 min-h-0 overflow-x-auto overflow-y-scroll custom-scrollbar [scrollbar-gutter:stable]">
+                <table className="w-full min-w-[640px] text-left text-xs">
+                  <thead className="sticky top-0 z-[1] bg-white border-b border-gray-100">
                     <tr className="text-[10px] uppercase tracking-wide text-gray-400 font-bold">
-                      <th className="px-3 py-2">Receipt</th>
-                      <th className="px-3 py-2">Month</th>
-                      <th className="px-3 py-2">Date</th>
-                      <th className="px-3 py-2 text-right">Amount</th>
-                      <th className="px-3 py-2">Mode</th>
-                      <th className="px-3 py-2 text-right">Fine</th>
-                      <th className="px-3 py-2">Transaction ID</th>
-                      <th className="px-3 py-2 w-10 print:hidden"> </th>
+                      {txTab === "Discount Log" ? (
+                        <>
+                          <th className="px-3 py-2">Date</th>
+                          <th className="px-3 py-2">Discount for</th>
+                          <th className="px-3 py-2 text-right">Amount</th>
+                          <th className="px-3 py-2">Remark</th>
+                        </>
+                      ) : (
+                        <>
+                          <th className="px-3 py-2">Receipt</th>
+                          <th className="px-3 py-2">Month</th>
+                          <th className="px-3 py-2">Date</th>
+                          <th className="px-3 py-2 text-right">Amount</th>
+                          <th className="px-3 py-2">Mode</th>
+                          <th className="px-3 py-2 text-right">Fine</th>
+                          <th className="px-3 py-2">Transaction ID</th>
+                          <th className="px-3 py-2 w-10 print:hidden"> </th>
+                        </>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
                     {filteredTx.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-4 py-8 text-center text-gray-400 font-semibold">
-                          No transactions yet
+                        <td
+                          colSpan={txTab === "Discount Log" ? 4 : 8}
+                          className="px-4 py-8 text-center text-gray-400 font-semibold"
+                        >
+                          {txTab === "Discount Log" ? "No discount entries yet" : "No transactions yet"}
                         </td>
                       </tr>
+                    ) : txTab === "Discount Log" ? (
+                      filteredTx.map((r) => (
+                        <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                          <td className="px-3 py-2.5 text-gray-500">{formatLegacyTxDate(r)}</td>
+                          <td className="px-3 py-2.5 font-bold text-gray-800">
+                            {"particular" in r && r.particular ? String(r.particular) : "Fee discount"}
+                          </td>
+                          <td className="px-3 py-2.5 text-right font-bold text-[#144835]">
+                            {formatInr(r.amount)}
+                          </td>
+                          <td className="px-3 py-2.5 text-gray-500">
+                            {r.remark ? String(r.remark) : "—"}
+                          </td>
+                        </tr>
+                      ))
                     ) : (
                       filteredTx.map((r) => {
-                        const txnId = transactionIdForRow(r.mode, r.reference);
+                        const txnId = transactionIdForRow(r);
                         return (
-                        <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                        <tr
+                          key={r.id}
+                          className={cn(
+                            "border-b border-gray-50 hover:bg-gray-50/50",
+                            r.status === "Cancelled" && "opacity-60"
+                          )}
+                        >
                           <td className="px-3 py-2.5 font-bold text-gray-800">{r.receiptNo}</td>
                           <td className="px-3 py-2.5 font-semibold text-gray-600">{r.month}</td>
                           <td className="px-3 py-2.5 text-gray-500">{formatLegacyTxDate(r)}</td>
                           <td className="px-3 py-2.5 text-right font-bold text-[#144835]">
                             {formatInr(r.amount)}
                           </td>
-                          <td className="px-3 py-2.5 font-semibold text-gray-600">{r.mode}</td>
+                          <td className="px-3 py-2.5 font-semibold text-gray-600">
+                            {r.mode}
+                            {r.status === "Cancelled" ? (
+                              <span className="ml-1 text-[10px] font-bold text-rose-600">CANCELLED</span>
+                            ) : null}
+                          </td>
                           <td className="px-3 py-2.5 text-right font-semibold text-gray-600">
                             {formatInr(r.fine)}
                           </td>
@@ -905,7 +1123,7 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
                             className="px-3 py-2.5 font-mono text-[11px] text-gray-500 truncate max-w-[140px]"
                             title={txnId || undefined}
                           >
-                            {txnId}
+                            {txnId || "—"}
                           </td>
                           <td className="px-2 py-2.5 print:hidden">
                             <button
@@ -928,9 +1146,26 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
           </div>
 
           {/* Summary strip */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-3">
             {[
               { label: "Student Type", value: studentBoardingCategory(student) },
+              {
+                label: "Payment Status",
+                value:
+                  feeAdjustments.paymentStatus === "Paid" || feeStatus.totals.balance <= 0
+                    ? "Paid"
+                    : feeAdjustments.paymentStatus === "Partial" || feeStatus.totals.paid > 0
+                      ? "Partial"
+                      : feeAdjustments.paymentStatus === "Unpaid"
+                        ? "Unpaid"
+                        : "Pending",
+                accent:
+                  feeAdjustments.paymentStatus === "Paid" || feeStatus.totals.balance <= 0
+                    ? "text-emerald-700"
+                    : feeAdjustments.paymentStatus === "Partial" || feeStatus.totals.paid > 0
+                      ? "text-amber-700"
+                      : "text-rose-600",
+              },
               {
                 label: "Annual Fee",
                 value: formatInr(feeStatus.totals.gross),
@@ -1025,7 +1260,8 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
                 <tbody>
                   {(
                     [
-                      { label: "Total Fee", values: feeStatus.totalFee, variant: "fee" as const },
+                      // School heads only — transport is shown on the Bus Fee row.
+                      { label: "Total Fee", values: feeStatus.schoolFee, variant: "fee" as const },
                       { label: "Bus Fee", values: feeStatus.busFee, variant: "bus" as const },
                       { label: "Paid Fee", values: feeStatus.paidFee, variant: "paid" as const },
                       { label: "Balance", values: feeStatus.balance, variant: "balance" as const },
@@ -1047,7 +1283,11 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
                       ))}
                       <td className="px-2 py-2 font-extrabold bg-gray-50 border border-gray-300">
                         {row.variant === "balance" ? (
-                          <span className="text-rose-600">{sumRow(row.values).toLocaleString("en-IN")}</span>
+                          sumRow(row.values) === 0 ? (
+                            <span className="text-emerald-600 font-bold text-[11px]">Paid</span>
+                          ) : (
+                            <span className="text-rose-600">{sumRow(row.values).toLocaleString("en-IN")}</span>
+                          )
                         ) : (
                           <MonthCell value={sumRow(row.values)} variant={row.variant === "bus" ? "bus" : row.variant === "paid" ? "paid" : "fee"} />
                         )}
@@ -1165,6 +1405,8 @@ export default function AdminDepositFeePage({ embedded = false }: { embedded?: b
         feeGrid={feeGrid}
         lastYearDue={student?.feeDetails?.lastYearDue}
         transportFees={student?.transportDetails?.fees}
+        totalDiscount={feeAdjustments.totalDiscount}
+        academicYear={currentYear?.name}
       />
 
       <FeeReceiptModal

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { isValidSchoolId } from "@/lib/schools";
+import { SkeletonAppShell } from "@/components/ui/Skeleton";
 
 export default function SchoolRouteGuard({
   schoolId,
@@ -20,11 +21,7 @@ export default function SchoolRouteGuard({
   }, [schoolId, router]);
 
   if (!isValidSchoolId(schoolId)) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin" />
-      </div>
-    );
+    return <SkeletonAppShell />;
   }
 
   return <>{children}</>;

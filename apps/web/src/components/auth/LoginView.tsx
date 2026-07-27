@@ -5,7 +5,17 @@ import Link from "next/link";
 const SafeLink = Link as any;
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { getRoleHomePath } from "@/lib/auth/roles";
+import { getPortalHomePath, getRoleHomePath } from "@/lib/auth/roles";
+import { looksLikeStaffIdentifier } from "@/lib/auth/portal-identifier";
+import {
+  getQuickAccessLogin,
+  type QuickAccessRole,
+} from "@/lib/auth/quick-access-logins";
+import { Skeleton, SkeletonText } from "@/components/ui/Skeleton";
+import {
+  isRememberMeEnabled,
+  readRememberedLogin,
+} from "@/lib/auth/portalAuthStorage";
 import { User, Lock, Eye, EyeOff, ArrowRight, BookOpen, Shield, CheckCircle2 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -45,12 +55,18 @@ export default function LoginView({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const remembered = readRememberedLogin();
+    if (remembered) setEmail(remembered);
+    setRememberMe(isRememberMeEnabled());
+  }, []);
+
   const redirectBasedOnRole = useCallback(
-    (userRole: string | null, userSchoolId: string | null) => {
+    (userRole: string | null, userSchoolId: string | null, designation?: string | null) => {
       if (!userRole) {
         setError("Your account has no role assigned. Contact your administrator.");
         logout();
@@ -69,7 +85,7 @@ export default function LoginView({
         return;
       }
       
-      const home = getRoleHomePath(userRole, userSchoolId);
+      const home = getPortalHomePath(userRole, userSchoolId, designation);
       if (home === "/login") {
         setError("Your account is not assigned to any school. Contact Super Admin.");
         logout();
@@ -83,14 +99,38 @@ export default function LoginView({
   // Redirect if already logged in
   useEffect(() => {
     if (!loading && user && role) {
-      redirectBasedOnRole(role, schoolId);
+      redirectBasedOnRole(role, schoolId, user.designation);
     }
   }, [loading, redirectBasedOnRole, role, schoolId, user]);
 
-  const handleDevLogin = (roleMock: string) => {
-    if (!schoolContext || !devLogin) return;
-    devLogin(roleMock, schoolContext);
-    router.push(getRoleHomePath(roleMock, schoolContext));
+  const handleQuickAccessLogin = async (roleKey: QuickAccessRole) => {
+    if (!schoolContext) return;
+    const creds = getQuickAccessLogin(schoolContext, roleKey);
+    if (!creds) {
+      setError(
+        `Quick ${roleKey} login is not configured for this branch yet.`
+      );
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+    setEmail(creds.identifier);
+    setPassword(creds.password);
+
+    try {
+      await login(creds.identifier, creds.password, {
+        schoolId: schoolContext,
+        rememberMe,
+        prefer: creds.prefer,
+      });
+      // AuthContext session listener loads profile; useEffect redirects.
+    } catch (err: unknown) {
+      console.error(err);
+      const message = err instanceof Error ? err.message : "";
+      setError(message || "Quick login failed. Please try again.");
+      setIsLoading(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -99,7 +139,16 @@ export default function LoginView({
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      const identifier = email.trim();
+      // Prefer staff for username-style IDs. Pure digits are admission numbers.
+      // Server also infers this — client hint keeps resolve order correct.
+      const preferStaff = looksLikeStaffIdentifier(identifier);
+
+      await login(email, password, {
+        schoolId: schoolContext ?? undefined,
+        rememberMe,
+        prefer: preferStaff ? "staff" : undefined,
+      });
       // AuthContext session listener loads profile and useEffect redirects.
     } catch (err: unknown) {
       console.error(err);
@@ -126,17 +175,43 @@ export default function LoginView({
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-white">
-        <div 
-          className="w-10 h-10 border-4 rounded-full animate-spin border-t-transparent" 
-          style={{ borderColor: `${primaryColor}40`, borderTopColor: primaryColor }}
-        />
-      </div>
+      <main className="min-h-[100dvh] w-full flex font-jost bg-white" role="status" aria-busy="true">
+        <span className="sr-only">Checking session</span>
+        <div
+          className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative flex-col justify-between p-12"
+          style={{ backgroundColor: primaryColor }}
+        >
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-48 bg-white/10" />
+            <div className="space-y-2 mt-8">
+              <Skeleton className="h-16 w-3/4 bg-white/10" />
+              <Skeleton className="h-16 w-1/2 bg-white/10" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-6">
+            <Skeleton className="h-24 w-full bg-white/10 rounded-2xl" />
+            <Skeleton className="h-24 w-full bg-white/10 rounded-2xl" />
+          </div>
+        </div>
+        <div className="w-full lg:w-1/2 xl:w-5/12 flex items-center justify-center p-6 sm:p-12">
+          <div className="w-full max-w-md space-y-6">
+            <div className="space-y-3">
+              <Skeleton className="h-8 w-40" />
+              <SkeletonText lines={2} />
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-11 w-full rounded-lg" />
+              <Skeleton className="h-11 w-full rounded-lg" />
+              <Skeleton className="h-11 w-full rounded-lg" />
+            </div>
+          </div>
+        </div>
+      </main>
     );
   }
 
   return (
-    <main className="min-h-screen w-full flex font-jost bg-white overflow-hidden">
+    <main className="min-h-[100dvh] w-full flex font-jost bg-white">
       {/* Left Side - Hero / Branding (Hidden on mobile) */}
       <div
         className="hidden lg:flex lg:w-1/2 xl:w-7/12 relative text-white overflow-hidden flex-col justify-between p-12 z-0"
@@ -210,18 +285,18 @@ export default function LoginView({
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-1/2 xl:w-5/12 flex items-center justify-center p-6 sm:p-12 relative bg-white">
-        <div className="w-full max-w-[420px] space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
+      <div className="w-full lg:w-1/2 xl:w-5/12 flex items-start lg:items-center justify-center px-5 py-8 sm:p-12 relative bg-white overflow-y-auto">
+        <div className="w-full max-w-[420px] space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-right-8 duration-700">
           {/* Mobile Logo (Visible only on small screens) */}
-          <div className="lg:hidden flex justify-center mb-8">
-            <div className="w-20 flex items-center justify-center">
+          <div className="lg:hidden flex justify-center mb-2">
+            <div className="w-16 sm:w-20 flex items-center justify-center">
               <img src={logo} alt="Logo" className="w-full h-auto drop-shadow-md" />
             </div>
           </div>
 
           <div className="text-center lg:text-left">
-            <h2 className="text-3xl font-extrabold text-[#1A1A1A] tracking-tight mb-2">Welcome Back</h2>
-            <p className="text-gray-500">Please sign in to access your dashboard.</p>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1A1A1A] tracking-tight mb-1.5 sm:mb-2">Welcome Back</h2>
+            <p className="text-sm sm:text-base text-gray-500">Please sign in to access your dashboard.</p>
           </div>
 
           {error && (
@@ -291,7 +366,10 @@ export default function LoginView({
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center space-x-2.5 cursor-pointer group select-none">
+              <label
+                className="flex items-center space-x-2.5 cursor-pointer group select-none"
+                onClick={() => setRememberMe((prev) => !prev)}
+              >
                 <div
                   className={cn(
                     "w-5 h-5 rounded-md border transition-all duration-200 flex items-center justify-center",
@@ -301,8 +379,10 @@ export default function LoginView({
                 >
                   {rememberMe && <CheckCircle2 size={12} className="text-white" />}
                 </div>
-                <input type="checkbox" className="hidden" checked={rememberMe} readOnly />
-                <span className="text-sm text-gray-600 font-medium group-hover:text-gray-900 transition-colors">Remember me</span>
+                <input type="checkbox" className="hidden" checked={rememberMe} readOnly tabIndex={-1} />
+                <span className="text-sm text-gray-600 font-medium group-hover:text-gray-900 transition-colors">
+                  Remember me
+                </span>
               </label>
 
               <SafeLink
@@ -335,38 +415,35 @@ export default function LoginView({
             </button>
           </form>
 
-          {/* Quick Testing Login */}
+          {/* Real portal quick logins (same Auth path as the form) */}
           {schoolContext && (
             <div className="mt-6 border-t border-gray-100 pt-6">
-              <p className="text-sm text-gray-500 font-bold text-center mb-4">Quick Access (Dev Only)</p>
+              <p className="text-sm text-gray-500 font-bold text-center mb-4">Quick Access</p>
               <div className="flex flex-wrap justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleDevLogin("admin")}
-                  className="text-xs font-semibold py-3 px-6 rounded-xl border transition-colors flex flex-col items-center gap-1 hover:bg-gray-50"
-                  style={{ color: primaryColor, borderColor: `${primaryColor}33` }}
-                >
-                  <span>{schoolContext === "idpskalaburagi" ? "Kalaburagi" : "Cherukupalli"}</span>
-                  <span className="text-gray-500">Admin Login</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDevLogin("teacher")}
-                  className="text-xs font-semibold py-3 px-6 rounded-xl border transition-colors flex flex-col items-center gap-1 hover:bg-gray-50"
-                  style={{ color: primaryColor, borderColor: `${primaryColor}33` }}
-                >
-                  <span>{schoolContext === "idpskalaburagi" ? "Kalaburagi" : "Cherukupalli"}</span>
-                  <span className="text-gray-500">Teacher Login</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDevLogin("student")}
-                  className="text-xs font-semibold py-3 px-6 rounded-xl border transition-colors flex flex-col items-center gap-1 hover:bg-gray-50"
-                  style={{ color: primaryColor, borderColor: `${primaryColor}33` }}
-                >
-                  <span>{schoolContext === "idpskalaburagi" ? "Kalaburagi" : "Cherukupalli"}</span>
-                  <span className="text-gray-500">Student Login</span>
-                </button>
+                {(["admin", "teacher", "student"] as QuickAccessRole[]).map((roleKey) => {
+                  const configured = Boolean(getQuickAccessLogin(schoolContext, roleKey));
+                  const branchLabel =
+                    schoolContext === "idpskalaburagi" ? "Kalaburagi" : "Cherukupalli";
+                  const roleLabel =
+                    roleKey === "admin"
+                      ? "Admin Login"
+                      : roleKey === "teacher"
+                        ? "Teacher Login"
+                        : "Student Login";
+                  return (
+                    <button
+                      key={roleKey}
+                      type="button"
+                      disabled={isLoading || !configured}
+                      onClick={() => void handleQuickAccessLogin(roleKey)}
+                      className="text-xs font-semibold py-3 px-6 rounded-xl border transition-colors flex flex-col items-center gap-1 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ color: primaryColor, borderColor: `${primaryColor}33` }}
+                    >
+                      <span>{branchLabel}</span>
+                      <span className="text-gray-500">{roleLabel}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}

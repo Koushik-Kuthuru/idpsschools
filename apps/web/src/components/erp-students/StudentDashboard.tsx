@@ -22,6 +22,7 @@ import { twMerge } from "tailwind-merge";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePortalHomework } from "@/hooks/usePortalHomework";
 import { getStudentClassInfo, getStudentDisplayName } from "@/lib/studentClassInfo";
+import { SkeletonPortalDashboard } from "@/components/ui/Skeleton";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -53,7 +54,7 @@ type StudentDashboardProps = {
 };
 
 export default function StudentDashboard({ schoolId }: StudentDashboardProps) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -71,7 +72,11 @@ export default function StudentDashboard({ schoolId }: StudentDashboardProps) {
   const classLabel = className || grade || "—";
   const academicYearLabel = (student as { academicYearName?: string })?.academicYearName;
 
-  const { data: homeworkData } = usePortalHomework(schoolId);
+  const { data: homeworkData, loading: homeworkLoading } = usePortalHomework(schoolId);
+
+  if (authLoading || homeworkLoading) {
+    return <SkeletonPortalDashboard />;
+  }
 
   const homeworkCount = useMemo(() => {
     const g = grade.trim();

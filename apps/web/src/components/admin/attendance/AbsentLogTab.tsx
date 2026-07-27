@@ -4,7 +4,8 @@ import React, { useState } from "react";
 
 
 import { Search, RotateCw, Download, FileText, AlertCircle } from "lucide-react";
-import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
+import AttendanceTabGuide from "./AttendanceTabGuide";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { absentLogGuide } from "./attendanceGuidePresets";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -31,14 +32,31 @@ interface AbsentLogTabProps {
   schoolId: string;
   classOptions: string[];
   sectionOptions: string[];
+  sectionsByClass?: Record<string, string[]>;
   holidays: string[];
 }
 
-export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, holidays }: AbsentLogTabProps) {
+export default function AbsentLogTab({
+  schoolId,
+  classOptions,
+  sectionOptions,
+  sectionsByClass,
+  holidays,
+}: AbsentLogTabProps) {
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [selectedClass, setSelectedClass] = useState<string>("All");
   const [selectedSection, setSelectedSection] = useState<string>("All");
   const [selectedType, setSelectedType] = useState<string>("Select attendance type");
+
+  const visibleSections = React.useMemo(() => {
+    if (!selectedClass || selectedClass === "All" || !sectionsByClass) return sectionOptions;
+    const forClass = sectionsByClass[selectedClass] ?? [];
+    return ["All", ...forClass];
+  }, [selectedClass, sectionOptions, sectionsByClass]);
+
+  React.useEffect(() => {
+    if (!visibleSections.includes(selectedSection)) setSelectedSection("All");
+  }, [visibleSections, selectedSection]);
   
   const attendanceTypes = [
     "Select attendance type",
@@ -211,10 +229,12 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Class</label>
             <select
               value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
+              onChange={(e) => {
+                setSelectedClass(e.target.value);
+                setSelectedSection("All");
+              }}
               className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50"
             >
-              <option value="All">All</option>
               {classOptions.map((g) => (
                 <option key={g} value={g}>{gradeLabel(g)}</option>
               ))}
@@ -227,9 +247,8 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
               onChange={(e) => setSelectedSection(e.target.value)}
               className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50"
             >
-              <option value="All">All</option>
-              {sectionOptions.map((s) => (
-                <option key={s} value={s}>{s}</option>
+              {visibleSections.map((s) => (
+                <option key={s} value={s}>{s === "All" ? "All Sections" : s}</option>
               ))}
             </select>
           </div>
@@ -252,7 +271,7 @@ export default function AbsentLogTab({ schoolId, classOptions, sectionOptions, h
       )}
 
       {!logData && !isLoading ? <AttendanceTabGuide {...absentLogGuide} /> : null}
-      {isLoading && !logData ? <AttendanceTabLoading label="Generating absent log…" /> : null}
+      {isLoading && !logData ? <SkeletonTable rows={8} columns={6} /> : null}
 
       {logData && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">

@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { Coffee, Plus, RotateCw, Save, Settings2, Trash2 } from "lucide-react";
+import { Coffee, Plus, RotateCw, Save, Settings2, Trash2, X } from "lucide-react";
 
 
 import { useSchoolId } from "@/hooks/useSchoolId";
+import { SkeletonMatrix } from "@/components/ui/Skeleton";
 import TimetableTemplatePanel from "./TimetableTemplatePanel";
 import {
   DEFAULT_TERM_KEY,
@@ -25,11 +26,15 @@ import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
 import {
   buildTableColumns,
   defaultTimetableTemplate,
+  defaultTimetableTemplateSet,
   formatTimeRange,
-  normalizeTimetableTemplate,
+  GRADE_BAND_LABELS,
+  gradeBandForClass,
+  normalizeTimetableTemplateSet,
+  resolveTemplateForGrade,
   TIMETABLE_TEMPLATE_DOC,
   type TableColumn,
-  type TimetableTemplate,
+  type TimetableTemplateSet,
 } from "./timetableTemplate";
 
 function cn(...inputs: ClassValue[]) {
@@ -119,12 +124,26 @@ function columnKey(col: TableColumn) {
   return col.type === "period" ? col.period.id : col.break.id;
 }
 
-export default function AddUpdateTimetableTab() {
+type AddUpdateTimetableTabProps = {
+  initialGrade?: string;
+  initialSection?: string;
+  onClose?: () => void;
+};
+
+export default function AddUpdateTimetableTab({
+  initialGrade,
+  initialSection,
+  onClose,
+}: AddUpdateTimetableTabProps = {}) {
   const schoolId = useSchoolId();
   const { grades: classOptionsFromHook, sectionsByClass } = useBranchClassOptions(schoolId);
-  const [template, setTemplate] = useState<TimetableTemplate>(defaultTimetableTemplate);
+  const [templateSet, setTemplateSet] = useState<TimetableTemplateSet>(defaultTimetableTemplateSet);
   const [grade, setGrade] = useState("");
   const [section, setSection] = useState("");
+  const template = useMemo(
+    () => resolveTemplateForGrade(templateSet, grade || "1"),
+    [templateSet, grade]
+  );
   const [grid, setGrid] = useState<PeriodGrid>(() => emptyPeriodGrid(defaultTimetableTemplate));
   const classOptions = classOptionsFromHook;
   const [subjectOptions, setSubjectOptions] = useState<string[]>([]);
@@ -140,8 +159,17 @@ export default function AddUpdateTimetableTab() {
 
   useEffect(() => {
     if (!classOptions.length) return;
+    if (initialGrade && classOptions.includes(initialGrade)) {
+      setGrade(initialGrade);
+      return;
+    }
     setGrade((prev) => (classOptions.includes(prev) ? prev : classOptions[0]));
-  }, [classOptions]);
+  }, [classOptions, initialGrade]);
+
+  useEffect(() => {
+    if (!initialSection) return;
+    setSection(initialSection);
+  }, [initialSection, grade]);
 
   useEffect(() => {
     async function loadTemplate() {
@@ -149,17 +177,23 @@ export default function AddUpdateTimetableTab() {
         const ref = buildPath(db, "schools", schoolId, "settings", TIMETABLE_TEMPLATE_DOC);
         const snap = await fetchOne(ref);
         const next = snap.exists()
-          ? normalizeTimetableTemplate(snap.data())
-          : defaultTimetableTemplate;
-        setTemplate(next);
-        setGrid((prev) => remapPeriodGrid(prev, next));
+          ? normalizeTimetableTemplateSet(snap.data())
+          : defaultTimetableTemplateSet;
+        setTemplateSet(next);
+        setGrid((prev) => remapPeriodGrid(prev, resolveTemplateForGrade(next, grade || "1")));
       } catch {
-        setTemplate(defaultTimetableTemplate);
+        setTemplateSet(defaultTimetableTemplateSet);
       }
     }
     loadTemplate();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // When grade band changes, remap grid to that band's period layout
+  useEffect(() => {
+    if (!grade) return;
+    setGrid((prev) => remapPeriodGrid(prev, template));
+  }, [grade, template]);
 
   const sectionOptions = useMemo(
     () => (grade ? sectionsByClass[grade] ?? [] : []),
@@ -277,16 +311,16 @@ export default function AddUpdateTimetableTab() {
     }
   };
 
-  const handleSaveTemplate = async (next: TimetableTemplate) => {
+  const handleSaveTemplate = async (next: TimetableTemplateSet) => {
     setIsSavingTemplate(true);
     setError(null);
     try {
       const ref = buildPath(db, "schools", schoolId, "settings", TIMETABLE_TEMPLATE_DOC);
       await upsertData(ref, { ...next, updatedAt: new Date().toISOString() }, { merge: true });
-      setTemplate(next);
-      setGrid((prev) => remapPeriodGrid(prev, next));
+      setTemplateSet(next);
+      setGrid((prev) => remapPeriodGrid(prev, resolveTemplateForGrade(next, grade || "1")));
       setTemplateOpen(false);
-      setSaveMessage("Template updated");
+      setSaveMessage("Bell timing template updated");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save template");
     } finally {
@@ -301,6 +335,16 @@ export default function AddUpdateTimetableTab() {
     <div className="space-y-3 animate-in fade-in duration-300">
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 px-4 py-3 border-b border-gray-100">
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:text-[#144835] hover:border-[#144835]/30 transition-colors"
+            >
+              <X size={14} />
+              Back
+            </button>
+          ) : null}
           <select value={grade} onChange={(e) => setGrade(e.target.value)} className={cn(filterCls, "w-[130px]")}>
             {classOptions.map((g) => (
               <option key={g} value={g}>{gradeLabel(g)}</option>
@@ -318,6 +362,11 @@ export default function AddUpdateTimetableTab() {
           </select>
           <span className="text-xs font-semibold text-gray-400 hidden sm:inline">·</span>
           <span className="text-xs font-semibold text-gray-500">{DEFAULT_TERM_KEY}</span>
+          {grade ? (
+            <span className="hidden md:inline text-[10px] font-bold uppercase tracking-wide text-[#144835] bg-[#144835]/10 px-2 py-1 rounded-md">
+              {GRADE_BAND_LABELS[gradeBandForClass(grade)]}
+            </span>
+          ) : null}
 
           <div className="flex-1" />
 
@@ -334,7 +383,7 @@ export default function AddUpdateTimetableTab() {
             className="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:text-[#144835] hover:border-[#144835]/30 transition-colors"
           >
             <Settings2 size={14} />
-            Template
+            Bell timing
           </button>
           <button
             type="button"
@@ -349,8 +398,8 @@ export default function AddUpdateTimetableTab() {
 
         <div className="relative overflow-x-auto">
           {isLoading ? (
-            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
-              <RotateCw size={18} className="animate-spin text-[#144835]" />
+            <div className="absolute inset-0 z-10 bg-white/90 p-4">
+              <SkeletonMatrix rows={6} columns={7} className="border-0" />
             </div>
           ) : null}
 
@@ -421,7 +470,7 @@ export default function AddUpdateTimetableTab() {
 
       <TimetableTemplatePanel
         open={templateOpen}
-        template={template}
+        template={templateSet}
         isSaving={isSavingTemplate}
         onClose={() => setTemplateOpen(false)}
         onSave={handleSaveTemplate}

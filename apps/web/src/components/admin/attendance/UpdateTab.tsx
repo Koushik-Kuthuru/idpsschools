@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 
 
 import { Search, RotateCw, Save, CheckCircle2, AlertCircle } from "lucide-react";
-import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
+import AttendanceTabGuide from "./AttendanceTabGuide";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { updateGuide } from "./attendanceGuidePresets";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -210,7 +211,7 @@ export default function UpdateTab({ schoolId, classOptions, sectionOptions }: Up
       )}
 
       {!hasFetched && !isLoading ? <AttendanceTabGuide {...updateGuide} /> : null}
-      {isLoading && !hasFetched ? <AttendanceTabLoading label="Fetching roster…" /> : null}
+      {isLoading && !hasFetched ? <SkeletonTable rows={8} columns={5} /> : null}
 
       {hasFetched && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">

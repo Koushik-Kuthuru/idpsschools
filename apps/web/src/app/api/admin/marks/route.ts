@@ -1,0 +1,70 @@
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
+import {
+  loadBranchExamTypes,
+  loadBranchMarks,
+  loadBranchMarksDoc,
+  loadBranchMarksIndex,
+  saveBranchMarksDoc,
+} from "@/lib/loadBranchMarks";
+
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
+  const url = new URL(req.url);
+  const schoolSlug = url.searchParams.get("schoolId");
+  const academicYear = url.searchParams.get("academicYear");
+  const docId = url.searchParams.get("id");
+  const resource = url.searchParams.get("resource");
+  const grade = url.searchParams.get("grade");
+  const section = url.searchParams.get("section");
+  const exam = url.searchParams.get("exam");
+
+  if (!schoolSlug) {
+    return noStoreJson({ error: "schoolId required" }, { status: 400 });
+  }
+
+  try {
+    if (resource === "exam_types") {
+      const exams = await loadBranchExamTypes(supabaseAdmin, schoolSlug, academicYear);
+      return noStoreJson({ exams });
+    }
+
+    if (resource === "index") {
+      const index = await loadBranchMarksIndex(supabaseAdmin, schoolSlug, academicYear);
+      return noStoreJson({ index });
+    }
+
+    if (docId) {
+      const doc = await loadBranchMarksDoc(supabaseAdmin, schoolSlug, docId);
+      if (!doc) return noStoreJson({ error: "Not found" }, { status: 404 });
+      return noStoreJson({ marks: doc });
+    }
+
+    const marks = await loadBranchMarks(supabaseAdmin, schoolSlug, academicYear, {
+      grade,
+      section,
+      exam,
+    });
+    return noStoreJson({ marks });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to load marks";
+    return noStoreJson({ error: message }, { status: 500 });
+  }
+});
+
+export const POST = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
+  try {
+    const body = await req.json();
+    const schoolSlug = String(body.schoolId ?? "").trim();
+    if (!schoolSlug) {
+      return noStoreJson({ error: "schoolId required" }, { status: 400 });
+    }
+
+    const { schoolId: _ignored, ...payload } = body;
+    const marks = await saveBranchMarksDoc(supabaseAdmin, schoolSlug, payload);
+    return noStoreJson({ marks });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to save marks";
+    return noStoreJson({ error: message }, { status: 400 });
+  }
+});

@@ -4,6 +4,7 @@ import React from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import { getStudentDisplayName } from "@/lib/studentClassInfo";
+import { SkeletonProfile } from "@/components/ui/Skeleton";
 import { 
   User, 
   Users, 
@@ -22,8 +23,12 @@ import {
 } from "lucide-react";
 
 export default function ProfileView() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const student: any = user || {};
+
+  if (loading) {
+    return <SkeletonProfile />;
+  }
 
   const displayName = getStudentDisplayName(student);
   const initials = displayName

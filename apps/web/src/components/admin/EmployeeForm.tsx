@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import Link from "next/link";
 const SafeLink = Link as any;
 ;
@@ -54,29 +55,20 @@ type FormState = {
 
 type EmployeeCategory = "teaching" | "nonTeaching";
 
+import { isTeachingStaff } from "@/lib/isTeachingStaff";
+
 function generateEmployeeId() {
   const year = new Date().getFullYear();
   const suffix = Math.floor(1000 + Math.random() * 9000);
   return `EMP-${year}-${suffix}`;
 }
 
-function isTeachingFromFields(roleTitle: string, department: string) {
-  const role = String(roleTitle || "").toUpperCase();
-  const dept = String(department || "").toUpperCase();
-  if (
-    dept === "TEACHING" ||
-    dept === "HOD TEACHING" ||
-    dept === "TEACHING SUPPORT" ||
-    dept === "ROBOTICS" ||
-    dept === "SPACE"
-  ) {
-    return true;
-  }
-  return (
-    /\b(TEACHER|TUTOR|PROFESSOR|LECTURER|FACULTY|PGT|PRT|TGT|HOD)\b/.test(role) ||
-    dept === "ACADEMIC" ||
-    dept === "ACADEMICS"
-  );
+function isTeachingFromFields(roleTitle: string, department: string, subjects?: string) {
+  return isTeachingStaff({
+    department,
+    designation: roleTitle,
+    subjects,
+  });
 }
 
 function inferSchoolIdFromHref(href: string) {
@@ -171,7 +163,7 @@ export default function EmployeeForm({
       const next = { ...prev, [key]: value };
       if (key === "department") {
         const dept = departmentOptions.find((d) => d.name === value || d.id === value);
-        const validPosition = dept?.designations.some(
+        const validPosition = dept?.designations?.some(
           (item) => item.name === prev.position || item.id === prev.position
         );
         if (!validPosition) next.position = "";
@@ -187,7 +179,7 @@ export default function EmployeeForm({
       try {
         setError(null);
         setLoading(true);
-        const res = await fetch(`/api/admin/employees?id=${encodeURIComponent(employeeId)}`);
+        const res = await adminFetch(`/api/admin/employees?id=${encodeURIComponent(employeeId)}`);
         const json = await res.json().catch(() => ({}));
         const employee = json?.employee as any;
         if (!employee) throw new Error("Employee not found");
@@ -263,7 +255,7 @@ export default function EmployeeForm({
           };
 
           if (mode === "create") {
-            const res = await fetch("/api/admin/employees", {
+            const res = await adminFetch("/api/admin/employees", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),
@@ -298,7 +290,7 @@ export default function EmployeeForm({
               }
             }
           } else {
-            const res = await fetch(`/api/admin/employees?id=${encodeURIComponent(form.employeeId)}`, {
+            const res = await adminFetch(`/api/admin/employees?id=${encodeURIComponent(form.employeeId)}`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),

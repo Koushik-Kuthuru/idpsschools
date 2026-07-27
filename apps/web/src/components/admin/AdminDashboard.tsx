@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 const SafeLink = Link as any;
@@ -44,14 +45,22 @@ import {
   relTime,
   toMillis,
   computeTransportHostelMetrics,
+  transportFeeOutstanding,
   parseDateKey,
   type LiveActivity,
 } from "@/lib/adminDashboardLive";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAcademicYear } from "@/contexts/AcademicYearContext";
+import { useStaffPortalPermissions } from "@/hooks/useStaffPortalPermissions";
+import {
+  hasPageAction,
+} from "@/lib/resolveStaffPortalPermissions";
+import type { PermissionAction } from "@/lib/portalPermissionsStore";
 import { useBranchTransportBuses } from "@/hooks/useBranchTransportBuses";
 import { useBranchTransportStudents } from "@/hooks/useBranchTransportStudents";
 import { buildPath, limitTo, subscribeData, sortBy, buildQuery, patchData, filterBy, db, auth } from "@/lib/db-client";
+import { LiveClock } from "@/components/ui/LiveClock";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 
 function cn(...inputs: ClassValue[]) {
@@ -119,8 +128,9 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   const [transportAttendHasMarks, setTransportAttendHasMarks] = useState(false);
   const [transportDriversPresent, setTransportDriversPresent] = useState(0);
 
+  // Refresh date/month at most once per minute — live seconds live in <LiveClock />.
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
+    const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
   }, []);
   const [studentCount, setStudentCount] = useState(0);
@@ -185,7 +195,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     const params = new URLSearchParams({ schoolId, academicYear: yearName, date: today });
     let cancelled = false;
 
-    fetch(`/api/admin/transport/driver-attendance?${params.toString()}`)
+    adminFetch(`/api/admin/transport/driver-attendance?${params.toString()}`)
       .then((res) => res.json().catch(() => ({})))
       .then((data) => {
         if (cancelled) return;
@@ -621,7 +631,6 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
 
   const transportHostel = useMemo(() => {
     const derived = computeTransportHostelMetrics(studentDocs, now.getMonth());
-    const monthIndex = now.getMonth();
 
     const activeFleetBuses = buses.filter((b) => b.status === "Active");
     const fleetRoutes = new Set(activeFleetBuses.map((b) => b.route).filter(Boolean));
@@ -649,10 +658,16 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
         ? Math.round((driverPresentCount / driversAssigned) * 100)
         : 0;
 
+    // Outstanding transport due (annual due − paid), not a single month's scheduled installment.
     const supabaseTransportFeePending = usingTransport.reduce((sum, student) => {
-      const fees = student.transportFees;
-      if (!Array.isArray(fees) || fees.length === 0) return sum;
-      return sum + (fees[monthIndex] || 0);
+      return (
+        sum +
+        transportFeeOutstanding({
+          fees: student.transportFees,
+          feePaid: student.transportFeePaid,
+          balance: student.transportFeeBalance,
+        })
+      );
     }, 0);
     const transportFeePending =
       usingTransport.length > 0 ? supabaseTransportFeePending : derived.transportFeePending;
@@ -704,13 +719,6 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
     day: "numeric",
     month: "long",
     year: "numeric",
-  });
-
-  const timeLabel = now.toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
   });
 
   const currentMonth = now.toLocaleString("default", { month: "long" });
@@ -779,11 +787,31 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
   };
 
   const quickLinks = [
-    { label: "Add student", href: `${base}/academic/students/new`, icon: UserPlus },
-    { label: "Mark attendance", href: `${base}/academic/attendance`, icon: CalendarCheck },
-    { label: "Record payment", href: `${base}/finance/payments/new`, icon: Wallet },
-    { label: "Review leaves", href: `${base}/hr/leaves`, icon: ClipboardList },
+    { label: "Add student", href: `${base}/academic/students/new`, icon: UserPlus, action: "create" as PermissionAction, module: "Academic" },
+    { label: "Mark attendance", href: `${base}/academic/attendance`, icon: CalendarCheck, action: "edit" as PermissionAction, module: "Academic" },
+    { label: "Record payment", href: `${base}/finance/payments/new`, icon: Wallet, action: "create" as PermissionAction, module: "Finance" },
+    { label: "Review leaves", href: `${base}/hr/leaves`, icon: ClipboardList, action: "view" as PermissionAction, module: "Staff & HR" },
   ];
+
+  const staffPermissions = useStaffPortalPermissions(schoolId);
+
+  const visibleQuickLinks = useMemo(
+    () =>
+      quickLinks.filter((link) => {
+        if (staffPermissions.fullAccess) return true;
+        return hasPageAction(staffPermissions, link.module, link.action);
+      }),
+    [quickLinks, staffPermissions]
+  );
+
+  const canApproveLeave =
+    staffPermissions.fullAccess || hasPageAction(staffPermissions, "Staff & HR", "approve");
+  const canApproveExpense =
+    staffPermissions.fullAccess || hasPageAction(staffPermissions, "Finance", "approve");
+  const canApproveAdmission =
+    staffPermissions.fullAccess || hasPageAction(staffPermissions, "Admission", "approve");
+  const canCreateCalendar =
+    staffPermissions.fullAccess || hasPageAction(staffPermissions, "Academic", "create");
 
   const mobileHighlights = [
     { label: "Attendance", value: `${attendancePct}%`, href: `${base}/academic/attendance`, color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
@@ -803,7 +831,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
         <div className="inline-flex items-center gap-2 sm:gap-3 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shrink-0 whitespace-nowrap">
           <span className="font-medium text-gray-700">{dateLabel}</span>
           <span className="text-gray-300" aria-hidden="true">·</span>
-          <span className="text-gray-500 tabular-nums">{timeLabel}</span>
+          <LiveClock className="text-gray-500 tabular-nums" />
         </div>
       </div>
 
@@ -826,45 +854,43 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
 
       {/* KPIs — scroll on mobile & md (minimized sidebar), grid on xl */}
       <section>
-        {/* Mobile + tablet + collapsed sidebar */}
-        <div className="xl:hidden -mx-0.5">
-          <div className="flex gap-2.5 overflow-x-auto pb-1 px-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {!dataReady
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="snap-start shrink-0 w-[132px] h-[92px] rounded-xl bg-white border border-gray-200 animate-pulse" />
-                ))
-              : kpis.map((stat) => {
-                  const a = accentMap[stat.accent];
-                  return (
-                    <SafeLink
-                      key={stat.label}
-                      href={stat.href}
-                      className={cn(
-                        "snap-start shrink-0 w-[132px] rounded-xl p-3 border bg-white flex flex-col justify-between min-h-[92px]",
-                        a.border
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center", a.bg, a.icon)}>
-                          <stat.icon size={16} strokeWidth={2} />
-                        </div>
-                        <ArrowUpRight size={12} className="text-gray-300" />
+        {/* Mobile + tablet + collapsed sidebar — grid so all KPIs are visible at a glance */}
+        <div className="xl:hidden grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {!dataReady
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-[92px] rounded-xl" />
+              ))
+            : kpis.map((stat) => {
+                const a = accentMap[stat.accent];
+                return (
+                  <SafeLink
+                    key={stat.label}
+                    href={stat.href}
+                    className={cn(
+                      "rounded-xl p-3 border bg-white flex flex-col justify-between min-h-[92px] active:scale-[0.98] transition-transform",
+                      a.border
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center", a.bg, a.icon)}>
+                        <stat.icon size={16} strokeWidth={2} />
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide truncate">{stat.short}</p>
-                        <p className="erp-metric text-base truncate">{stat.value}</p>
-                      </div>
-                    </SafeLink>
-                  );
-                })}
-          </div>
+                      <ArrowUpRight size={12} className="text-gray-300" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wide truncate">{stat.short}</p>
+                      <p className="erp-metric text-base truncate">{stat.value}</p>
+                    </div>
+                  </SafeLink>
+                );
+              })}
         </div>
 
         {/* Full width desktop */}
         <div className="hidden xl:grid grid-cols-6 gap-3">
           {!dataReady
             ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-[100px] rounded-2xl bg-white border border-gray-200 animate-pulse" />
+                <Skeleton key={i} className="h-[100px] rounded-2xl" />
               ))
             : kpis.map((stat) => {
                 const a = accentMap[stat.accent];
@@ -989,7 +1015,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                     icon: CalendarCheck
                   },
                   {
-                    label: "Fee Pending",
+                    label: "Transport Due",
                     value: formatInr(transportHostel.transportFeePending, true),
                     icon: Wallet
                   },
@@ -1023,7 +1049,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                     },
                     { label: "Vacant Beds", value: String(transportHostel.vacantBeds) },
                     {
-                      label: "Fee Pending",
+                      label: "Hostel Due",
                       value: formatInr(transportHostel.hostelFeePending, true),
                     },
                   ].map((item) => (
@@ -1093,7 +1119,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               <h3 className="erp-section-title text-gray-900">Quick actions</h3>
             </div>
             <div className="p-3 grid grid-cols-2 gap-3">
-              {quickLinks.map((link) => (
+              {visibleQuickLinks.map((link) => (
                 <SafeLink
                   key={link.href}
                   href={link.href}
@@ -1136,7 +1162,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                           <p className="text-xs text-gray-500 truncate">{item.subtitle}</p>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          {item.kind === "leave" && (
+                          {item.kind === "leave" && canApproveLeave && (
                             <>
                               <button
                                 type="button"
@@ -1158,7 +1184,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                               </button>
                             </>
                           )}
-                          {item.kind === "expense" && (
+                          {item.kind === "expense" && canApproveExpense && (
                             <button
                               type="button"
                               disabled={busy}
@@ -1168,7 +1194,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
                               Pay
                             </button>
                           )}
-                          {item.kind === "application" && item.appStatus && (
+                          {item.kind === "application" && item.appStatus && canApproveAdmission && (
                             <button
                               type="button"
                               disabled={busy}
@@ -1210,6 +1236,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
           <div className={cardBase}>
             <div className={cn(cardHeader, "flex items-center justify-between")}>
               <h3 className="erp-section-title text-gray-900">Events</h3>
+              {canCreateCalendar ? (
               <SafeLink
                 href={`${base}/academic/calendar/new`}
                 className="h-7 w-7 rounded-full bg-[#144835] text-white flex items-center justify-center border-2 border-[#0f3628]"
@@ -1217,6 +1244,7 @@ export default function AdminDashboard({ schoolId }: AdminDashboardProps) {
               >
                 <Plus size={14} />
               </SafeLink>
+              ) : null}
             </div>
             <div className="p-3 sm:p-4 space-y-2.5 sm:space-y-3">
               {events.length === 0 ? (

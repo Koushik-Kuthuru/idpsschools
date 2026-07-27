@@ -1,12 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { listBranchAcademicYears } from "@/lib/branchAcademicYears";
 import { resolveBranchUuid } from "@/lib/resolveBranchUuid";
+import { fetchAllPaginated } from "@/lib/studentProfileStore";
 import {
   profileTitle,
   resolveStaffYearProfile,
   STAFF_PROFILE_NOTICE_PREFIX,
   type StaffProfileData,
 } from "@/lib/staffProfileStore";
+import { withServerCache } from "@/lib/serverQueryCache";
 
 export { STAFF_PROFILE_NOTICE_PREFIX, baseEmployeeId } from "@/lib/staffProfileStore";
 
@@ -32,6 +34,34 @@ export async function loadStaffProfileData(
   } catch {
     return {};
   }
+}
+
+/** One notices scan for all staff profiles (avoids N+1 on departments / staff lists). */
+export async function loadAllStaffProfiles(
+  admin: SupabaseClient<any>,
+  branchId: string
+): Promise<Map<string, StaffProfileData>> {
+  const data = await fetchAllPaginated<{ title: string; content: string }>(
+    admin,
+    "notices",
+    "title, content",
+    (query) => query.eq("branch_id", branchId).like("title", `${STAFF_PROFILE_NOTICE_PREFIX}%`)
+  );
+
+  const map = new Map<string, StaffProfileData>();
+  for (const row of data) {
+    const id = String(row.title).slice(STAFF_PROFILE_NOTICE_PREFIX.length);
+    if (!id || !row.content) continue;
+    try {
+      const parsed = JSON.parse(String(row.content));
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        map.set(id, parsed);
+      }
+    } catch {
+      /* skip */
+    }
+  }
+  return map;
 }
 
 export async function saveStaffProfileData(
@@ -85,7 +115,15 @@ export function shapeStaffRowForUi(
   const classes = String(yearProfile.classes ?? "").trim();
   const subjects = String(yearProfile.subjects ?? row.subject ?? "").trim();
   const username = String(profile.username ?? row.employee_id ?? "").trim();
-  const portalPassword = String(yearProfile.portalPassword ?? yearProfile.password ?? "").trim();
+  const portalPassword = String(
+    yearProfile.portalPassword ?? yearProfile.password ?? profile.portalPassword ?? profile.password ?? ""
+  ).trim();
+  const portalPasswordHash = String(
+    profile.portalPasswordHash ?? yearProfile.portalPasswordHash ?? ""
+  ).trim();
+  const passwordChangedAt = String(profile.passwordChangedAt ?? "").trim();
+  const passwordChangedBy = String(profile.passwordChangedBy ?? "").trim();
+  const hasCustomPassword = Boolean(portalPasswordHash || passwordChangedAt);
 
   const extended = {
     empCode: profile.empCode,
@@ -134,6 +172,16 @@ export function shapeStaffRowForUi(
     id: row.id,
     employeeId: String(row.employee_id ?? row.id),
     employee_id: row.employee_id,
+    authUid: profile.authUid ? String(profile.authUid) : "",
+    photoUrl: String(
+      (profile as Record<string, unknown>).photoUrl ??
+        (profile as Record<string, unknown>).photo_url ??
+        (profile as Record<string, unknown>).avatar_url ??
+        (profile as Record<string, unknown>).avatarUrl ??
+        row.photo_url ??
+        row.avatar_url ??
+        ""
+    ),
     firstName: parts[0] ?? "",
     lastName: parts.slice(1).join(" "),
     name: fullName,
@@ -150,6 +198,10 @@ export function shapeStaffRowForUi(
     classTeacher: String(yearProfile.classTeacher ?? ""),
     username,
     portalPassword,
+    portalPasswordHash,
+    passwordChangedAt,
+    passwordChangedBy,
+    hasCustomPassword,
     status: row.is_active === false ? "Inactive" : "Active",
     joiningDate: row.join_date ? String(row.join_date) : "",
     joinDate: row.join_date ? String(row.join_date) : "",
@@ -168,7 +220,8 @@ async function loadStaffTableForYear(
   branchId: string,
   table: "teachers" | "non_teaching_staff",
   kind: "teaching" | "non_teaching",
-  yearName: string
+  yearName: string,
+  profiles: Map<string, StaffProfileData>
 ): Promise<Record<string, unknown>[]> {
   const { data, error } = await admin
     .from(table)
@@ -181,7 +234,7 @@ async function loadStaffTableForYear(
   const results: Record<string, unknown>[] = [];
 
   for (const row of data ?? []) {
-    const profile = await loadStaffProfileData(admin, branchId, String(row.id));
+    const profile = profiles.get(String(row.id)) ?? {};
     const yearProfile = resolveStaffYearProfile(profile, yearName);
     if (!yearProfile) continue;
 
@@ -208,20 +261,36 @@ export async function loadBranchStaffRecords(
     yearName = years.find((y) => y.is_current)?.name ?? years[0]?.name ?? "2022-23";
   }
 
-  const results: Record<string, unknown>[] = [];
+  return withServerCache(
+    `staff|${branchId}|${kind}|${yearName}`,
+    async () => {
+      const profiles = await loadAllStaffProfiles(admin, branchId);
+      const results: Record<string, unknown>[] = [];
 
-  if (kind === "teaching" || kind === "all") {
-    results.push(...(await loadStaffTableForYear(admin, branchId, "teachers", "teaching", yearName)));
-  }
+      if (kind === "teaching" || kind === "all") {
+        results.push(
+          ...(await loadStaffTableForYear(admin, branchId, "teachers", "teaching", yearName, profiles))
+        );
+      }
 
-  if (kind === "non_teaching" || kind === "all") {
-    results.push(
-      ...(await loadStaffTableForYear(admin, branchId, "non_teaching_staff", "non_teaching", yearName))
-    );
-  }
+      if (kind === "non_teaching" || kind === "all") {
+        results.push(
+          ...(await loadStaffTableForYear(
+            admin,
+            branchId,
+            "non_teaching_staff",
+            "non_teaching",
+            yearName,
+            profiles
+          ))
+        );
+      }
 
-  return results.sort((a, b) =>
-    String(a.name ?? "").localeCompare(String(b.name ?? ""), undefined, { sensitivity: "base" })
+      return results.sort((a, b) =>
+        String(a.name ?? "").localeCompare(String(b.name ?? ""), undefined, { sensitivity: "base" })
+      );
+    },
+    60_000
   );
 }
 
@@ -286,4 +355,24 @@ export async function loadBranchStaffRecordById(
   }
 
   return null;
+}
+
+export type StaffTeachingLoad = {
+  classSection: string;
+  subject: string;
+  weeklyHours?: number;
+  isHomeroom?: boolean;
+};
+
+export function teachingLoadsFromYearProfile(yearProfile: StaffProfileData): StaffTeachingLoad[] {
+  if (!Array.isArray(yearProfile.classLoads)) return [];
+
+  return yearProfile.classLoads
+    .map((row) => ({
+      classSection: String(row.classSection ?? "").trim().toUpperCase(),
+      subject: String(row.subject ?? "").trim().toUpperCase(),
+      weeklyHours: row.weeklyHours,
+      isHomeroom: false,
+    }))
+    .filter((row) => row.classSection && row.classSection !== "—" && row.subject);
 }

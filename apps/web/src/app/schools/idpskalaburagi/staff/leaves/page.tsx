@@ -1,1 +1,5 @@
-export { default } from "@/app/schools/idpscherukupalli/staff/leaves/page";
+import StaffLeavesView from "@/components/staff-portal/StaffLeavesView";
+
+export default function StaffLeavesPage() {
+  return <StaffLeavesView />;
+}

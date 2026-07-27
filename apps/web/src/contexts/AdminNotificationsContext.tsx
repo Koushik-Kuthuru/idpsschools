@@ -2,14 +2,11 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-
-
-import { buildPath, subscribeData, sortBy, buildQuery, db, auth } from "@/lib/db-client";
+import { adminFetch } from "@/lib/adminApi";
 import {
   AdminNotification,
   buildDefaultNotifications,
   loadReadIds,
-  mapNotificationRecord,
   saveReadIds,
   withReadState,
 } from "@/lib/adminNotifications";
@@ -40,29 +37,50 @@ export function AdminNotificationsProvider({ children }: { children: React.React
   }, [schoolId]);
 
   useEffect(() => {
-    const qRef = buildQuery(
-      buildPath(db, "schools", schoolId, "notifications"),
-      sortBy("createdAt", "desc")
-    );
+    // Students don't have admin notification APIs — keep local defaults only.
+    if (pathname.includes("/students")) return;
 
-    const unsubscribe = subscribeData(
-      qRef,
-      (snapshot: any) => {
-        if (snapshot.empty) {
-          setRemoteNotifications(null);
-          return;
-        }
-        setRemoteNotifications(
-          snapshot.docs.map((buildPath: any) => mapNotificationRecord(buildPath.id, buildPath.data(), schoolId))
+    let cancelled = false;
+    let failures = 0;
+    let timer: number | null = null;
+
+    const schedule = (ms: number) => {
+      if (cancelled) return;
+      if (timer != null) window.clearTimeout(timer);
+      timer = window.setTimeout(() => void load(), ms);
+    };
+
+    const load = async () => {
+      try {
+        const response = await adminFetch(
+          `/api/admin/notifications?schoolId=${encodeURIComponent(schoolId)}`,
+          { skipAuthRefresh: true }
         );
-      },
-      () => {
-        setRemoteNotifications(null);
+        const payload = await response.json().catch(() => ({}));
+        if (cancelled) return;
+        if (response.ok) {
+          failures = 0;
+          setRemoteNotifications(
+            (payload.notifications ?? []) as Omit<AdminNotification, "unread">[]
+          );
+        } else {
+          failures += 1;
+        }
+      } catch {
+        // Auth/network blips (e.g. Supabase temporarily unreachable) — keep defaults.
+        failures += 1;
       }
-    );
+      // Back off while offline so we don't spam Failed to fetch overlays.
+      const delay = Math.min(60_000, 15_000 * Math.max(1, failures));
+      schedule(delay);
+    };
 
-    return () => unsubscribe();
-  }, [schoolId]);
+    void load();
+    return () => {
+      cancelled = true;
+      if (timer != null) window.clearTimeout(timer);
+    };
+  }, [schoolId, pathname]);
 
   const baseNotifications = useMemo(() => {
     if (remoteNotifications?.length) return remoteNotifications;

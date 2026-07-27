@@ -4,12 +4,15 @@ import {
   CalendarDays,
   ClipboardList,
   Clock,
+  FileStack,
   Globe,
   GraduationCap,
+  KeyRound,
   LayoutGrid,
   ListTree,
   PlusCircle,
   Receipt,
+  Shield,
   Tags,
   Users,
   type LucideIcon,
@@ -21,6 +24,9 @@ export type InPageSectionKey =
   | "exams"
   | "holidays"
   | "notifications"
+  | "permissions"
+  | "portal-users"
+  | "templates"
   | "fee-heads"
   | "fee-types"
   | "class-fees"
@@ -85,6 +91,27 @@ export function buildSettingsNavCategories(schoolSlug: string): SettingsNavCateg
           desc: "Branch info & branding",
           icon: Building2,
           href: `${base}?view=general`,
+        },
+        {
+          key: "permissions",
+          label: "Roles & Permissions",
+          desc: "Role matrix, defaults & staff overrides",
+          icon: Shield,
+          href: `${base}?view=permissions`,
+        },
+        {
+          key: "portal-users",
+          label: "Portal Users",
+          desc: "Staff & student login IDs, passwords & reset",
+          icon: KeyRound,
+          href: `${base}?view=portal-users`,
+        },
+        {
+          key: "templates",
+          label: "Templates",
+          desc: "Report cards, admit cards, ID cards, payslips & receipts",
+          icon: FileStack,
+          href: `${base}?view=templates`,
         },
       ],
     },
@@ -204,6 +231,27 @@ export function buildSettingsHomeCategories(schoolSlug: string): { label: string
           icon: Building2,
           href: `${base}?view=general`,
         },
+        {
+          key: "permissions",
+          title: "Roles & Permissions",
+          desc: "Role defaults, permission matrix, and per-staff overrides.",
+          icon: Shield,
+          href: `${base}?view=permissions`,
+        },
+        {
+          key: "portal-users",
+          title: "Portal Users",
+          desc: "View staff and student login IDs, passwords, reset credentials, and export lists.",
+          icon: KeyRound,
+          href: `${base}?view=portal-users`,
+        },
+        {
+          key: "templates",
+          title: "Document Templates",
+          desc: "Report cards, admit cards, ID cards, payslips, fee receipts and certificates.",
+          icon: FileStack,
+          href: `${base}?view=templates`,
+        },
       ],
     },
     {
@@ -212,7 +260,7 @@ export function buildSettingsHomeCategories(schoolSlug: string): { label: string
         {
           key: "academic-years",
           title: "Academic Years",
-          desc: "Create academic years and choose which session is active for this branch.",
+          desc: "Set the active year for the student app, classes, fees and enrollments.",
           icon: Clock,
           href: yearsHref,
         },
@@ -314,6 +362,9 @@ export const IN_PAGE_SECTION_KEYS: InPageSectionKey[] = [
   "exams",
   "holidays",
   "notifications",
+  "permissions",
+  "portal-users",
+  "templates",
   "fee-heads",
   "fee-types",
   "class-fees",
@@ -327,6 +378,8 @@ export function parseSettingsViewParam(view: string | null): ViewKey {
   if (!view || view === "home") return "home";
   if (view === "academic-years") return "home";
   if (view === "fees") return "fee-receipt";
+  // Old designation matrix URL → new RBAC roles page
+  if (view === "legacy-permissions") return "permissions";
   if (IN_PAGE_SECTION_KEYS.includes(view as InPageSectionKey)) return view as InPageSectionKey;
   return "home";
 }
@@ -334,7 +387,7 @@ export function parseSettingsViewParam(view: string | null): ViewKey {
 export type ViewKey = "home" | InPageSectionKey;
 
 /** Settings views that need maximum horizontal space — inner sidebar starts minimized. */
-const SETTINGS_SIDEBAR_COLLAPSED_VIEWS: InPageSectionKey[] = ["class-fees"];
+const SETTINGS_SIDEBAR_COLLAPSED_VIEWS: InPageSectionKey[] = ["class-fees", "templates"];
 
 export function shouldCollapseSettingsSidebar(view: ViewKey): boolean {
   return view !== "home" && SETTINGS_SIDEBAR_COLLAPSED_VIEWS.includes(view);

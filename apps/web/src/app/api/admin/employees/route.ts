@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 
-export async function GET(req: Request) {
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   try {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
     if (error) throw error;
 
     if (id) {
-      return NextResponse.json({ employee: employees?.[0] || null });
+      return noStoreJson({ employee: employees?.[0] || null });
     }
 
     // Map to expected frontend format
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
       phone: e.phone || ""
     }));
 
-    return NextResponse.json({
+    return noStoreJson({
       employees: formattedEmployees,
       stats: {
         total: formattedEmployees.length,
@@ -43,14 +43,16 @@ export async function GET(req: Request) {
       }
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Unknown error" }, { status: 500 });
+    return noStoreJson({ error: e?.message || "Unknown error" }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
-  return NextResponse.json({ error: "Not implemented in Supabase migration yet" }, { status: 501 });
-}
+export const POST = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
+  return noStoreJson({ error: "Not implemented in Supabase migration yet" }, { status: 501 });
+});
 
-export async function PUT(req: Request) {
-  return NextResponse.json({ error: "Not implemented in Supabase migration yet" }, { status: 501 });
-}
+export const PUT = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
+  return noStoreJson({ error: "Not implemented in Supabase migration yet" }, { status: 501 });
+});

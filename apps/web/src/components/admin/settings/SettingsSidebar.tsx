@@ -25,7 +25,10 @@ export default function SettingsSidebar({
   onInPageSelect,
 }: SettingsSidebarProps) {
   return (
-    <nav className="flex-1 space-y-4 overflow-y-auto px-2 py-3" aria-label="Settings navigation">
+    <nav
+      className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-2 py-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+      aria-label="Settings navigation"
+    >
       {categories.map((category) => (
         <div key={category.label}>
           {sidebarExpanded ? (

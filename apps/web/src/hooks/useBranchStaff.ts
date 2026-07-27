@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { clientCacheKey } from "@/lib/clientCache";
 import { useCachedQuery } from "@/hooks/useCachedQuery";
 import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
@@ -32,7 +33,7 @@ export function useBranchStaff(
       const params = new URLSearchParams({ schoolId, kind });
       if (academicYearName) params.set("academicYear", academicYearName);
 
-      const res = await fetch(`/api/admin/staff?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/staff?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {

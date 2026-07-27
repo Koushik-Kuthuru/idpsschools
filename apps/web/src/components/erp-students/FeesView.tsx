@@ -1,56 +1,164 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPageHeader from "@/components/admin/PageHeader";
-import { 
-  Wallet, 
-  Download, 
-  ArrowUpRight, 
-  Receipt,
+import { SkeletonPage, SkeletonStats } from "@/components/ui/Skeleton";
+import { supabase } from "@/lib/supabase/client";
+import { startStudentRazorpayCheckout } from "@/lib/startStudentRazorpayCheckout";
+import {
   CreditCard,
   CheckCircle2,
-  XCircle,
   Clock,
-  ExternalLink
+  Download,
+  Loader2,
 } from "lucide-react";
 
+type FeesPayload = {
+  totalFees: number;
+  paidAmount: number;
+  dueAmount: number;
+  dueDate: string;
+  category: string;
+  structure: Array<{ label: string; amount: number }>;
+  recentPayments: Array<{
+    id: string;
+    period: string;
+    paidOn: string;
+    amount: number;
+    status: "success" | "pending" | "failed";
+    transactionId?: string;
+    receiptNumber?: string;
+    method?: string;
+  }>;
+};
+
 export default function FeesView() {
-  const { user } = useAuth();
-  const student: any = user || {};
+  const { schoolId, loading: authLoading } = useAuth();
+  const [fees, setFees] = useState<FeesPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [paying, setPaying] = useState(false);
+  const [payAmount, setPayAmount] = useState("");
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState("UPI");
+  const [notice, setNotice] = useState("");
 
-  // Calculations
-  const lastYearDue = parseInt(student.feeDetails?.lastYearDue || "0", 10);
-  const transportFees = student.transportDetails?.fees || [];
-  const transportTotal = transportFees.reduce((sum: number, val: string) => sum + (parseInt(val, 10) || 0), 0);
-  const feeGrid = student.feeDetails?.feeGrid || [];
-  const gridTotal = feeGrid.reduce((sum: number, row: any) => {
-    const rowSum = row.values?.reduce((acc: number, val: string) => acc + (parseInt(val, 10) || 0), 0) || 0;
-    return sum + rowSum;
-  }, 0);
-  const grandTotalFees = gridTotal + lastYearDue + transportTotal;
+  const loadFees = useCallback(async () => {
+    if (!schoolId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("Please sign in again");
 
-  const paidAmount = Math.round(grandTotalFees * 0.7); // Mocking 70% paid
-  const pendingAmount = grandTotalFees - paidAmount;
+      const res = await fetch(
+        `/api/portal/student/fees?schoolId=${encodeURIComponent(schoolId)}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const data = (await res.json().catch(() => ({}))) as FeesPayload & { error?: string };
+      if (!res.ok) throw new Error(data.error || "Failed to load fees");
+      setFees(data);
+      setPayAmount(String(Math.max(0, Math.round(Number(data.dueAmount) || 0))));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load fees");
+      setFees(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [schoolId]);
 
-  const transactions = [
-    { id: "TXN98327", date: "May 10, 2026", head: "Admission Fee + Tuition (Q1)", amount: paidAmount, method: "UPI", status: "Success" },
-    { id: "TXN76214", date: "Jul 15, 2026", head: "Hostel Fee (Term 1)", amount: 35000, method: "Net Banking", status: "Success" },
-    { id: "TXN29871", date: "Sep 01, 2026", head: "Transport Fee (Q2)", amount: 12000, method: "Credit Card", status: "Failed" },
-  ];
+  useEffect(() => {
+    void loadFees();
+  }, [loadFees]);
+
+  const handlePay = async () => {
+    if (!schoolId || !fees) return;
+    const amount = Math.round(Number(payAmount) || 0);
+    if (amount <= 0) {
+      setNotice("Enter a valid amount");
+      return;
+    }
+    if (amount > fees.dueAmount) {
+      setNotice(`Amount cannot exceed ₹${fees.dueAmount.toLocaleString("en-IN")}`);
+      return;
+    }
+
+    setPaying(true);
+    setNotice("");
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) throw new Error("Please sign in again");
+
+      await startStudentRazorpayCheckout({
+        schoolId,
+        accessToken: token,
+        amount,
+        onSuccess: (result) => {
+          setIsPayModalOpen(false);
+          setNotice(
+            result.receiptNo
+              ? `Payment successful. Receipt ${result.receiptNo}`
+              : "Payment successful.",
+          );
+          void loadFees();
+        },
+        onError: (message) => setNotice(message),
+        onDismiss: () => setPaying(false),
+      });
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Could not start payment");
+    } finally {
+      setPaying(false);
+    }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="erp-body space-y-4 sm:space-y-6 pb-10 max-w-[1600px] mx-auto">
+        <SkeletonStats count={3} />
+        <SkeletonPage stats={0} rows={5} columns={4} toolbar={false} />
+      </div>
+    );
+  }
+
+  if (error || !fees) {
+    return (
+      <div className="erp-body max-w-[1600px] mx-auto py-16 text-center">
+        <p className="text-sm font-semibold text-red-700">{error || "Fees unavailable"}</p>
+        <button
+          type="button"
+          onClick={() => void loadFees()}
+          className="mt-4 h-10 px-4 rounded-lg bg-[#144835] text-white text-xs font-bold"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const transactions = fees.recentPayments ?? [];
 
   return (
     <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">
       <AdminPageHeader
         title="Fees"
-        description="Fee balances, billing ledgers, and payment history"
+        description="Fee balances, billing ledgers, and online Razorpay payments"
         actions={
           <button
             type="button"
-            onClick={() => setIsPayModalOpen(true)}
-            className="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all"
+            disabled={fees.dueAmount <= 0}
+            onClick={() => {
+              setPayAmount(String(Math.round(fees.dueAmount)));
+              setNotice("");
+              setIsPayModalOpen(true);
+            }}
+            className="h-10 inline-flex items-center justify-center gap-2 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 whitespace-nowrap transition-all disabled:opacity-50"
           >
             <CreditCard size={14} />
             Pay Online Now
@@ -58,55 +166,54 @@ export default function FeesView() {
         }
       />
 
-      {/* Stats Cards */}
+      {notice ? (
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+          {notice}
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total Fee Structure */}
-        <div className="bg-white border border-gray-100 p-6 rounded-[16px] flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.04)] relative overflow-hidden group">
-          <div className="absolute -right-12 -top-12 w-48 h-48 bg-[#a2c144]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-white border border-gray-100 p-6 rounded-[16px] flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
           <div>
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Structured Fee</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-4xl font-bold text-[#144835]">₹{grandTotalFees.toLocaleString()}</span>
+              <span className="text-4xl font-bold text-[#144835]">₹{fees.totalFees.toLocaleString("en-IN")}</span>
             </div>
           </div>
           <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mt-4">
-            Category: {student.feeDetails?.feeCategory || "GENERAL"}
+            Category: {fees.category || "GENERAL"}
           </div>
         </div>
 
-        {/* Total Paid */}
         <div className="bg-white border border-gray-100 p-6 rounded-[16px] flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
           <div>
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Paid Amount</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-4xl font-bold text-emerald-700">₹{paidAmount.toLocaleString()}</span>
+              <span className="text-4xl font-bold text-emerald-700">₹{fees.paidAmount.toLocaleString("en-IN")}</span>
             </div>
           </div>
           <div className="text-xs text-emerald-600 font-bold uppercase tracking-wider mt-4 flex items-center gap-1.5">
-            <CheckCircle2 size={13} className="text-emerald-500" /> Payment logs are verified
+            <CheckCircle2 size={13} className="text-emerald-500" /> Includes online & counter payments
           </div>
         </div>
 
-        {/* Total Outstanding */}
         <div className="bg-red-50/20 border border-dashed border-red-200 p-6 rounded-[16px] flex flex-col justify-between shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
           <div>
             <span className="text-xs font-bold text-red-800 uppercase tracking-wider">Net Due Balance</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-4xl font-bold text-red-700">₹{pendingAmount.toLocaleString()}</span>
+              <span className="text-4xl font-bold text-red-700">₹{fees.dueAmount.toLocaleString("en-IN")}</span>
             </div>
           </div>
           <div className="text-xs text-red-600 font-bold uppercase tracking-wider mt-4 flex items-center gap-1.5">
-            <Clock size={13} className="text-red-500 animate-pulse" /> Next due: June 30, 2026
+            <Clock size={13} className="text-red-500" /> Due: {fees.dueDate || "Contact school"}
           </div>
         </div>
       </div>
 
-      {/* Transaction Ledger */}
       <div className="bg-white border border-gray-100 rounded-[16px] overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
         <div className="px-6 py-4 border-b border-gray-100 bg-[#F8FAFB]">
           <h3 className="text-xs font-bold text-[#144835] uppercase tracking-wider">Transaction Ledger</h3>
         </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
@@ -121,48 +228,66 @@ export default function FeesView() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50 font-bold text-gray-700">
-              {transactions.map((txn, idx) => (
-                <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 text-[#144835] font-bold">{txn.id}</td>
-                  <td className="px-6 py-4 text-gray-400">{txn.date}</td>
-                  <td className="px-6 py-4 text-gray-900">{txn.head}</td>
-                  <td className="px-6 py-4 text-center">₹{txn.amount.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-center text-gray-400">{txn.method}</td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`inline-flex px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
-                      txn.status === "Success" ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
-                      "bg-red-50 text-red-700 border border-red-100"
-                    }`}>
-                      {txn.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {txn.status === "Success" ? (
-                      <button 
-                        onClick={() => alert(`Downloading PDF receipt for ${txn.id}`)}
-                        className="text-[#144835] hover:underline font-bold uppercase tracking-wider text-xs flex items-center justify-end gap-1 ml-auto"
-                      >
-                        <Download size={11} /> Receipt
-                      </button>
-                    ) : "-"}
+              {transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-8 text-center text-gray-400">
+                    No payments recorded yet
                   </td>
                 </tr>
-              ))}
+              ) : (
+                transactions.map((txn) => (
+                  <tr key={txn.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4 text-[#144835] font-bold">
+                      {txn.transactionId || txn.receiptNumber || txn.id}
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">{txn.paidOn}</td>
+                    <td className="px-6 py-4 text-gray-900">{txn.period}</td>
+                    <td className="px-6 py-4 text-center">₹{txn.amount.toLocaleString("en-IN")}</td>
+                    <td className="px-6 py-4 text-center text-gray-400">{txn.method || "—"}</td>
+                    <td className="px-6 py-4 text-center">
+                      <span
+                        className={`inline-flex px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
+                          txn.status === "success"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                            : txn.status === "pending"
+                              ? "bg-amber-50 text-amber-700 border border-amber-100"
+                              : "bg-red-50 text-red-700 border border-red-100"
+                        }`}
+                      >
+                        {txn.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      {txn.status === "success" && txn.receiptNumber ? (
+                        <span className="text-[#144835] font-bold uppercase tracking-wider text-xs inline-flex items-center gap-1">
+                          <Download size={11} /> {txn.receiptNumber}
+                        </span>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Online Pay Modal */}
       {isPayModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white border border-gray-100 rounded-[16px] w-full max-w-md p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white border border-gray-100 rounded-[16px] w-full max-w-md p-6 shadow-2xl">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h3 className="text-sm font-bold text-[#144835] uppercase tracking-wider">Simulated Payment Portal</h3>
-                <p className="text-xs text-gray-400 font-bold uppercase mt-1">Outstanding Balance: ₹{pendingAmount.toLocaleString()}</p>
+                <h3 className="text-sm font-bold text-[#144835] uppercase tracking-wider">
+                  Pay with Razorpay
+                </h3>
+                <p className="text-xs text-gray-400 font-bold uppercase mt-1">
+                  Outstanding: ₹{fees.dueAmount.toLocaleString("en-IN")}
+                </p>
               </div>
-              <button 
+              <button
+                type="button"
                 onClick={() => setIsPayModalOpen(false)}
                 className="text-gray-400 hover:text-gray-900 font-extrabold text-sm"
               >
@@ -172,51 +297,38 @@ export default function FeesView() {
 
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Payment Amount (INR)</label>
-                <input 
-                  type="text" 
-                  disabled 
-                  value={`₹${pendingAmount.toLocaleString()}`}
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">
+                  Payment Amount (INR)
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={fees.dueAmount}
+                  value={payAmount}
+                  onChange={(e) => setPayAmount(e.target.value)}
                   className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-bold text-[#144835]"
                 />
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Select Payment Method</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {["UPI", "Net Banking", "Card"].map(m => (
-                    <button
-                      key={m}
-                      onClick={() => setPaymentMethod(m)}
-                      className={`py-3 rounded-lg border text-xs font-bold uppercase tracking-wider transition-all ${
-                        paymentMethod === m 
-                          ? "bg-[#144835] text-white border-[#144835]" 
-                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-emerald-50/50 p-4 border border-emerald-100 rounded-lg mt-4">
+              <div className="bg-emerald-50/50 p-4 border border-emerald-100 rounded-lg">
                 <p className="text-xs text-emerald-800 font-bold leading-normal uppercase">
-                  🔒 Encrypted Payment System
+                  Secured by Razorpay
                 </p>
                 <p className="text-xs text-emerald-600 font-semibold mt-0.5 leading-normal">
-                  All transactions are secured via bank-level SSL encryption.
+                  UPI, cards, and net banking. Receipt is posted to your fee ledger after verification.
                 </p>
               </div>
 
+              {notice ? <p className="text-xs font-semibold text-red-600">{notice}</p> : null}
+
               <button
-                onClick={() => {
-                  alert("Simulated Payment of ₹" + pendingAmount.toLocaleString() + " Completed Successfully!");
-                  setIsPayModalOpen(false);
-                }}
-                className="w-full py-3.5 bg-[#144835] hover:bg-[#144835]/90 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-colors shadow-md mt-4"
+                type="button"
+                disabled={paying || fees.dueAmount <= 0}
+                onClick={() => void handlePay()}
+                className="w-full py-3.5 bg-[#144835] hover:bg-[#144835]/90 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-colors shadow-md mt-2 disabled:opacity-60 inline-flex items-center justify-center gap-2"
               >
-                Authorize & Pay Now
+                {paying ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
+                {paying ? "Opening Razorpay…" : "Pay Now"}
               </button>
             </div>
           </div>

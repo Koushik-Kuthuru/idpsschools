@@ -1,8 +1,14 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase, getSchoolUuidFromSlug } from "@/lib/supabase/client";
 import { buildPath, fetchOne, db } from "@/lib/db-client";
 import { mapStaffDoc, type StaffDisplayRecord } from "@/lib/staffRecord";
 import { loadTeacherClassKeys } from "@/lib/loadTeacherClassScope";
 import { parseClassScopeKey } from "@/lib/teacherClassScope";
+import { resolveStaffSessionContext } from "@/lib/auth/resolve-staff-session";
+import {
+  loadBranchStaffRecordById,
+  teachingLoadsFromYearProfile,
+} from "@/lib/loadBranchStaff";
 
 export type TeachingLoad = {
   classSection: string;
@@ -223,4 +229,124 @@ export async function loadTeacherProfile(
   }
 
   return profile;
+}
+
+function firstUseful(...values: unknown[]): string {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (text && text !== "—" && text.toLowerCase() !== "undefined") return text;
+  }
+  return "";
+}
+
+function numericExperienceYears(...values: unknown[]): number | null {
+  for (const value of values) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+  }
+  return null;
+}
+
+/**
+ * Portal-safe profile loader. Resolves the authenticated account to its actual
+ * branch staff row, then overlays the staff profile document and academic-year
+ * data instead of relying on auth defaults.
+ */
+export async function loadTeacherProfileForPortal(
+  admin: SupabaseClient<any>,
+  schoolSlug: string,
+  userUid: string,
+  userEmail: string | null,
+  authDisplayName: string | null,
+  authPhone: string | null | undefined,
+  authPhotoURL: string | null,
+  academicYear?: string | null
+): Promise<TeacherProfileData> {
+  const base = await loadTeacherProfile(
+    schoolSlug,
+    userUid,
+    userEmail,
+    authDisplayName,
+    authPhone,
+    authPhotoURL
+  );
+
+  const session = await resolveStaffSessionContext({
+    admin,
+    authId: userUid,
+    email: userEmail,
+    schoolSlug,
+  });
+  if (!session) return base;
+
+  const detail = await loadBranchStaffRecordById(admin, schoolSlug, session.recordId, {
+    academicYearName: academicYear,
+    kind: session.staffKind,
+  });
+  if (!detail) return base;
+
+  const staff = detail.staff;
+  const stored = detail.profile as Record<string, unknown>;
+  const qualifications = Array.isArray(staff.qualifications)
+    ? staff.qualifications.map(String).filter(Boolean)
+    : [];
+  const storedLoads = teachingLoadsFromYearProfile(detail.profile);
+  const teachingLoads =
+    storedLoads.length > 0
+      ? storedLoads.map((load) => ({
+          classSection: load.classSection,
+          subject: load.subject,
+          isHomeroom: base.homeroomClasses.includes(load.classSection),
+        }))
+      : base.teachingLoads;
+
+  const experienceYears =
+    numericExperienceYears(staff.experienceYears, stored.experienceYears) ??
+    (() => {
+      const months = Number(staff.experienceMonths ?? stored.experienceMonths);
+      return Number.isFinite(months) && months >= 0 ? Math.round((months / 12) * 10) / 10 : null;
+    })() ??
+    base.experienceYears;
+
+  const joinedRaw = firstUseful(
+    staff.joiningDate,
+    staff.joinDate,
+    staff.joinedDate,
+    stored.joiningDate,
+    stored.joinDate,
+    stored.joinedDate
+  );
+
+  return {
+    ...base,
+    name: firstUseful(staff.name, session.displayName, authDisplayName, base.name) || "Staff",
+    email: firstUseful(staff.email, stored.email, userEmail, base.email) || "—",
+    phone: firstUseful(staff.phone, staff.mobile, stored.phone, stored.mobile, authPhone, base.phone) || "—",
+    employeeId:
+      firstUseful(staff.employeeId, staff.employee_id, session.employeeId, base.employeeId) || "—",
+    designation:
+      firstUseful(staff.designation, stored.designation, session.designation, base.designation) ||
+      "Staff",
+    department:
+      firstUseful(staff.department, stored.department, session.department, base.department) ||
+      "General",
+    status: statusLabel(firstUseful(staff.status, stored.status, base.status)),
+    joinedDate: joinedRaw ? formatDate(joinedRaw) : base.joinedDate,
+    qualification:
+      firstUseful(staff.qualification, stored.qualification, qualifications.join(", "), base.qualification) ||
+      "—",
+    experienceYears,
+    photoURL:
+      firstUseful(
+        staff.photoUrl,
+        staff.photoURL,
+        staff.avatarUrl,
+        stored.photoUrl,
+        stored.photoURL,
+        stored.avatarUrl,
+        authPhotoURL,
+        base.photoURL
+      ) || null,
+    teachingLoads,
+  };
 }

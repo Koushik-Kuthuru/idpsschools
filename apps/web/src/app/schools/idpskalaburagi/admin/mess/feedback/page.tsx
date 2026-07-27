@@ -1,5 +1,5 @@
-import AdminHostelMessPage from "@/components/admin/AdminHostelMessPage";
+import MessFeedbackView from "@/components/admin/mess/MessFeedbackView";
 
-export default function Page() {
-  return <AdminHostelMessPage module="mess" />;
+export default function MessFeedbackPage() {
+  return <MessFeedbackView />;
 }

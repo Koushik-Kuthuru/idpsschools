@@ -3,6 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { SkeletonMatrix } from "@/components/ui/Skeleton";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -81,12 +82,9 @@ export default function AttendanceTabGuide({
 
 export function AttendanceTabLoading({ label = "Loading data…" }: { label?: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-300">
-      <div className="relative flex items-center justify-center h-12 w-12 mb-4">
-        <div className="absolute inset-0 rounded-full border-2 border-gray-100"></div>
-        <div className="absolute inset-0 rounded-full border-2 border-[#144835] border-t-transparent animate-spin"></div>
-      </div>
-      <p className="text-sm font-medium text-gray-500 tracking-wide">{label}</p>
+    <div role="status" aria-busy="true" className="animate-in fade-in duration-300">
+      <span className="sr-only">{label}</span>
+      <SkeletonMatrix rows={8} columns={10} />
     </div>
   );
 }

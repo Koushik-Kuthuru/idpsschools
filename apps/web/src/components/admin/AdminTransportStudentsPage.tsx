@@ -9,6 +9,7 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 import ExportButton from "@/components/ui/ExportButton";
 import SelectMenu from "@/components/ui/SelectMenu";
 import TableRowActions from "@/components/ui/TableRowActions";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useAcademicYear } from "@/contexts/AcademicYearContext";
 import { useBranchTransportStudents } from "@/hooks/useBranchTransportStudents";
@@ -318,7 +319,7 @@ export default function AdminTransportStudentsPage() {
 
   const renderGroupedView = (groups: GroupedStudents[], groupType: "route" | "stop") => {
     if (listLoading) {
-      return <div className="px-4 py-12 text-center text-xs font-bold text-gray-400">Loading...</div>;
+      return <SkeletonTable rows={8} columns={8} showHeader={false} className="rounded-none border-0" />;
     }
     if (groups.length === 0) {
       return (
@@ -541,7 +542,7 @@ export default function AdminTransportStudentsPage() {
           ) : activeTab === "Stop Wise" ? (
             renderGroupedView(stopGroups, "stop")
           ) : listLoading ? (
-            <div className="px-4 py-12 text-center text-xs font-bold text-gray-400">Loading...</div>
+            <SkeletonTable rows={8} columns={9} showHeader={false} className="rounded-none border-0" />
           ) : activeTab === "Using Transport" ? (
             <table className="w-full text-left border-collapse table-fixed">
               <thead>

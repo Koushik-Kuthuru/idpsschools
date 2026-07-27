@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { SkeletonPage } from "@/components/ui/Skeleton";
 import { 
   ClipboardList, 
   Award, 
@@ -14,9 +15,13 @@ import {
 } from "lucide-react";
 
 export default function MarksView() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const student: any = user || {};
   const [selectedTerm, setSelectedTerm] = useState("Term 1");
+
+  if (loading) {
+    return <SkeletonPage stats={3} rows={6} columns={5} />;
+  }
 
   const termsData: any = {
     "Term 1": [

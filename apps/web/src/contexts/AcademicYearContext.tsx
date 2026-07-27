@@ -1,9 +1,15 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
 import { setActiveAcademicYear } from "@/lib/activeAcademicYear";
-import { clientCacheKey, readClientCache, writeClientCache } from "@/lib/clientCache";
+import {
+  clearSchoolClientCaches,
+  clientCacheKey,
+  readClientCache,
+  writeClientCache,
+} from "@/lib/clientCache";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type AcademicYearRecord = {
   id: string;
@@ -34,10 +40,27 @@ type AcademicYearContextValue = {
 
 const AcademicYearContext = createContext<AcademicYearContextValue | null>(null);
 
-async function authHeaders(): Promise<HeadersInit> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  return token ? { Authorization: `Bearer ${token}` } : {};
+function formatAcademicYearError(data: unknown, status: number): string {
+  const payload = data && typeof data === "object" ? (data as Record<string, unknown>) : {};
+  const code = String(payload.code ?? "").toUpperCase();
+  const raw = String(payload.error ?? payload.message ?? "").trim();
+
+  if (
+    status === 401 ||
+    code === "INVALID_CREDENTIALS" ||
+    raw.toLowerCase().includes("invalid credentials")
+  ) {
+    return "Your session expired. Please log out and sign in again.";
+  }
+
+  return raw || "Failed to load academic years";
+}
+
+function markYearCurrent(years: AcademicYearRecord[], academicYearId: string): AcademicYearRecord[] {
+  return years.map((year) => ({
+    ...year,
+    is_current: year.id === academicYearId,
+  }));
 }
 
 export function AcademicYearProvider({
@@ -47,6 +70,7 @@ export function AcademicYearProvider({
   schoolSlug: string;
   children: React.ReactNode;
 }) {
+  const { loading: authLoading } = useAuth();
   const cacheKey = clientCacheKey("academic-years", schoolSlug);
   const cached = typeof window !== "undefined" ? readClientCache<CachedYearsPayload>(cacheKey) : null;
 
@@ -56,7 +80,7 @@ export function AcademicYearProvider({
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!schoolSlug) return;
+    if (!schoolSlug || authLoading) return;
 
     const hasCached = (readClientCache<CachedYearsPayload>(cacheKey)?.years?.length ?? 0) > 0;
     if (!hasCached) setLoading(true);
@@ -64,19 +88,10 @@ export function AcademicYearProvider({
     setError(null);
 
     try {
-      const res = await fetch(`/api/admin/academic-years?schoolId=${encodeURIComponent(schoolSlug)}`, {
-        headers: await authHeaders(),
-      });
+      const res = await adminFetch(`/api/admin/academic-years?schoolId=${encodeURIComponent(schoolSlug)}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const message =
-          data.error ||
-          data.message ||
-          (typeof data === "object" && data !== null && "code" in data
-            ? String((data as { code?: string }).code)
-            : null) ||
-          "Failed to load academic years";
-        setError(message);
+        setError(formatAcademicYearError(data, res.status));
         if (!hasCached) setYears([]);
         return;
       }
@@ -90,7 +105,7 @@ export function AcademicYearProvider({
       setLoading(false);
       setRefreshing(false);
     }
-  }, [cacheKey, schoolSlug]);
+  }, [authLoading, cacheKey, schoolSlug]);
 
   useEffect(() => {
     const stored = readClientCache<CachedYearsPayload>(cacheKey);
@@ -98,8 +113,10 @@ export function AcademicYearProvider({
       setYears(stored.years);
       setLoading(false);
     }
-    void refresh();
-  }, [cacheKey, refresh]);
+    if (!authLoading) {
+      void refresh();
+    }
+  }, [authLoading, cacheKey, refresh]);
 
   const createYear = useCallback(
     async (input: {
@@ -109,14 +126,14 @@ export function AcademicYearProvider({
       setAsCurrent?: boolean;
     }) => {
       setError(null);
-      const res = await fetch("/api/admin/academic-years", {
+      const res = await adminFetch("/api/admin/academic-years", {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ schoolId: schoolSlug, ...input }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Failed to create academic year");
+        setError(formatAcademicYearError(data, res.status));
         return null;
       }
       await refresh();
@@ -128,20 +145,47 @@ export function AcademicYearProvider({
   const setCurrentYear = useCallback(
     async (academicYearId: string) => {
       setError(null);
-      const res = await fetch("/api/admin/academic-years/current", {
+
+      const selected = years.find((year) => year.id === academicYearId) ?? null;
+      if (!selected) {
+        setError("Academic year not found");
+        return null;
+      }
+
+      // Optimistic UI: flip current year immediately so lists refetch for the new year.
+      const optimisticYears = markYearCurrent(years, academicYearId);
+      setYears(optimisticYears);
+      writeClientCache(cacheKey, { years: optimisticYears });
+      setActiveAcademicYear(schoolSlug, selected.name);
+      clearSchoolClientCaches(schoolSlug);
+
+      const res = await adminFetch("/api/admin/academic-years/current", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ schoolId: schoolSlug, academicYearId }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Failed to set active academic year");
+        setError(formatAcademicYearError(data, res.status));
+        await refresh();
         return null;
       }
+
+      const confirmed = data.year as AcademicYearRecord | undefined;
+      if (confirmed?.id) {
+        const nextYears = markYearCurrent(optimisticYears, confirmed.id).map((year) =>
+          year.id === confirmed.id ? { ...year, ...confirmed, is_current: true } : year
+        );
+        setYears(nextYears);
+        writeClientCache(cacheKey, { years: nextYears });
+        if (confirmed.name) setActiveAcademicYear(schoolSlug, confirmed.name);
+        return confirmed;
+      }
+
       await refresh();
-      return data.year as AcademicYearRecord;
+      return selected;
     },
-    [refresh, schoolSlug]
+    [cacheKey, refresh, schoolSlug, years]
   );
 
   const currentYear = useMemo(
@@ -163,12 +207,21 @@ export function AcademicYearProvider({
   return <AcademicYearContext.Provider value={value}>{children}</AcademicYearContext.Provider>;
 }
 
+const EMPTY_ACADEMIC_YEAR_CONTEXT: AcademicYearContextValue = {
+  years: [],
+  currentYear: null,
+  loading: false,
+  refreshing: false,
+  error: null,
+  refresh: async () => {},
+  createYear: async () => null,
+  setCurrentYear: async () => null,
+};
+
 export function useAcademicYear() {
   const ctx = useContext(AcademicYearContext);
-  if (!ctx) {
-    throw new Error("useAcademicYear must be used within AcademicYearProvider");
-  }
-  return ctx;
+  // Allow prerender/orphan routes without a hard crash.
+  return ctx ?? EMPTY_ACADEMIC_YEAR_CONTEXT;
 }
 
 /** Safe hook when provider may be absent (e.g. super-admin). */

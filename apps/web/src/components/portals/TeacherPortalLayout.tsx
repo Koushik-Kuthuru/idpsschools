@@ -8,6 +8,9 @@ import { twMerge } from "tailwind-merge";
 import Sidebar from "@/components/erp-teachers/Sidebar";
 import Header from "@/components/erp-teachers/Header";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import PortalPermissionGuard from "@/components/auth/PortalPermissionGuard";
+import { PortalActionProvider, PortalDomActionEnforcer } from "@/contexts/PortalActionContext";
+import { TeacherPortalScopeProvider } from "@/contexts/TeacherPortalScopeContext";
 import SchoolRouteGuard from "@/components/auth/SchoolRouteGuard";
 
 function cn(...inputs: ClassValue[]) {
@@ -29,6 +32,9 @@ export default function TeacherPortalLayout({ children }: { children: React.Reac
   return (
     <SchoolRouteGuard schoolId={schoolId}>
       <ProtectedRoute allowedRoles={["super_admin", "teacher"]} requiredSchoolId={schoolId}>
+        <TeacherPortalScopeProvider schoolId={schoolId}>
+        <PortalActionProvider schoolId={schoolId} portal="teacher">
+        <PortalDomActionEnforcer schoolId={schoolId} portal="teacher" />
         <div className="min-h-screen bg-[#F8FAFB] flex">
           {isMobileMenuOpen && (
             <div
@@ -47,14 +53,20 @@ export default function TeacherPortalLayout({ children }: { children: React.Reac
 
           <div
             className={cn(
-              "flex-1 flex flex-col min-h-screen transition-all duration-300 ease-in-out",
+              "flex-1 flex flex-col min-h-screen min-w-0 w-full transition-all duration-300 ease-in-out",
               isSidebarOpen || isSidebarHovered ? "lg:ml-72" : "lg:ml-20"
             )}
           >
             <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
-            <main className="erp-portal flex-1 p-4 sm:p-4 lg:p-8">{children}</main>
+            <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-clip p-4 sm:p-4 lg:p-8">
+              <PortalPermissionGuard schoolId={schoolId} portal="teacher">
+                {children}
+              </PortalPermissionGuard>
+            </main>
           </div>
         </div>
+        </PortalActionProvider>
+        </TeacherPortalScopeProvider>
       </ProtectedRoute>
     </SchoolRouteGuard>
   );

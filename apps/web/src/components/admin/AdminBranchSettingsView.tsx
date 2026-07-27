@@ -21,9 +21,9 @@ import {
 import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
 import {
   Bell, Building2, CalendarDays, ChevronRight, GraduationCap,
-  Plus, ShieldCheck, SlidersHorizontal, Users,
+  Plus, Shield, ShieldCheck, SlidersHorizontal, Users,
   ClipboardList, Trash2, Save, RefreshCw, Camera,
-  CheckCircle2, Globe, Clock, Eye, ListTree, Tags, PlusCircle, Receipt,
+  CheckCircle2, Globe, Clock, Eye, ListTree, Tags, PlusCircle, Receipt, KeyRound, FileStack,
 } from "lucide-react";
 import {
   loadFeeConfiguration,
@@ -39,6 +39,10 @@ import {
   FeeHeadsPanel,
   FeeTypesPanel,
 } from "@/components/admin/settings/FeeConfigurationPanels";
+import RolePermissionManagementPanel from "@/components/admin/settings/RolePermissionManagementPanel";
+import PortalUsersPanel from "@/components/admin/settings/PortalUsersPanel";
+import DocumentTemplatesPanel from "@/components/admin/settings/DocumentTemplatesPanel";
+import AcademicYearPanel from "@/components/admin/settings/AcademicYearPanel";
 import { buildPath, buildQuery, fetchMany, getTimestamp, upsertData, db } from "@/lib/db-client";
 import { gradesMatchForClass, gradeDocId } from "@/lib/gradeOrder";
 import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
@@ -59,6 +63,9 @@ type SectionKey = InPageSectionKey;
 
 const sections: { key: SectionKey; label: string; desc: string; icon: LucideIcon }[] = [
   { key: "general",       label: "General",              desc: "Branch info & branding",              icon: Building2 },
+  { key: "permissions",   label: "Roles & Permissions",  desc: "Role matrix + designation defaults",   icon: Shield },
+  { key: "portal-users",  label: "Portal Users",         desc: "Login IDs, passwords & reset",          icon: KeyRound },
+  { key: "templates",     label: "Templates",            desc: "Report cards, ID cards & receipts",     icon: FileStack },
   { key: "academic",      label: "Academic",             desc: "Sessions & grading",                  icon: GraduationCap },
   { key: "exams",         label: "Exams",                desc: "Exam schedule types",                 icon: ClipboardList },
   { key: "holidays",      label: "Holidays",             desc: "Calendar & leave days",               icon: CalendarDays },
@@ -74,6 +81,9 @@ const sections: { key: SectionKey; label: string; desc: string; icon: LucideIcon
 
 const sectionColors: Record<SectionKey, { bg: string; text: string; ring: string }> = {
   general:       { bg: "bg-emerald-50",  text: "text-emerald-700",  ring: "ring-emerald-200"  },
+  permissions:   { bg: "bg-emerald-50",  text: "text-emerald-800",  ring: "ring-emerald-200"  },
+  "portal-users": { bg: "bg-sky-50",     text: "text-sky-700",      ring: "ring-sky-200"      },
+  templates:      { bg: "bg-lime-50",    text: "text-lime-800",     ring: "ring-lime-200"     },
   academic:      { bg: "bg-blue-50",     text: "text-blue-700",     ring: "ring-blue-200"     },
   exams:         { bg: "bg-purple-50",   text: "text-purple-700",   ring: "ring-purple-200"   },
   holidays:      { bg: "bg-orange-50",   text: "text-orange-600",   ring: "ring-orange-200"   },
@@ -440,6 +450,7 @@ export default function AdminBranchSettingsView() {
         setMobileNavOpen={setMobileNavOpen}
         saved={saved}
         sidebar={settingsSidebar}
+        flushContent={activeView === "permissions"}
       >
           {activeView === "home" ? (
             <div className="px-6 py-8 sm:px-8">
@@ -448,6 +459,25 @@ export default function AdminBranchSettingsView() {
                 <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
                   Configure your {activeBranch.name} workspace — branch details, academics, communication, fees and staff policies.
                 </p>
+              </div>
+
+              <div className="mb-8 rounded-xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+                <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-sm font-bold text-gray-900">Student app academic year</h2>
+                    <p className="mt-1 text-xs text-gray-500">
+                      Choose the active year students see for fees, attendance, marks and subjects.
+                    </p>
+                  </div>
+                  <SafeLink
+                    href={`${settingsBasePath(schoolId)}/academic-years`}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-[#144835] hover:underline"
+                  >
+                    Manage years
+                    <ChevronRight size={14} />
+                  </SafeLink>
+                </div>
+                <AcademicYearPanel compact />
               </div>
 
               {filteredHomeCategories.length === 0 ? (
@@ -506,6 +536,22 @@ export default function AdminBranchSettingsView() {
                   ))}
                 </div>
               )}
+            </div>
+          ) : activeView === "permissions" ? (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+              <div className="flex shrink-0 items-center gap-3 border-b border-gray-100 px-4 py-3 sm:px-5">
+                <button
+                  type="button"
+                  onClick={() => openView("home")}
+                  className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 transition-colors hover:text-[#144835]"
+                >
+                  <ChevronRight size={14} className="rotate-180" />
+                  Settings Home
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-hidden p-4 sm:p-5">
+                <RolePermissionManagementPanel schoolId={schoolId} onSaved={showSaved} />
+              </div>
             </div>
           ) : (
             <div className="px-6 py-8 sm:px-8">
@@ -593,6 +639,27 @@ export default function AdminBranchSettingsView() {
               </div>
             )}
 
+
+            {/* ════ PORTAL USERS ════ */}
+            {activeView === "portal-users" && (
+              <div className="-m-6 flex min-h-[min(720px,calc(100vh-11rem))] flex-col sm:-m-8">
+                <PortalUsersPanel schoolId={schoolId} onSaved={showSaved} />
+              </div>
+            )}
+
+            {/* ════ DOCUMENT TEMPLATES ════ */}
+            {activeView === "templates" && (
+              <div>
+                {!searchParams.get("kind") && (
+                  <SectionHeader
+                    sectionKey="templates"
+                    title="Templates"
+                    subtitle="Report cards, admit cards, ID cards, payslips, receipts and certificates — open each on its own page"
+                  />
+                )}
+                <DocumentTemplatesPanel schoolId={schoolId} onSaved={showSaved} />
+              </div>
+            )}
 
             {/* ════ ACADEMIC ════ */}
             {activeView === "academic" && (

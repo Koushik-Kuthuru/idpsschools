@@ -1,22 +1,37 @@
-import React, { useState, useEffect } from "react";
-import { LayoutGrid, RotateCw, Printer, Download } from "lucide-react";
-
+import React, { useState, useEffect, useMemo } from "react";
+import { LayoutGrid, Pencil, Printer, Download } from "lucide-react";
 
 import { useSchoolId } from "@/hooks/useSchoolId";
-import { buildPath, fetchMany, db, auth } from "@/lib/db-client";
+import { SkeletonMatrix } from "@/components/ui/Skeleton";
 import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
+import TimetableGridTable from "./TimetableGridTable";
+import { timetablesForGrade, useAllClassTimetables } from "./useTimetableData";
 
+function gradeLabel(grade: string) {
+  if (!grade) return "—";
+  if (/^\d+$/.test(grade)) return `Grade ${grade}`;
+  return grade;
+}
 
-export default function ClasswiseTimetableTab() {
+export default function ClasswiseTimetableTab({
+  onEdit,
+}: {
+  onEdit?: (grade: string, section: string) => void;
+}) {
   const schoolId = useSchoolId();
-  const { grades: classOptions } = useBranchClassOptions(schoolId);
+  const { grades: classOptions, sectionsByClass } = useBranchClassOptions(schoolId);
   const [grade, setGrade] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { docs, templateForGrade, loading, term } = useAllClassTimetables(schoolId);
 
   useEffect(() => {
     if (!classOptions.length) return;
     setGrade((prev) => (classOptions.includes(prev) ? prev : classOptions[0]));
   }, [classOptions]);
+
+  const sections = useMemo(() => {
+    if (!grade) return [];
+    return timetablesForGrade(docs, grade, sectionsByClass[grade] ?? []);
+  }, [docs, grade, sectionsByClass]);
 
   return (
     <div className="space-y-4 animate-in fade-in duration-300">
@@ -31,14 +46,19 @@ export default function ClasswiseTimetableTab() {
             >
               {classOptions.map((g) => (
                 <option key={g} value={g}>
-                  {/^\d+$/.test(g) ? `Grade ${g}` : g}
+                  {gradeLabel(g)}
                 </option>
               ))}
             </select>
           </div>
-          
+
+          <span className="text-[11px] font-semibold text-gray-400">{term}</span>
+          <span className="text-[11px] text-gray-500">
+            {sections.length} section{sections.length === 1 ? "" : "s"}
+          </span>
+
           <div className="flex-1" />
-          
+
           <button className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:text-[#144835] hover:border-[#144835]/30 transition-colors">
             <Printer size={14} /> Print
           </button>
@@ -46,20 +66,42 @@ export default function ClasswiseTimetableTab() {
             <Download size={14} /> Export
           </button>
         </div>
-        
-        <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
-          {isLoading ? (
-            <RotateCw size={24} className="animate-spin text-[#144835]" />
-          ) : (
-            <div className="text-center">
+
+        <div className="p-4 min-h-[320px]">
+          {loading ? (
+            <SkeletonMatrix rows={7} columns={6} className="border-0" />
+          ) : sections.length === 0 ? (
+            <div className="text-center py-16">
               <div className="h-16 w-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-4 mx-auto">
                 <LayoutGrid size={32} />
               </div>
-              <h2 className="text-lg font-bold text-gray-800">Classwise Timetable Viewer</h2>
-              <p className="text-sm text-gray-500 mt-2 max-w-md mx-auto">
-                Select a grade above to view the combined timetable for all sections in that grade.
-                (Functionality to be implemented)
+              <h2 className="text-lg font-bold text-gray-800">No timetables for {gradeLabel(grade)}</h2>
+              <p className="text-sm text-gray-500 mt-2">
+                Import or create timetables for this grade ({term}).
               </p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {sections.map((doc) => (
+                <div key={doc.id} className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-sm font-bold text-gray-800">
+                      {gradeLabel(doc.grade)} — {doc.section}
+                    </h3>
+                    {onEdit ? (
+                      <button
+                        type="button"
+                        onClick={() => onEdit(doc.grade, doc.section)}
+                        className="h-8 px-3 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-600 hover:text-[#144835] hover:border-[#144835]/30 transition-colors"
+                      >
+                        <Pencil size={13} />
+                        Edit
+                      </button>
+                    ) : null}
+                  </div>
+                  <TimetableGridTable grid={doc.grid} template={templateForGrade(doc.grade)} />
+                </div>
+              ))}
             </div>
           )}
         </div>

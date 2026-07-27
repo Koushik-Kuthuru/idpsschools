@@ -7,6 +7,10 @@ import {
 } from "@/lib/activeAcademicYear";
 import { compareGrades } from "@/lib/gradeOrder";
 import { fetchBranchStaffByIdViaApi } from "@/lib/fetchBranchStaffById";
+import { subjectDocId } from "@/lib/subjectStore";
+import { adminFetch } from "@/lib/adminApi";
+
+const TIMETABLE_TEMPLATE_DOC_ID = "timetable_template";
 import {
   buildDbDocCacheKey,
   buildDbQueryCacheKey,
@@ -54,7 +58,40 @@ const ORDER_FIELD_ALIASES: Record<string, Record<string, string>> = {
   teachers: { firstName: "full_name", lastName: "full_name", name: "full_name" },
   non_teaching_staff: { firstName: "full_name", lastName: "full_name", name: "full_name" },
   classes: { firstName: "class_name", lastName: "class_name", name: "class_name" },
+  events: { date: "event_date", type: "event_type", createdAt: "created_at" },
+  notifications: { createdAt: "created_at" },
 };
+
+/** Client/legacy write fields → events table columns. */
+function normalizeEventWritePayload(data: Record<string, unknown>) {
+  if (data.date != null && data.event_date == null) {
+    data.event_date = data.date;
+  }
+  if (data.type != null && data.event_type == null) {
+    data.event_type = data.type;
+  }
+  delete data.date;
+  delete data.type;
+  delete data.createdAt;
+  delete data.updatedAt;
+  delete data.description;
+  delete data.location;
+}
+
+function shapeEventRow(row: Record<string, unknown>): Record<string, unknown> {
+  const eventDate = String(row.event_date ?? row.date ?? "").slice(0, 10);
+  const eventType = String(row.event_type ?? row.type ?? "event");
+  return {
+    ...row,
+    date: eventDate,
+    type: eventType,
+    event_date: eventDate || row.event_date,
+    event_type: eventType,
+    title: String(row.title ?? "").trim() || "Untitled",
+    description: row.description,
+    location: row.location,
+  };
+}
 
 function resolveTable(table: string): string {
   return TABLE_ALIASES[table] ?? table;
@@ -103,6 +140,7 @@ function shapeApiStudent(row: Record<string, unknown>): Record<string, unknown> 
     parentPhone: row.parentPhone ?? null,
     fatherName: row.fatherName ?? null,
     is_active: row.status !== "Inactive",
+    attendance: row.attendance ?? undefined,
   };
 }
 
@@ -130,7 +168,7 @@ async function fetchBranchFeeStructuresViaApi(
   try {
     const params = new URLSearchParams({ schoolId: schoolSlug });
     if (academicYear) params.set("academicYear", academicYear);
-    const res = await fetch(`/api/admin/fee-structures?${params.toString()}`);
+    const res = await adminFetch(`/api/admin/fee-structures?${params.toString()}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.warn("Branch fee structures API:", data.error || res.status, { schoolSlug });
@@ -143,10 +181,15 @@ async function fetchBranchFeeStructuresViaApi(
   }
 }
 
-async function fetchBranchFeePaymentsViaApi(schoolSlug: string): Promise<Record<string, unknown>[]> {
+async function fetchBranchFeePaymentsViaApi(
+  schoolSlug: string,
+  options?: { academicYear?: string | null; limit?: number | null }
+): Promise<Record<string, unknown>[]> {
   try {
     const params = new URLSearchParams({ schoolId: schoolSlug });
-    const res = await fetch(`/api/admin/fee-payments?${params.toString()}`);
+    if (options?.academicYear) params.set("academicYear", options.academicYear);
+    if (options?.limit != null) params.set("limit", String(options.limit));
+    const res = await adminFetch(`/api/admin/fee-payments?${params.toString()}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.warn("Branch fee payments API:", data.error || res.status, { schoolSlug });
@@ -161,12 +204,14 @@ async function fetchBranchFeePaymentsViaApi(schoolSlug: string): Promise<Record<
 
 async function fetchBranchDepartmentsViaApi(
   schoolSlug: string,
-  academicYear: string | null
+  academicYear: string | null,
+  options?: { lite?: boolean }
 ): Promise<Record<string, unknown>[]> {
   try {
     const params = new URLSearchParams({ schoolId: schoolSlug });
     if (academicYear) params.set("academicYear", academicYear);
-    const res = await fetch(`/api/admin/departments?${params.toString()}`);
+    if (options?.lite) params.set("lite", "1");
+    const res = await adminFetch(`/api/admin/departments?${params.toString()}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.warn("Branch departments API:", data.error || res.status, { schoolSlug });
@@ -179,6 +224,93 @@ async function fetchBranchDepartmentsViaApi(
   }
 }
 
+async function fetchBranchSubjectsViaApi(schoolSlug: string): Promise<Record<string, unknown>[]> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    const academicYear = getActiveAcademicYear(schoolSlug);
+    if (academicYear) params.set("academicYear", academicYear);
+    const res = await adminFetch(`/api/admin/subjects?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.warn("Branch subjects API:", data.error || res.status, { schoolSlug });
+      return [];
+    }
+    return (data.subjects ?? []) as Record<string, unknown>[];
+  } catch (err) {
+    console.warn("Branch subjects API fetch failed:", err);
+    return [];
+  }
+}
+
+async function fetchBranchSubjectByIdViaApi(
+  schoolSlug: string,
+  subjectId: string
+): Promise<Record<string, unknown> | null> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    const res = await adminFetch(
+      `/api/admin/subjects/${encodeURIComponent(subjectId)}?${params.toString()}`
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return null;
+    return (data.subject ?? null) as Record<string, unknown> | null;
+  } catch (err) {
+    console.warn("Branch subject API fetch failed:", err);
+    return null;
+  }
+}
+
+async function fetchBranchTimetablesViaApi(
+  schoolSlug: string
+): Promise<Record<string, unknown>[]> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    const res = await adminFetch(`/api/admin/timetables?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.warn("Branch timetables API:", data.error || res.status, { schoolSlug });
+      return [];
+    }
+    return (data.timetables ?? []) as Record<string, unknown>[];
+  } catch (err) {
+    console.warn("Branch timetables API fetch failed:", err);
+    return [];
+  }
+}
+
+async function fetchBranchTimetableByIdViaApi(
+  schoolSlug: string,
+  docId: string
+): Promise<Record<string, unknown> | null> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    const res = await adminFetch(
+      `/api/admin/timetables/${encodeURIComponent(docId)}?${params.toString()}`
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return null;
+    return (data.timetable ?? null) as Record<string, unknown> | null;
+  } catch (err) {
+    console.warn("Branch timetable API fetch failed:", err);
+    return null;
+  }
+}
+
+async function fetchBranchTimetableTemplateViaApi(
+  schoolSlug: string
+): Promise<Record<string, unknown> | null> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    const res = await adminFetch(`/api/admin/timetables/template?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return null;
+    return (data.template ?? null) as Record<string, unknown> | null;
+  } catch (err) {
+    console.warn("Branch timetable template API fetch failed:", err);
+    return null;
+  }
+}
+
 async function fetchBranchStaffViaApi(
   schoolSlug: string,
   kind: "teaching" | "non_teaching" | "all",
@@ -187,7 +319,7 @@ async function fetchBranchStaffViaApi(
   try {
     const params = new URLSearchParams({ schoolId: schoolSlug, kind });
     if (academicYear) params.set("academicYear", academicYear);
-    const res = await fetch(`/api/admin/staff?${params.toString()}`);
+    const res = await adminFetch(`/api/admin/staff?${params.toString()}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.warn("Branch staff API:", data.error || res.status, { kind, schoolSlug });
@@ -214,7 +346,7 @@ async function fetchBranchTableViaApi(
       : `/api/admin/classes?${params.toString()}`;
 
   try {
-    const res = await fetch(endpoint);
+    const res = await adminFetch(endpoint);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       console.warn("Branch API:", data.error || res.status, { table, schoolSlug });
@@ -449,7 +581,39 @@ async function applyQuery(collectionPath: string[], constraints: any[] = []) {
   }
 
   if (schoolSlug && table === "payments") {
-    const apiRows = await fetchBranchFeePaymentsViaApi(schoolSlug);
+    const academicYear = getActiveAcademicYear(schoolSlug);
+    const limitConstraint = constraints.find((c) => c.type === "limit");
+    const limit =
+      limitConstraint && typeof (limitConstraint as { value?: number }).value === "number"
+        ? (limitConstraint as { value: number }).value
+        : null;
+    const apiRows = await fetchBranchFeePaymentsViaApi(schoolSlug, { academicYear, limit });
+    const filtered = applyClientConstraints(table, apiRows, constraints);
+    return finishQuery(collectionPath, constraints, filtered);
+  }
+
+  if (schoolSlug && table === "timetables") {
+    const apiRows = await fetchBranchTimetablesViaApi(schoolSlug);
+    const filtered = applyClientConstraints(table, apiRows, constraints);
+    return finishQuery(collectionPath, constraints, filtered);
+  }
+
+  if (schoolSlug && table === "subjects") {
+    const apiRows = await fetchBranchSubjectsViaApi(schoolSlug);
+    const filtered = applyClientConstraints(table, apiRows, constraints);
+    return finishQuery(collectionPath, constraints, filtered);
+  }
+
+  if (schoolSlug && table === "marks") {
+    const academicYear = getActiveAcademicYear(schoolSlug);
+    const apiRows = await fetchBranchMarksViaApi(schoolSlug, academicYear);
+    const filtered = applyClientConstraints(table, apiRows, constraints);
+    return finishQuery(collectionPath, constraints, filtered);
+  }
+
+  if (schoolSlug && table === "exam_types") {
+    const academicYear = getActiveAcademicYear(schoolSlug);
+    const apiRows = await fetchBranchExamTypesViaApi(schoolSlug, academicYear);
     const filtered = applyClientConstraints(table, apiRows, constraints);
     return finishQuery(collectionPath, constraints, filtered);
   }
@@ -533,6 +697,9 @@ async function applyQuery(collectionPath: string[], constraints: any[] = []) {
         updatedAt: row.updated_at,
       };
     }
+    if (table === "events") {
+      return shapeEventRow(row);
+    }
     return row;
   });
 
@@ -553,13 +720,88 @@ export async function fetchMany(queryOrPath: any, options: FetchOptions = {}) {
     parsed.collectionPath[0] === "schools" &&
     resolveTable(parsed.collectionPath[2]) === "payments";
 
+  const isTimetablesQuery =
+    parsed.collectionPath.length === 3 &&
+    parsed.collectionPath[0] === "schools" &&
+    resolveTable(parsed.collectionPath[2]) === "timetables";
+
+  const isSubjectsQuery =
+    parsed.collectionPath.length === 3 &&
+    parsed.collectionPath[0] === "schools" &&
+    resolveTable(parsed.collectionPath[2]) === "subjects";
+
   const cacheKey = buildDbQueryCacheKey(parsed.collectionPath, parsed.constraints);
-  if (!options.skipCache && !isFeeStructuresQuery && !isFeePaymentsQuery) {
+  if (
+    !options.skipCache &&
+    !isFeeStructuresQuery &&
+    !isFeePaymentsQuery &&
+    !isTimetablesQuery &&
+    !isSubjectsQuery
+  ) {
     const cached = readDbRowsCache(cacheKey);
     if (cached) return new QueryResult(cached);
   }
 
   return applyQuery(parsed.collectionPath, parsed.constraints);
+}
+
+async function fetchBranchMarksViaApi(
+  schoolSlug: string,
+  academicYear: string | null
+): Promise<Record<string, unknown>[]> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    if (academicYear) params.set("academicYear", academicYear);
+    const res = await adminFetch(`/api/admin/marks?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.warn("Branch marks API:", data.error || res.status, { schoolSlug });
+      return [];
+    }
+    return (data.marks ?? []) as Record<string, unknown>[];
+  } catch (err) {
+    console.warn("Branch marks API fetch failed:", err);
+    return [];
+  }
+}
+
+async function fetchBranchMarksDocViaApi(
+  schoolSlug: string,
+  docId: string
+): Promise<Record<string, unknown> | null> {
+  try {
+    const params = new URLSearchParams({ schoolId: schoolSlug, id: docId });
+    const res = await adminFetch(`/api/admin/marks?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return null;
+    return (data.marks ?? null) as Record<string, unknown> | null;
+  } catch (err) {
+    console.warn("Branch marks doc API fetch failed:", err);
+    return null;
+  }
+}
+
+async function fetchBranchExamTypesViaApi(
+  schoolSlug: string,
+  academicYear: string | null
+): Promise<Record<string, unknown>[]> {
+  try {
+    const params = new URLSearchParams({
+      schoolId: schoolSlug,
+      resource: "exam_types",
+    });
+    if (academicYear) params.set("academicYear", academicYear);
+    const res = await adminFetch(`/api/admin/marks?${params.toString()}`);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.warn("Branch exam types API:", data.error || res.status, { schoolSlug });
+      return [];
+    }
+    return (data.exams ?? []) as Record<string, unknown>[];
+  } catch (err) {
+    console.warn("Branch exam types API fetch failed:", err);
+    return [];
+  }
 }
 
 async function fetchBranchStudentByIdViaApi(
@@ -570,7 +812,7 @@ async function fetchBranchStudentByIdViaApi(
   try {
     const params = new URLSearchParams({ schoolId: schoolSlug });
     if (academicYear) params.set("academicYear", academicYear);
-    const res = await fetch(`/api/admin/students/${encodeURIComponent(studentId)}?${params.toString()}`);
+    const res = await adminFetch(`/api/admin/students/${encodeURIComponent(studentId)}?${params.toString()}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return null;
     return (data.student ?? null) as Record<string, unknown> | null;
@@ -620,6 +862,30 @@ export async function fetchOne(docPath: string[], options: FetchOptions = {}) {
     return new SingleResult(id, row);
   }
 
+  if (schoolSlug && table === "timetables") {
+    const row = await fetchBranchTimetableByIdViaApi(schoolSlug, id);
+    writeDbDocCache(cacheKey, { id, data: row });
+    return new SingleResult(id, row);
+  }
+
+  if (schoolSlug && table === "settings" && id === TIMETABLE_TEMPLATE_DOC_ID) {
+    const doc = await fetchBranchTimetableTemplateViaApi(schoolSlug);
+    writeDbDocCache(cacheKey, { id, data: doc });
+    return new SingleResult(id, doc);
+  }
+
+  if (schoolSlug && table === "subjects") {
+    const row = await fetchBranchSubjectByIdViaApi(schoolSlug, id);
+    writeDbDocCache(cacheKey, { id, data: row });
+    return new SingleResult(id, row);
+  }
+
+  if (schoolSlug && table === "marks") {
+    const row = await fetchBranchMarksDocViaApi(schoolSlug, id);
+    writeDbDocCache(cacheKey, { id, data: row });
+    return new SingleResult(id, row);
+  }
+
   const { data, error } = await supabase.from(table).select("*").eq("id", id).single();
   if (error || !data) {
     writeDbDocCache(cacheKey, { id, data: null });
@@ -646,11 +912,15 @@ export async function upsertData(docPath: string[], data: any, options: any = {}
     await assignSchoolId(table, docPath[1], data);
   }
 
+  if (table === "events") {
+    normalizeEventWritePayload(data);
+  }
+
   if (schoolSlug && table === "departments") {
     const name = String(data.name ?? "").trim();
     if (!name) throw new Error("Department name is required");
 
-    const res = await fetch("/api/admin/departments", {
+    const res = await adminFetch("/api/admin/departments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -667,7 +937,7 @@ export async function upsertData(docPath: string[], data: any, options: any = {}
   }
 
   if (schoolSlug && table === "branch_class_fee_structures") {
-    const res = await fetch("/api/admin/fee-structures", {
+    const res = await adminFetch("/api/admin/fee-structures", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -690,7 +960,7 @@ export async function upsertData(docPath: string[], data: any, options: any = {}
   }
 
   if (schoolSlug && table === "payments") {
-    const res = await fetch("/api/admin/fee-payments", {
+    const res = await adminFetch("/api/admin/fee-payments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -702,6 +972,56 @@ export async function upsertData(docPath: string[], data: any, options: any = {}
     if (!res.ok) {
       throw new Error(body.error || "Failed to save fee payment");
     }
+    return;
+  }
+
+  if (schoolSlug && table === "timetables") {
+    const res = await adminFetch("/api/admin/timetables", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ schoolId: schoolSlug, ...data, id }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || "Failed to save timetable");
+    return;
+  }
+
+  if (schoolSlug && table === "settings" && id === TIMETABLE_TEMPLATE_DOC_ID) {
+    const res = await adminFetch("/api/admin/timetables/template", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ schoolId: schoolSlug, ...data }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || "Failed to save timetable template");
+    return;
+  }
+
+  if (schoolSlug && table === "subjects") {
+    const res = await adminFetch("/api/admin/subjects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ schoolId: schoolSlug, ...data, id }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || "Failed to save subject");
+    return;
+  }
+
+  if (schoolSlug && table === "marks") {
+    const academicYear = getActiveAcademicYear(schoolSlug);
+    const res = await adminFetch("/api/admin/marks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schoolId: schoolSlug,
+        academicYear: data.academicYear ?? academicYear,
+        ...data,
+        id,
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || "Failed to save marks");
     return;
   }
 
@@ -731,9 +1051,35 @@ export async function upsertData(docPath: string[], data: any, options: any = {}
 
 export async function insertData(collectionPath: string[], data: any) {
   let table = resolveTable(collectionPath[0]);
+  let schoolSlug: string | null = null;
+
   if (collectionPath.length === 3) {
     table = resolveTable(collectionPath[2]);
+    schoolSlug = collectionPath[1];
     await assignSchoolId(table, collectionPath[1], data);
+  }
+
+  if (table === "events") {
+    normalizeEventWritePayload(data);
+  }
+
+  if (schoolSlug && table === "subjects") {
+    const res = await adminFetch("/api/admin/subjects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schoolId: schoolSlug,
+        ...data,
+        section: String(data.section ?? "").toUpperCase(),
+      }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || "Failed to save subject");
+    return { id: body.subject?.id ?? subjectDocId(
+      String(data.classId ?? ""),
+      String(data.section ?? ""),
+      String(data.name ?? "")
+    ) };
   }
 
   const { data: res, error } = await supabase.from(table).insert(data).select().single();
@@ -752,8 +1098,12 @@ export async function patchData(docPath: string[], data: any) {
     id = docPath[3];
   }
 
+  if (table === "events") {
+    normalizeEventWritePayload(data);
+  }
+
   if (schoolSlug && table === "students") {
-    const res = await fetch(`/api/admin/students/${encodeURIComponent(id)}`, {
+    const res = await adminFetch(`/api/admin/students/${encodeURIComponent(id)}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ schoolId: schoolSlug, ...data }),
@@ -765,6 +1115,17 @@ export async function patchData(docPath: string[], data: any) {
     return;
   }
 
+  if (schoolSlug && table === "subjects") {
+    const res = await adminFetch(`/api/admin/subjects/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ schoolId: schoolSlug, ...data }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || "Failed to update subject");
+    return;
+  }
+
   const { error } = await supabase.from(table).update(data).eq("id", id);
   if (error) throw error;
 }
@@ -772,10 +1133,22 @@ export async function patchData(docPath: string[], data: any) {
 export async function removeData(docPath: string[]) {
   let table = resolveTable(docPath[0]);
   let id = docPath[1];
+  let schoolSlug: string | null = null;
 
   if (docPath.length === 4) {
     table = resolveTable(docPath[2]);
+    schoolSlug = docPath[1];
     id = docPath[3];
+  }
+
+  if (schoolSlug && table === "subjects") {
+    const params = new URLSearchParams({ schoolId: schoolSlug });
+    const res = await adminFetch(`/api/admin/subjects/${encodeURIComponent(id)}?${params.toString()}`, {
+      method: "DELETE",
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || "Failed to delete subject");
+    return;
   }
 
   const { error } = await supabase.from(table).delete().eq("id", id);
@@ -874,6 +1247,26 @@ export const auth = {
 export { hasDbQueryCache } from "@/lib/dbQueryCache";
 
 export async function uploadFile(path: string, file: File) {
+  // Prefer authenticated admin BFF so Storage RLS / missing-bucket issues
+  // are handled with the service role instead of the browser anon key.
+  if (typeof window !== "undefined") {
+    const { adminFetch } = await import("@/lib/adminApi");
+    const form = new FormData();
+    form.set("file", file);
+    form.set("path", path);
+    const res = await adminFetch("/api/admin/uploads", {
+      method: "POST",
+      body: form,
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(body.error || "Upload failed");
+    }
+    const publicUrl = String(body.publicUrl ?? "").trim();
+    if (!publicUrl) throw new Error("Upload succeeded but no public URL was returned");
+    return publicUrl;
+  }
+
   const { data, error } = await supabase.storage.from("uploads").upload(path, file, {
     upsert: true,
   });

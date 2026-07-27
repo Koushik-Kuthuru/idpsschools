@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 const SafeLink = Link as any;
+import { SkeletonForm, SkeletonPageHeader } from "@/components/ui/Skeleton";
 ;
 import { 
  Save, 
@@ -198,8 +199,11 @@ export default function EditBranchPage({ params }: { params: Promise<{ id: strin
  <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500 pb-24 font-jost">
  
  {pageLoading ? (
- <div className="flex h-96 items-center justify-center">
- <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin"></div>
+ <div className="space-y-6">
+ <SkeletonPageHeader />
+ <div className="rounded-xl border border-gray-200 bg-white p-6">
+ <SkeletonForm fields={8} columns={2} />
+ </div>
  </div>
  ) : (
  <>

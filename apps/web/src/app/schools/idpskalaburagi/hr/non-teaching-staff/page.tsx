@@ -21,8 +21,7 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-
-
+import { Skeleton, SkeletonTable } from "@/components/ui/Skeleton";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
@@ -224,11 +223,14 @@ export default function AdminNonTeachingStaffPage() {
           </div>
 
           <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-            {listLoading ? "Loading..." : `${filtered.length} members`}
+            {listLoading ? <Skeleton className="h-3 w-20" /> : `${filtered.length} members`}
           </div>
         </div>
 
         <div className="overflow-x-auto">
+          {listLoading ? (
+            <SkeletonTable rows={8} columns={8} showHeader={false} className="rounded-none border-0" />
+          ) : (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50/80 border-b border-gray-100">
@@ -319,6 +321,7 @@ export default function AdminNonTeachingStaffPage() {
               )}
             </tbody>
           </table>
+          )}
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 const SafeLink = Link as any;
+import { SkeletonPage } from "@/components/ui/Skeleton";
 ;
 import { 
  Search, 
@@ -220,11 +221,7 @@ export default function UsersPage() {
  };
 
  if (loading) {
- return (
- <div className="flex h-96 items-center justify-center">
- <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin"></div>
- </div>
- );
+ return <SkeletonPage rows={8} columns={5} />;
  }
 
  return (

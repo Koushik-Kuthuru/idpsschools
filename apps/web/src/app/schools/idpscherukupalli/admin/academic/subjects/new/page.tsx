@@ -32,7 +32,6 @@ type FormState = {
  grade: string;
  section: string;
  name: string;
- code: string;
  description: string;
  portions: SubjectPortion[];
 };
@@ -57,7 +56,6 @@ export default function AdminNewSubjectPage() {
  grade: "10",
  section: "A",
  name: "",
- code: "",
  description: "",
  portions: [emptyPortion()],
  });
@@ -128,7 +126,6 @@ export default function AdminNewSubjectPage() {
  classId: form.grade,
  section: String(form.section).toUpperCase(),
  name: form.name.trim(),
- code: form.code.trim(),
  description: form.description.trim(),
  portions: cleanedPortions,
  createdAt: new Date().toISOString()
@@ -191,10 +188,6 @@ export default function AdminNewSubjectPage() {
  <div>
  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject Name</label>
  <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
- </div>
- <div>
- <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Code</label>
- <input value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  <div>
  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Description</label>

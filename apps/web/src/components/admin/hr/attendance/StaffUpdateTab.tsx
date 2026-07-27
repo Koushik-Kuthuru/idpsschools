@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 
 import { Search, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import { buildPath, buildQuery, fetchMany, patchData, upsertData, db, auth } from "@/lib/db-client";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 
 
 interface StaffUpdateTabProps {
@@ -177,7 +178,9 @@ export default function StaffUpdateTab({ schoolId }: StaffUpdateTabProps) {
         </div>
       )}
 
-      {roster.length > 0 && (
+      {loading ? (
+        <SkeletonTable rows={8} columns={4} />
+      ) : roster.length > 0 ? (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
             <h3 className="text-sm font-bold text-gray-900">Mark Attendance</h3>
@@ -255,7 +258,7 @@ export default function StaffUpdateTab({ schoolId }: StaffUpdateTabProps) {
             </button>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

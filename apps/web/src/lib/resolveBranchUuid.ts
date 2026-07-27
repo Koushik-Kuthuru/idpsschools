@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { serverCacheKey, withServerCache } from "@/lib/serverQueryCache";
 
 /** Canonical school slugs used in /schools/{slug}/ routes */
 export const BRANCH_SLUGS = {
@@ -13,6 +14,16 @@ export const BRANCH_SLUG_MAP_NOTICE_TITLE = "__branch_slug_map__";
 const SLUG_TO_BRANCH_PATTERN: Record<string, string> = {
   idpscherukupalli: "%cherukupalli%",
   idpskalaburagi: "%kalaburagi%",
+};
+
+/**
+ * Stable fallbacks for the two IDPS campuses. Used when notices / branches
+ * lookups flake (transient Supabase/network errors) so admin pages don't
+ * render empty class lists.
+ */
+export const KNOWN_BRANCH_IDS: Record<BranchSlug, string> = {
+  idpscherukupalli: "e1c8dd77-74a8-49f5-a9ff-61a5e11dfba7",
+  idpskalaburagi: "fdc7a4a0-16f0-41fa-9440-cf81b84139da",
 };
 
 /** Normalize route param / legacy aliases to canonical branch slug */
@@ -118,25 +129,47 @@ export async function resolveBranchUuid(
   const slug = normalizeBranchSlug(schoolSlug);
   if (!slug) return null;
 
-  const slugMap = await loadBranchSlugMap(client);
-  if (slugMap[slug]) return slugMap[slug];
+  return withServerCache(
+    serverCacheKey("branch-uuid", slug),
+    async () => {
+      const known = KNOWN_BRANCH_IDS[slug];
 
-  const { data: bySlug, error: slugError } = await client
-    .from("branches")
-    .select("id")
-    .eq("slug", slug)
-    .maybeSingle();
+      try {
+        const slugMap = await loadBranchSlugMap(client);
+        if (slugMap[slug]) return slugMap[slug];
 
-  if (slugError?.code === "42703") {
-    // slug column not migrated yet
-  } else if (slugError && slugError.code !== "PGRST205") {
-    console.error("resolveBranchUuid (slug):", slugError.message);
-    return null;
-  } else if (bySlug?.id) {
-    return bySlug.id;
-  }
+        const { data: bySlug, error: slugError } = await client
+          .from("branches")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
 
-  return resolveByNamePattern(client, slug);
+        if (slugError?.code === "42703") {
+          // slug column not migrated yet — fall through
+        } else if (slugError && slugError.code !== "PGRST205") {
+          console.error("resolveBranchUuid (slug):", slugError.message);
+          // Keep trying name pattern / known fallback instead of failing closed.
+        } else if (bySlug?.id) {
+          return bySlug.id;
+        }
+
+        const byName = await resolveByNamePattern(client, slug);
+        if (byName) return byName;
+      } catch (err) {
+        console.error(
+          "resolveBranchUuid failed:",
+          err instanceof Error ? err.message : err
+        );
+      }
+
+      if (known) {
+        console.warn(`resolveBranchUuid: using known fallback for ${slug}`);
+        return known;
+      }
+      return null;
+    },
+    5 * 60_000
+  );
 }
 
 export async function resolveBranchSlug(

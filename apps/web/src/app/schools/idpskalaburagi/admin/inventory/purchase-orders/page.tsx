@@ -2,6 +2,7 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -235,9 +236,7 @@ export default function AdminPurchaseOrdersPage() {
  {/* Table */}
  <div className="overflow-x-auto min-h-[400px]">
  {loading ? (
- <div className="p-8 flex items-center justify-center">
- <div className="w-6 h-6 border-2 border-[#144835] border-t-transparent rounded-full animate-spin" />
- </div>
+ <SkeletonTable rows={8} columns={6} showHeader={false} className="rounded-none border-0" />
  ) : paginatedItems.length === 0 ? (
  <div className="p-8 text-center text-gray-500 text-xs font-bold">No purchase orders found.</div>
  ) : (

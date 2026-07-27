@@ -1,8 +1,10 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { useMemo } from "react";
 import { clientCacheKey } from "@/lib/clientCache";
 import { useCachedQuery } from "@/hooks/useCachedQuery";
+import { supabase } from "@/lib/supabase/client";
 import type { BranchTransportStudentRow } from "@/lib/loadBranchStudents";
 
 type TransportStudentsPayload = {
@@ -19,11 +21,18 @@ type UseBranchTransportStudentsResult = {
   refresh: () => Promise<void>;
 };
 
+async function authHeaders(): Promise<HeadersInit> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export function useBranchTransportStudents(
   schoolId: string,
   academicYearName: string | null | undefined
 ): UseBranchTransportStudentsResult {
-  const cacheKey = clientCacheKey("transport-students", schoolId, academicYearName ?? "current");
+  // v2: includes paidFees / feePaid / balance per academic year.
+  const cacheKey = clientCacheKey("transport-students-v2", schoolId, academicYearName ?? "current");
 
   const query = useCachedQuery<TransportStudentsPayload>({
     cacheKey,
@@ -32,7 +41,9 @@ export function useBranchTransportStudents(
       const params = new URLSearchParams({ schoolId });
       if (academicYearName) params.set("academicYear", academicYearName);
 
-      const res = await fetch(`/api/admin/transport/students?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/transport/students?${params.toString()}`, {
+        headers: await authHeaders(),
+      });
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {

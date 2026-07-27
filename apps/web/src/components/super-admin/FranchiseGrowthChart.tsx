@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import { buildPath, fetchMany, buildQuery, db, auth } from "@/lib/db-client";
+import { SkeletonChart } from "@/components/ui/Skeleton";
 
 
 
@@ -209,9 +210,7 @@ export default function FranchiseGrowthChart() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-[350px]">
-          <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin"></div>
-        </div>
+        <SkeletonChart className="h-[350px] border-0" bars={12} />
       ) : chartData.length === 0 ? (
         <div className="flex items-center justify-center h-[350px] text-gray-400">
           <p>No data available for the selected period</p>

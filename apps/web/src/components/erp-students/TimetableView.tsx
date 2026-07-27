@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { SkeletonMatrix, SkeletonPageHeader } from "@/components/ui/Skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Clock, 
   MapPin, 
@@ -14,6 +16,7 @@ import {
 } from "lucide-react";
 
 export default function TimetableView() {
+  const { loading } = useAuth();
   const [activeDay, setActiveDay] = useState("MON");
 
   const days = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -26,6 +29,15 @@ export default function TimetableView() {
     { num: 6, time: "01:00 PM - 01:50 PM", MON: { subject: "English Literature", room: "Room 104", teacher: "Mrs. Sen" }, TUE: { subject: "Fine Arts", room: "Studio A", teacher: "Miss Roy" }, WED: { subject: "Computer Science", room: "Lab 1", teacher: "Mrs. Murthy" }, THU: { subject: "Science (Physics)", room: "Lab 2", teacher: "Dr. Rao" }, FRI: { subject: "History & Civics", room: "Room 205", teacher: "Mr. Joshi" } },
     { num: 7, time: "01:55 PM - 02:45 PM", MON: { subject: "Physical Education", room: "Ground", teacher: "Coach Kumar" }, TUE: { subject: "Computer Science", room: "Lab 1", teacher: "Mrs. Murthy" }, WED: { subject: "Mathematics", room: "Room 302", teacher: "Mr. Ramesh" }, THU: { subject: "History & Civics", room: "Room 205", teacher: "Mr. Joshi" }, FRI: { subject: "Library Session", room: "Reading Room", teacher: "Mrs. Hema" } },
   ];
+
+  if (loading) {
+    return (
+      <div className="erp-body space-y-4 sm:space-y-6 pb-10 max-w-[1600px] mx-auto">
+        <SkeletonPageHeader />
+        <SkeletonMatrix rows={7} columns={5} />
+      </div>
+    );
+  }
 
   return (
     <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">

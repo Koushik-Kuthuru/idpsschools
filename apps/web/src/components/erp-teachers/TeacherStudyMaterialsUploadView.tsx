@@ -13,6 +13,7 @@ import { useTeacherClassScope } from "@/hooks/useTeacherClassScope";
 import { useAuth } from "@/contexts/AuthContext";
 import { loadTeacherProfile } from "@/lib/loadTeacherProfile";
 import { buildPath, insertData, getTimestamp, uploadFile, db } from "@/lib/db-client";
+import { SkeletonForm } from "@/components/ui/Skeleton";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -186,8 +187,8 @@ export default function TeacherStudyMaterialsUploadView() {
       </div>
 
       {scopeLoading ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
-          Loading your classes...
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <SkeletonForm fields={6} columns={1} />
         </div>
       ) : classOptions.length === 0 ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-6 text-sm text-amber-900">

@@ -34,13 +34,19 @@ async function loadCollection(schoolId: string, collectionName: string) {
   }
 }
 
-export function useAdminSearch(schoolId: string) {
+export function useAdminSearch(schoolId: string, options?: { enabled?: boolean }) {
+  const enabled = options?.enabled !== false;
   const [records, setRecords] = useState<AdminSearchResult[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const pageIndex = useMemo(() => buildPageSearchIndex(schoolId), [schoolId]);
 
   useEffect(() => {
+    if (!enabled || !schoolId) {
+      setLoading(false);
+      return;
+    }
+
     let cancelled = false;
 
     async function loadIndex() {
@@ -89,7 +95,7 @@ export function useAdminSearch(schoolId: string) {
     return () => {
       cancelled = true;
     };
-  }, [schoolId]);
+  }, [schoolId, enabled]);
 
   const allResults = useMemo(() => [...pageIndex, ...records], [pageIndex, records]);
 

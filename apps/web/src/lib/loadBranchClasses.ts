@@ -35,10 +35,14 @@ export async function loadBranchClassRecords(
   academicYearName?: string | null
 ): Promise<BranchClassRecord[]> {
   const branchId = await resolveBranchUuid(admin, schoolSlug);
-  if (!branchId) return [];
+  if (!branchId) {
+    throw new Error("School branch not found");
+  }
 
   const yearName = await resolveAcademicYearName(admin, schoolSlug, academicYearName);
-  if (!yearName) return [];
+  if (!yearName) {
+    return [];
+  }
 
   const { data, error } = await admin
     .from("classes")
@@ -47,7 +51,11 @@ export async function loadBranchClassRecords(
     .eq("academic_year", yearName)
     .order("class_name", { ascending: true });
 
-  if (error || !data?.length) return [];
+  if (error) {
+    throw new Error(error.message || "Failed to load classes");
+  }
+
+  if (!data?.length) return [];
 
   const records = data.map((row) => ({
     id: row.id,

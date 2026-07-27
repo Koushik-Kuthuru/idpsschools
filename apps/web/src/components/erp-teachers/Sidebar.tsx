@@ -9,6 +9,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { getTeacherNavigation, type TeacherNavItem } from "./navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useStaffPortalPermissions } from "@/hooks/useStaffPortalPermissions";
 import { getRoleLabel } from "@/lib/auth/roles";
 
 function cn(...inputs: ClassValue[]) {
@@ -60,7 +61,12 @@ export default function Sidebar({
     return match ? match[1] : "idpscherukupalli";
   }, [pathname]);
 
-  const navigation = useMemo(() => getTeacherNavigation(schoolId), [schoolId]);
+  const permissionContext = useStaffPortalPermissions(schoolId);
+
+  const navigation = useMemo(
+    () => getTeacherNavigation(schoolId, user?.designation ?? role, permissionContext),
+    [schoolId, user?.designation, role, permissionContext]
+  );
   const dashboardHref = `/schools/${schoolId}/teachers`;
   const sidebarExpanded = isSidebarOpen || isMobileMenuOpen;
 

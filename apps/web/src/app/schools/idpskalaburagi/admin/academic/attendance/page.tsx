@@ -31,11 +31,16 @@ import {
   calculateAttendanceStats,
   classifyAttendanceDay,
   getAttendanceStatusForDate,
+  monthsInAcademicYear,
+  toLocalDateString,
+  ymd,
+  isAttendanceHoliday,
   type AttendanceMarkStatus,
   type HolidayEntry,
 } from "@/utils/attendance";
 import AttendanceMarkCell from "@/components/admin/attendance/AttendanceMarkCell";
 import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
+import { useTeacherClassScope } from "@/hooks/useTeacherClassScope";
 import { filterGradesByScope, filterSectionsByScope } from "@/lib/teacherClassScope";
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
@@ -97,8 +102,17 @@ function registerSummaryRight(index: number) {
 export default function AdminAttendancePage() {
  const schoolId = useSchoolId();
  const { currentYear } = useAcademicYear();
- const { grades: branchGrades, sections: branchSections } = useBranchClassOptions(schoolId);
+ const {
+   grades: branchGrades,
+   sections: branchSections,
+   sectionsForGrade,
+   sectionsByClass,
+   loading: classesLoading,
+   error: classesError,
+   refresh: refreshClasses,
+ } = useBranchClassOptions(schoolId);
  const teacherPortal = useTeacherPortalScope();
+ const { matchesStudent, isUnrestricted } = useTeacherClassScope(schoolId);
  const allClassesKey = "All";
  const allSectionsKey = "All";
  const [activeTab, setActiveTab] = useState("Mark");
@@ -118,18 +132,50 @@ export default function AdminAttendancePage() {
  );
 
  const classOptions = useMemo(() => {
-   const scopedGrades = teacherPortal?.allowedClassKeys.size
-     ? filterGradesByScope(branchGrades, teacherPortal.allowedClassKeys)
-     : branchGrades;
+   const scopedGrades =
+     !isUnrestricted && teacherPortal?.allowedClassKeys.size
+       ? filterGradesByScope(branchGrades, teacherPortal.allowedClassKeys)
+       : branchGrades;
    return [allClassesKey, ...scopedGrades];
- }, [branchGrades, allClassesKey, teacherPortal?.allowedClassKeys]);
+ }, [branchGrades, allClassesKey, isUnrestricted, teacherPortal?.allowedClassKeys]);
 
- const sectionOptions = useMemo(() => {
-   const scopedSections = teacherPortal?.allowedClassKeys.size
-     ? filterSectionsByScope(branchSections, allClassesKey, teacherPortal.allowedClassKeys, allClassesKey)
-     : branchSections;
-   return [allSectionsKey, ...scopedSections];
- }, [branchSections, allSectionsKey, allClassesKey, teacherPortal?.allowedClassKeys]);
+ const sectionOptionsFor = useCallback(
+   (selectedGrade: string) => {
+     const gradeSections =
+       !selectedGrade || selectedGrade === allClassesKey
+         ? branchSections
+         : sectionsForGrade(selectedGrade);
+     const scopedSections =
+       !isUnrestricted && teacherPortal?.allowedClassKeys.size
+         ? filterSectionsByScope(
+             gradeSections,
+             selectedGrade,
+             teacherPortal.allowedClassKeys,
+             allClassesKey
+           )
+         : gradeSections;
+     return [allSectionsKey, ...scopedSections];
+   },
+   [
+     allClassesKey,
+     allSectionsKey,
+     branchSections,
+     sectionsForGrade,
+     isUnrestricted,
+     teacherPortal?.allowedClassKeys,
+   ]
+ );
+
+ const sectionOptions = useMemo(() => sectionOptionsFor(grade), [sectionOptionsFor, grade]);
+ const allSectionOptions = useMemo(
+   () => sectionOptionsFor(allClassesKey),
+   [sectionOptionsFor, allClassesKey]
+ );
+
+ const registerMonthOptions = useMemo(
+   () => monthsInAcademicYear(currentYear ?? {}),
+   [currentYear]
+ );
 
  useEffect(() => {
   const unsub = subscribeData(buildPath(db, "schools", schoolId, "holidays"), (snap: any) => {
@@ -175,14 +221,16 @@ export default function AdminAttendancePage() {
  const [isViewLoading, setIsViewLoading] = useState(false);
 
  // Register Tab States
- const [registerMonth, setRegisterMonth] = useState<string>(() => {
-   const d = new Date();
-   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
- });
+ const [registerMonth, setRegisterMonth] = useState<string>("");
  const [registerClass, setRegisterClass] = useState<string>(allClassesKey);
  const [registerSection, setRegisterSection] = useState<string>(allSectionsKey);
  const [registerData, setRegisterData] = useState<{year: number, month: number, daysInMonth: number, rows: any[], dayTotals: Record<number, number>} | null>(null);
  const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
+ const registerSectionOptions = useMemo(
+   () => sectionOptionsFor(registerClass),
+   [sectionOptionsFor, registerClass]
+ );
 
  const gradeLabel = (g: string) => {
     if (g === allClassesKey || g === 'all') return 'All Classes';
@@ -202,11 +250,24 @@ export default function AdminAttendancePage() {
  if (sectionOptions.length && !sectionOptions.includes(section)) setSection(allSectionsKey);
  }, [sectionOptions, section, allSectionsKey]);
 
+ useEffect(() => {
+ if (registerSectionOptions.length && !registerSectionOptions.includes(registerSection)) {
+   setRegisterSection(allSectionsKey);
+ }
+ }, [registerSectionOptions, registerSection, allSectionsKey]);
+
+ useEffect(() => {
+   if (!registerMonthOptions.length) return;
+   if (!registerMonth || !registerMonthOptions.some((m) => m.value === registerMonth)) {
+     setRegisterMonth(registerMonthOptions[0].value);
+   }
+ }, [registerMonthOptions, registerMonth]);
+
  const loadRoster = useCallback(async (nextGrade: string, nextSection: string, date: string) => {
     try {
       setLoadError(null);
       const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
-      const snapshot = await fetchMany(q);
+      const snapshot = await fetchMany(q, { skipCache: true });
 
       const filteredStudents = snapshot.docs
         .map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }))
@@ -218,8 +279,11 @@ export default function AdminAttendancePage() {
           
           const matchClass = wantGrade.toLowerCase() === allClassesKey.toLowerCase() || classId === wantGrade;
           const matchSection = wantSection.toLowerCase() === allSectionsKey.toLowerCase() || studentSection === wantSection;
-          
-          return matchClass && matchSection;
+          const matchScope =
+            isUnrestricted ||
+            matchesStudent({ classId, grade: classId, section: studentSection });
+
+          return matchClass && matchSection && matchScope;
         });
 
       const rosterData = filteredStudents.map((s: any, idx): StudentAttendanceRow => {
@@ -230,7 +294,7 @@ export default function AdminAttendancePage() {
           s.attendance?.lateDates || [],
           undefined, // start date
           undefined, // end date
-          holidayDates
+          [...new Set([...holidayDates, ...(s.attendance?.holidayDates || [])])]
         );
 
         const classId = String(s.classId || "-").trim();
@@ -260,7 +324,7 @@ export default function AdminAttendancePage() {
       setSelected({});
       setLoadError(e?.message || "Failed to load roster");
     }
-  }, [schoolId, allClassesKey, allSectionsKey, holidayDates, currentYear?.name]);
+  }, [schoolId, allClassesKey, allSectionsKey, holidayDates, currentYear?.name, isUnrestricted, matchesStudent]);
 
  useEffect(() => {
  setAcademicDate(new Date().toISOString().split('T')[0]);
@@ -327,7 +391,7 @@ export default function AdminAttendancePage() {
     setViewGraphData(null);
     try {
       const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
-      const snapshot = await fetchMany(q);
+      const snapshot = await fetchMany(q, { skipCache: true });
       const students = snapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }));
 
       const filtered = students.filter((s: any) => {
@@ -349,11 +413,11 @@ export default function AdminAttendancePage() {
       
       let current = new Date(start);
       while (current <= end) {
-        const dateStr = current.toISOString().split('T')[0];
+        const dateStr = toLocalDateString(current);
         const dayOfWeek = current.getDay();
         
         const isSunday = dayOfWeek === 0;
-        const isHoliday = holidayDates.includes(dateStr);
+        const isHoliday = isAttendanceHoliday(dateStr, holidayDates);
 
         if (!isSunday && !isHoliday) {
           let present = 0;
@@ -406,7 +470,7 @@ export default function AdminAttendancePage() {
     setRegisterData(null);
     try {
       const q = buildQuery(buildPath(db, "schools", schoolId, "students"));
-      const snapshot = await fetchMany(q);
+      const snapshot = await fetchMany(q, { skipCache: true });
       const students = snapshot.docs.map((buildPath: any) => ({ id: buildPath.id, ...buildPath.data() }));
 
       const filtered = students.filter((s: any) => {
@@ -434,10 +498,10 @@ export default function AdminAttendancePage() {
         
         for (let day = 1; day <= daysInMonth; day++) {
           const currentDate = new Date(year, month, day);
-          const dateStr = currentDate.toISOString().split('T')[0];
+          const dateStr = ymd(year, month + 1, day);
           
           const isSunday = currentDate.getDay() === 0;
-          const isHoliday = holidayDates.includes(dateStr);
+          const isHoliday = isAttendanceHoliday(dateStr, holidayDates);
           
           if (isSunday) {
             attendanceMap[day] = 'S';
@@ -656,6 +720,22 @@ export default function AdminAttendancePage() {
  {loadError}
  </div>
  )}
+ {(classesError || (!classesLoading && branchGrades.length === 0)) && (
+ <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800 flex flex-wrap items-center justify-between gap-2">
+   <span>
+     {classesError
+       ? `Could not load classes: ${classesError}`
+       : "No classes found for the selected academic year."}
+   </span>
+   <button
+     type="button"
+     onClick={() => void refreshClasses()}
+     className="rounded-md bg-amber-800 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wide text-white hover:bg-amber-900"
+   >
+     Retry
+   </button>
+ </div>
+ )}
   {/* Top Header */}
  <AdminPageHeader
   title="Attendance"
@@ -770,7 +850,10 @@ export default function AdminAttendancePage() {
  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Class</label>
  <select
  value={grade}
- onChange={(e) => setGrade(e.target.value)}
+ onChange={(e) => {
+   setGrade(e.target.value);
+   setSection(allSectionsKey);
+ }}
  className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50"
  >
  {classOptions.map((g) => (
@@ -904,11 +987,11 @@ export default function AdminAttendancePage() {
  </div>
  )}
 
- <div className="overflow-x-auto overflow-y-visible pb-32">
- <table className="w-full text-left border-collapse">
- <thead>
- <tr className="bg-gray-50/80 border-b border-gray-100">
- <th className="px-5 py-3 w-[40px]">
+<div className="hidden lg:block overflow-x-auto overflow-y-visible pb-32">
+<table className="w-full text-left border-collapse">
+<thead>
+<tr className="bg-gray-50/80 border-b border-gray-100">
+<th className="px-5 py-3 w-[40px]">
  <input
  type="checkbox"
  className="h-3.5 w-3.5 rounded border-gray-300 text-[#144835] focus:ring-[#144835] transition-colors cursor-pointer"
@@ -1018,13 +1101,89 @@ export default function AdminAttendancePage() {
  </button>
  </td>
  </tr>
- )}
- </tbody>
- </table>
+)}
+</tbody>
+</table>
+</div>
+
+{/* Mobile roster cards */}
+<div className="lg:hidden divide-y divide-gray-100">
+{filteredRoster.length > 0 ? (
+filteredRoster.map((r) => {
+const initials = r.name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
+const avatarColor = getAvatarColor(r.name);
+return (
+<div key={r.studentId} className={cn("p-4 transition-colors", selected[r.studentId] ? "bg-blue-50/30" : "")}>
+<div className="flex items-start gap-3">
+<input
+type="checkbox"
+className="mt-1 h-3.5 w-3.5 rounded border-gray-300 text-[#144835] focus:ring-[#144835] transition-colors cursor-pointer shrink-0"
+checked={Boolean(selected[r.studentId])}
+onChange={(e) => setSelected((prev) => ({ ...prev, [r.studentId]: e.target.checked }))}
+/>
+<div className={cn("h-9 w-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0", avatarColor)}>
+{initials}
+</div>
+<div className="min-w-0 flex-1">
+<div className="flex items-center gap-2">
+<p className="text-sm font-bold text-gray-900 truncate">{r.name}</p>
+<span className="text-xs font-bold text-gray-700 bg-gray-100/80 px-1.5 py-0.5 rounded shrink-0">#{r.roll}</span>
+</div>
+<p className="text-xs font-medium text-gray-500 mt-0.5">{r.admissionNumber} · {r.classSection}</p>
+{r.fatherName ? (
+<p className="text-xs font-medium text-gray-500 mt-0.5">Father: {r.fatherName}</p>
+) : null}
+</div>
+<TableRowActions
+items={[
+{ label: "View Profile", icon: User, href: `/schools/${schoolId}/admin/academic/students/${r.studentId}/profile?tab=Attendance` },
+{ label: "Edit Student", icon: Pencil, href: `/schools/${schoolId}/admin/academic/students/${r.studentId}/edit` },
+{
+label: "Delete",
+icon: Trash2,
+destructive: true,
+dividerBefore: true,
+confirmMessage: `Delete ${r.name}? This cannot be undone.`,
+onClick: () => deleteSchoolDocument(schoolId, "students", r.studentId),
+},
+]}
+/>
+</div>
+<div className="mt-3 flex items-center justify-between gap-2">
+<span className="text-xs font-medium text-gray-500">Attendance: {r.attendancePercent}%</span>
+<AttendanceMarkCell
+dayInfo={markDayInfo}
+status={r.status}
+attendancePercent={r.attendancePercent}
+remarks={r.remarks}
+onStatusChange={(status: any) => updateStudentStatus(r.studentId, status)}
+onRemarksChange={(remarks: string) =>
+setRoster((prev) => prev.map((x) => (x.studentId === r.studentId ? { ...x, remarks } : x)))
+}
+/>
+</div>
+</div>
+);
+})
+) : (
+<div className="px-5 py-8 text-center">
+<div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-gray-50 mb-3">
+<Search size={24} className="text-gray-400" />
+</div>
+<p className="text-sm font-bold text-gray-900">No students found</p>
+<p className="text-xs text-gray-500 mt-1">Try adjusting your search.</p>
+<button
+onClick={() => setSearchQuery("")}
+className="mt-4 text-xs font-bold text-[#144835] hover:underline"
+>
+Clear search
+</button>
+</div>
+)}
+</div>
+</div>
  </div>
- </div>
-  </div>
- ) : activeTab === "Register" ? (
+) : activeTab === "Register" ? (
   <div className="space-y-4 animate-in fade-in duration-300 w-full min-w-0">
     <div className="bg-white rounded-xl border border-gray-200 px-5 pb-5 pt-3 shadow-sm w-full min-w-0">
       <div className="flex flex-wrap items-end gap-4">
@@ -1032,7 +1191,10 @@ export default function AdminAttendancePage() {
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Class</label>
           <select
             value={registerClass}
-            onChange={(e) => setRegisterClass(e.target.value)}
+            onChange={(e) => {
+              setRegisterClass(e.target.value);
+              setRegisterSection(allSectionsKey);
+            }}
             className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50"
           >
             {classOptions.map((g) => (
@@ -1047,8 +1209,8 @@ export default function AdminAttendancePage() {
             onChange={(e) => setRegisterSection(e.target.value)}
             className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50"
           >
-            {sectionOptions.map((s) => (
-              <option key={s} value={s}>{s}</option>
+            {registerSectionOptions.map((s) => (
+              <option key={s} value={s}>{sectionLabel(s)}</option>
             ))}
           </select>
         </div>
@@ -1059,13 +1221,13 @@ export default function AdminAttendancePage() {
             onChange={(e) => setRegisterMonth(e.target.value)}
             className="w-full h-9 rounded-lg border border-gray-200 bg-gray-50/50 px-3 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] focus:bg-white transition-all hover:bg-gray-50"
           >
-            {Array.from({ length: 12 }).map((_, i) => {
-              const d = new Date();
-              d.setMonth(d.getMonth() - i);
-              const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-              const label = d.toLocaleDateString('default', { month: 'long', year: 'numeric' });
-              return <option key={value} value={value}>{label}</option>;
-            })}
+            {registerMonthOptions.length === 0 ? (
+              <option value="">No months for this session</option>
+            ) : (
+              registerMonthOptions.map((m) => (
+                <option key={m.value} value={m.value}>{m.label}</option>
+              ))
+            )}
           </select>
         </div>
         <button
@@ -1239,7 +1401,8 @@ export default function AdminAttendancePage() {
   <AbsentLogTab 
     schoolId={schoolId} 
     classOptions={classOptions} 
-    sectionOptions={sectionOptions} 
+    sectionOptions={allSectionOptions}
+    sectionsByClass={sectionsByClass}
     holidays={holidayDates} 
   />
  ) : activeTab === "Classwise Status" ? (

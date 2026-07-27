@@ -29,11 +29,15 @@ export const HOSTEL_SECTIONS: Record<string, AdminSectionPageConfig> = {
 export const MESS_SECTIONS: Record<string, AdminSectionPageConfig> = {
   menu: {
     title: "Mess Menu",
-    description: "Weekly meal plans, special diets, and menu publishing.",
+    description: "Morning breakfast, afternoon lunch, evening snacks, and night dinner plans.",
+  },
+  dishes: {
+    title: "Dishes & Recipes",
+    description: "Food items and dishes prepared in the mess, with optional recipes.",
   },
   attendance: {
     title: "Mess Attendance",
-    description: "Meal-wise headcount and absentee tracking.",
+    description: "Attendance for morning breakfast, afternoon lunch, evening snacks, and night dinner.",
   },
   billing: {
     title: "Mess Billing",

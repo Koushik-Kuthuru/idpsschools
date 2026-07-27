@@ -1,4 +1,5 @@
 import { withSupabaseRoute } from "@/lib/supabase/route-handler";
+import { resolveStudentSessionContext } from "@/lib/auth/resolve-student-session";
 
 export const GET = withSupabaseRoute("user", async (req, ctx) => {
   const userId = ctx.userClaims?.id;
@@ -12,8 +13,16 @@ export const GET = withSupabaseRoute("user", async (req, ctx) => {
   }
 
   try {
-    const enrollment = await loadEnrollment(ctx, schoolSlug, userId);
-    return Response.json({ enrollment });
+    const enrollment = await loadEnrollment(
+      ctx,
+      schoolSlug,
+      userId,
+      ctx.userClaims?.email ?? null
+    );
+    return Response.json(
+      { enrollment },
+      { headers: { "Cache-Control": "private, no-store" } }
+    );
   } catch (err) {
     console.error("portal/my-enrollment", err);
     return Response.json({ error: "Failed to load enrollment" }, { status: 500 });
@@ -23,14 +32,26 @@ export const GET = withSupabaseRoute("user", async (req, ctx) => {
 async function loadEnrollment(
   ctx: { supabaseAdmin: import("@supabase/supabase-js").SupabaseClient<any> },
   schoolSlug: string,
-  userId: string
+  userId: string,
+  email: string | null
 ) {
   const { getSchoolCodeFromSlug } = await import("@/lib/supabase/client");
   const code = getSchoolCodeFromSlug(schoolSlug);
   if (!code) return null;
 
-  const { data: school } = await ctx.supabaseAdmin.from("schools").select("id").eq("code", code).single();
-  if (!school?.id) return null;
+  const [schoolResult, session] = await Promise.all([
+    ctx.supabaseAdmin.from("schools").select("id").eq("code", code).maybeSingle(),
+    resolveStudentSessionContext({
+      admin: ctx.supabaseAdmin,
+      authId: userId,
+      email,
+      schoolSlug,
+    }),
+  ]);
+
+  const school = schoolResult.data;
+  const studentId = session?.recordId;
+  if (!school?.id || !studentId) return null;
 
   const { data: year } = await ctx.supabaseAdmin
     .from("academic_years")
@@ -39,26 +60,22 @@ async function loadEnrollment(
     .eq("is_current", true)
     .maybeSingle();
 
-  const { data: student } = await ctx.supabaseAdmin
-    .from("students")
-    .select("id")
-    .eq("school_id", school.id)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!student?.id || !year?.id) return null;
+  if (!year?.id) return null;
 
   const { data: enrollment } = await ctx.supabaseAdmin
     .from("student_section_enrollments")
     .select("roll_number, sections ( name, grades ( name ) )")
     .eq("school_id", school.id)
-    .eq("student_id", student.id)
+    .eq("student_id", studentId)
     .eq("academic_year_id", year.id)
     .maybeSingle();
 
   if (!enrollment) return null;
 
-  const sections = enrollment.sections as { name?: string; grades?: { name?: string } | { name?: string }[] | null };
+  const sections = enrollment.sections as {
+    name?: string;
+    grades?: { name?: string } | { name?: string }[] | null;
+  };
   const grades = sections?.grades;
   const grade = String(Array.isArray(grades) ? grades[0]?.name : grades?.name ?? "").trim();
   const section = String(sections?.name ?? "").trim();

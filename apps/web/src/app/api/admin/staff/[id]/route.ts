@@ -1,18 +1,18 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import { loadBranchStaffRecordById } from "@/lib/loadBranchStaff";
 
-export async function GET(
-  req: Request,
-  context: { params: Promise<{ id: string }> }
-) {
-  const { id: staffId } = await context.params;
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
+  const staffId = decodeURIComponent(
+    new URL(req.url).pathname.split("/").filter(Boolean).at(-1) ?? ""
+  );
   const url = new URL(req.url);
   const schoolSlug = url.searchParams.get("schoolId");
   const academicYear = url.searchParams.get("academicYear");
   const kindParam = url.searchParams.get("kind");
 
   if (!schoolSlug || !staffId) {
-    return Response.json({ error: "schoolId and staff id required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId and staff id required" }, { status: 400 });
   }
 
   const kind =
@@ -25,12 +25,12 @@ export async function GET(
     });
 
     if (!detail) {
-      return Response.json({ error: "Staff member not found" }, { status: 404 });
+      return noStoreJson({ error: "Staff member not found" }, { status: 404 });
     }
 
-    return Response.json(detail);
+    return noStoreJson(detail);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load staff member";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});

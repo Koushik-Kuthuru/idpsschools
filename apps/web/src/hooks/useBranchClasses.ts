@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { clientCacheKey } from "@/lib/clientCache";
 import type { BranchClassRecord } from "@/lib/loadBranchClasses";
 import { useCachedQuery } from "@/hooks/useCachedQuery";
@@ -16,7 +17,7 @@ export function useBranchClasses(
   schoolId: string,
   academicYearName: string | null | undefined
 ): UseBranchClassesResult {
-  const cacheKey = clientCacheKey("classes", schoolId, academicYearName ?? "current");
+  const cacheKey = clientCacheKey("classes-v2", schoolId, academicYearName ?? "current");
 
   const query = useCachedQuery<BranchClassRecord[]>({
     cacheKey,
@@ -25,7 +26,7 @@ export function useBranchClasses(
       const params = new URLSearchParams({ schoolId });
       if (academicYearName) params.set("academicYear", academicYearName);
 
-      const res = await fetch(`/api/admin/classes?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/classes?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {

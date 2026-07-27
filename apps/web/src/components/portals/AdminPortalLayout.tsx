@@ -12,6 +12,9 @@ import { BranchProvider } from "@/components/admin/BranchContext";
 import { AcademicYearProvider } from "@/contexts/AcademicYearContext";
 import { isAdminSidebarCollapsedRoute, isAdminStandaloneRoute } from "@/lib/admin-layout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import PortalPermissionGuard from "@/components/auth/PortalPermissionGuard";
+import { PortalActionProvider, PortalDomActionEnforcer } from "@/contexts/PortalActionContext";
+import { TeacherPortalScopeProvider } from "@/contexts/TeacherPortalScopeContext";
 import SchoolRouteGuard from "@/components/auth/SchoolRouteGuard";
 import { ADMIN_LAYOUT_ALLOWED_ROLES } from "@/lib/auth/admin-portal-roles";
 import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
@@ -40,7 +43,10 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
       <ProtectedRoute allowedRoles={ADMIN_LAYOUT_ALLOWED_ROLES} requiredSchoolId={schoolId}>
         <BranchProvider>
           <AcademicYearProvider schoolSlug={schoolId}>
+          <TeacherPortalScopeProvider schoolId={schoolId}>
           <AdminNotificationsProvider>
+            <PortalActionProvider schoolId={schoolId} portal="admin">
+            <PortalDomActionEnforcer schoolId={schoolId} portal="admin" />
             <div className="min-h-screen bg-[#F8FAFB] flex">
               {isMobileMenuOpen && (
                 <div
@@ -64,11 +70,15 @@ export default function AdminPortalLayout({ children }: { children: React.ReactN
               >
                 <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
                 <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-clip p-4 sm:p-4 lg:p-8">
-                  {children}
+                  <PortalPermissionGuard schoolId={schoolId} portal="admin">
+                    {children}
+                  </PortalPermissionGuard>
                 </main>
               </div>
             </div>
+            </PortalActionProvider>
           </AdminNotificationsProvider>
+          </TeacherPortalScopeProvider>
           </AcademicYearProvider>
         </BranchProvider>
       </ProtectedRoute>

@@ -15,6 +15,7 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { SkeletonCard } from "@/components/ui/Skeleton";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
 import { useTeacherClassScope } from "@/hooks/useTeacherClassScope";
@@ -249,8 +250,10 @@ export default function TeacherStudyMaterialsView() {
       {loadError ? (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-6 text-sm text-rose-800">{loadError}</div>
       ) : loading || scopeLoading ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-10 text-center text-sm text-gray-500">
-          Loading study materials...
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} lines={2} />
+          ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-gray-200 bg-white p-10 text-center">

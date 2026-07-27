@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { RotateCcw, Save } from "lucide-react";
 
-
+import { SkeletonForm } from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { logAuditEvent } from "@/lib/audit";
 import { buildPath, subscribeData, upsertData, db, auth } from "@/lib/db-client";
@@ -174,8 +174,8 @@ export default function SettingsPage() {
  </div>
 
  {loading ? (
- <div className="flex h-64 items-center justify-center">
- <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin" />
+ <div className="rounded-xl border border-gray-200 bg-white p-6">
+ <SkeletonForm fields={6} columns={2} />
  </div>
  ) : (
  <div className="space-y-6">

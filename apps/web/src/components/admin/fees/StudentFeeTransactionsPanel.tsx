@@ -6,7 +6,17 @@ import { twMerge } from "tailwind-merge";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useFeePayments } from "@/hooks/useFeePayments";
 import { extractFeeTransactions } from "@/lib/studentFeeResolver";
-import { formatInr, formatReceiptDateTime, type FeeReceiptRow } from "@/lib/feeDepositUtils";
+import {
+  cleanTransactionId,
+  formatInr,
+  formatReceiptDateTime,
+  type FeeReceiptRow,
+} from "@/lib/feeDepositUtils";
+
+/** Excel "Trans. No." only — never the internal abc8-… import reference. */
+function excelTransNo(row: FeeReceiptRow): string {
+  return cleanTransactionId(String(row.transNo ?? row.transactionId ?? "").trim());
+}
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -35,7 +45,16 @@ type Props = {
 
 export default function StudentFeeTransactionsPanel({ student }: Props) {
   const schoolId = useSchoolId();
-  const { receipts, loading } = useFeePayments(schoolId);
+  const studentId = String(student?.id ?? "").trim() || null;
+  const admissionNo =
+    String(student?.admissionNo ?? student?.admission_number ?? "").trim() || null;
+  const { receipts, loading } = useFeePayments(schoolId, {
+    studentId,
+    admissionNo: studentId ? null : admissionNo,
+    enabled: Boolean(studentId || admissionNo),
+    requireAcademicYear: false,
+    limit: null,
+  });
 
   const rows = useMemo(() => {
     if (!student) return [];
@@ -59,8 +78,13 @@ export default function StudentFeeTransactionsPanel({ student }: Props) {
 
     const seen = new Set<string>();
     return sortReceipts(
-      [...fromProfile, ...fromPayments].filter((r) => {
-        const key = `${r.receiptNo}|${r.date}|${r.amount}|${r.reference ?? ""}`;
+      [...fromPayments, ...fromProfile].filter((r) => {
+        // Prefer stable payment id — profile embeds + notice store often share the same id
+        // but differ slightly on reference/remark, which used to leak duplicates into the table.
+        const id = String(r.id ?? "").trim();
+        const key = id
+          ? `id:${id}`
+          : `${r.receiptNo}|${r.date}|${r.amount}|${r.reference ?? ""}|${r.particular ?? ""}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -108,10 +132,13 @@ export default function StudentFeeTransactionsPanel({ student }: Props) {
                 </td>
               </tr>
             ) : (
-              rows.map((r) => {
+              rows.map((r, idx) => {
                 const { date, time } = formatReceiptDateTime(r);
                 return (
-                <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50/50">
+                <tr
+                  key={r.id ? `${r.id}:${idx}` : `tx-${r.receiptNo}-${r.date}-${idx}`}
+                  className="border-b border-gray-50 hover:bg-gray-50/50"
+                >
                   <td className="px-3 py-2.5 font-bold text-gray-800">{r.receiptNo}</td>
                   <td className="px-3 py-2.5 text-gray-600">{date}</td>
                   <td className="px-3 py-2.5 text-gray-500">{time}</td>
@@ -121,8 +148,11 @@ export default function StudentFeeTransactionsPanel({ student }: Props) {
                   </td>
                   <td className="px-3 py-2.5 text-right font-extrabold text-[#144835]">{formatInr(r.amount)}</td>
                   <td className="px-3 py-2.5 font-semibold text-gray-600">{r.mode}</td>
-                  <td className="px-3 py-2.5 font-mono text-[11px] text-gray-500 max-w-[120px] truncate">
-                    {r.reference || "—"}
+                  <td
+                    className="px-3 py-2.5 font-mono text-[11px] text-gray-500 max-w-[120px] truncate"
+                    title={excelTransNo(r) || undefined}
+                  >
+                    {excelTransNo(r) || "—"}
                   </td>
                   <td className="px-3 py-2.5 text-gray-700">{r.collectedByName ?? "—"}</td>
                   <td className="px-3 py-2.5">

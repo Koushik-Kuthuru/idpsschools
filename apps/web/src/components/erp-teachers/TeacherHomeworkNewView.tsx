@@ -11,6 +11,7 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
 import { useTeacherClassScope } from "@/hooks/useTeacherClassScope";
 import { buildPath, insertData, getTimestamp, db } from "@/lib/db-client";
+import { SkeletonForm } from "@/components/ui/Skeleton";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -137,8 +138,8 @@ export default function TeacherHomeworkNewView() {
       </div>
 
       {scopeLoading ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">
-          Loading your classes...
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
+          <SkeletonForm fields={6} columns={1} />
         </div>
       ) : classOptions.length === 0 ? (
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-6 text-sm text-amber-900">

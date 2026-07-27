@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import {
   addBranchTransportBus,
   deleteBranchTransportBus,
@@ -11,31 +11,33 @@ function parseBusStatus(value: unknown): "Active" | "Inactive" | undefined {
   return String(value) === "Inactive" ? "Inactive" : "Active";
 }
 
-export async function GET(req: Request) {
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   const url = new URL(req.url);
   const schoolSlug = url.searchParams.get("schoolId");
 
   if (!schoolSlug) {
-    return Response.json({ error: "schoolId required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId required" }, { status: 400 });
   }
 
   try {
     const buses = await loadBranchTransportBuses(supabaseAdmin, schoolSlug);
-    return Response.json({ buses });
+    return noStoreJson({ buses });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load buses";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   try {
     const body = await req.json();
     const schoolSlug = String(body.schoolId ?? "");
     const action = String(body.action ?? "add");
 
     if (!schoolSlug) {
-      return Response.json({ error: "schoolId required" }, { status: 400 });
+      return noStoreJson({ error: "schoolId required" }, { status: 400 });
     }
 
     if (action === "add") {
@@ -45,24 +47,25 @@ export async function POST(req: Request) {
         routePrice: Number(body.routePrice) || 0,
         status: parseBusStatus(body.status) ?? "Active",
       });
-      return Response.json({ buses });
+      return noStoreJson({ buses });
     }
 
-    return Response.json({ error: "Unknown action" }, { status: 400 });
+    return noStoreJson({ error: "Unknown action" }, { status: 400 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to save bus";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});
 
-export async function PATCH(req: Request) {
+export const PATCH = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   try {
     const body = await req.json();
     const schoolSlug = String(body.schoolId ?? "");
     const id = String(body.id ?? "");
 
     if (!schoolSlug || !id) {
-      return Response.json({ error: "schoolId and id required" }, { status: 400 });
+      return noStoreJson({ error: "schoolId and id required" }, { status: 400 });
     }
 
     const buses = await updateBranchTransportBus(supabaseAdmin, schoolSlug, id, {
@@ -72,27 +75,28 @@ export async function PATCH(req: Request) {
       status: parseBusStatus(body.status),
     });
 
-    return Response.json({ buses });
+    return noStoreJson({ buses });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to update bus";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});
 
-export async function DELETE(req: Request) {
+export const DELETE = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   const url = new URL(req.url);
   const schoolSlug = url.searchParams.get("schoolId");
   const id = url.searchParams.get("id");
 
   if (!schoolSlug || !id) {
-    return Response.json({ error: "schoolId and id required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId and id required" }, { status: 400 });
   }
 
   try {
     const buses = await deleteBranchTransportBus(supabaseAdmin, schoolSlug, id);
-    return Response.json({ buses });
+    return noStoreJson({ buses });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to delete bus";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});

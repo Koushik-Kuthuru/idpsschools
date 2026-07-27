@@ -340,7 +340,7 @@ export default function Sidebar({
 
         {/* Logout Button */}
         <button
-          onClick={logout}
+          onClick={() => void logout()}
           className={cn(
             "flex items-center px-2 py-2 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer text-gray-300 hover:text-red-400 group w-full text-left",
             sidebarExpanded ? "gap-3 justify-start" : "justify-center"

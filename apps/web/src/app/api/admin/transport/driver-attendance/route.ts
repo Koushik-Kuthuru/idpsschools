@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import {
   getTransportDriverAttendanceForDate,
   getTransportDriverAttendanceForMonth,
@@ -6,7 +6,8 @@ import {
   saveTransportDriverAttendanceForDate,
 } from "@/lib/branchTransportDriverAttendanceStore";
 
-export async function GET(req: Request) {
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   const url = new URL(req.url);
   const schoolSlug = url.searchParams.get("schoolId");
   const academicYear = url.searchParams.get("academicYear");
@@ -14,29 +15,30 @@ export async function GET(req: Request) {
   const month = url.searchParams.get("month");
 
   if (!schoolSlug || !academicYear) {
-    return Response.json({ error: "schoolId and academicYear required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId and academicYear required" }, { status: 400 });
   }
 
   try {
     if (date) {
       const marks = await getTransportDriverAttendanceForDate(supabaseAdmin, schoolSlug, academicYear, date);
-      return Response.json({ date, marks });
+      return noStoreJson({ date, marks });
     }
 
     if (month) {
       const marks = await getTransportDriverAttendanceForMonth(supabaseAdmin, schoolSlug, academicYear, month);
-      return Response.json({ month, marks });
+      return noStoreJson({ month, marks });
     }
 
     const store = await loadBranchTransportDriverAttendance(supabaseAdmin, schoolSlug, academicYear);
-    return Response.json({ store });
+    return noStoreJson({ store });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load driver attendance";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   try {
     const body = await req.json();
     const schoolSlug = String(body.schoolId ?? "").trim();
@@ -45,7 +47,7 @@ export async function POST(req: Request) {
     const marks = body.marks as Record<string, { status?: string; remarks?: string }> | undefined;
 
     if (!schoolSlug || !academicYear || !date || !marks) {
-      return Response.json({ error: "schoolId, academicYear, date, and marks required" }, { status: 400 });
+      return noStoreJson({ error: "schoolId, academicYear, date, and marks required" }, { status: 400 });
     }
 
     const normalized: Record<string, { status: "P" | "A" | "HD" | "None"; remarks?: string }> = {};
@@ -65,9 +67,9 @@ export async function POST(req: Request) {
       normalized
     );
 
-    return Response.json({ date, marks: saved });
+    return noStoreJson({ date, marks: saved });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to save driver attendance";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});

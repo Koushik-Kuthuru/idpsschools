@@ -7,7 +7,8 @@ import { navigation } from "./navigation";
 
 
 import { useAuth } from "@/contexts/AuthContext";
-import { auth, db, buildPath, subscribeData } from "@/lib/db-client";
+import { getPortalLoginPath } from "@/lib/auth/roles";
+import { db, buildPath, subscribeData } from "@/lib/db-client";
 
 
 interface HeaderProps {
@@ -17,16 +18,11 @@ interface HeaderProps {
 export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [displayName, setDisplayName] = useState<string>("");
 
   const handleLogout = async () => {
-    try {
-      await auth.signOut();
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
+    await logout(getPortalLoginPath(null, "super_admin"));
   };
 
   useEffect(() => {

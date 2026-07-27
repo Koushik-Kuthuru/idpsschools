@@ -4,7 +4,8 @@ import React, { useState } from "react";
 
 
 import { Search, RotateCw, Download, FileText, AlertCircle } from "lucide-react";
-import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
+import AttendanceTabGuide from "./AttendanceTabGuide";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { datewiseGuide } from "./attendanceGuidePresets";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -173,7 +174,7 @@ export default function DatewiseSummaryTab({ schoolId, holidays }: DatewiseSumma
       )}
 
       {!summaryData && !isLoading ? <AttendanceTabGuide {...datewiseGuide} /> : null}
-      {isLoading && !summaryData ? <AttendanceTabLoading label="Generating summary…" /> : null}
+      {isLoading && !summaryData ? <SkeletonTable rows={8} columns={6} /> : null}
 
       {summaryData && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">

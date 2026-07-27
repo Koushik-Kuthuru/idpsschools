@@ -1,1 +1,5 @@
-export { default } from "@/app/schools/idpscherukupalli/staff/announcements/page";
+import StaffAnnouncementsView from "@/components/staff-portal/StaffAnnouncementsView";
+
+export default function StaffAnnouncementsPage() {
+  return <StaffAnnouncementsView />;
+}

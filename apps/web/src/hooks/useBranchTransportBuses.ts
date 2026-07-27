@@ -1,5 +1,6 @@
 "use client";
 
+import { adminFetch } from "@/lib/adminApi";
 import { useCallback, useState } from "react";
 import { clientCacheKey, writeClientCache } from "@/lib/clientCache";
 import { useCachedQuery } from "@/hooks/useCachedQuery";
@@ -15,7 +16,7 @@ export function useBranchTransportBuses(schoolId: string) {
     enabled: Boolean(schoolId),
     fetcher: async () => {
       const params = new URLSearchParams({ schoolId });
-      const res = await fetch(`/api/admin/transport/buses?${params.toString()}`);
+      const res = await adminFetch(`/api/admin/transport/buses?${params.toString()}`);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Failed to load buses");
       return { buses: (data.buses ?? []) as TransportBusRecord[] };
@@ -36,7 +37,7 @@ export function useBranchTransportBuses(schoolId: string) {
     async (input: { busNo: string; route: string; routePrice?: number; status?: string }) => {
       setMutating(true);
       try {
-        const res = await fetch("/api/admin/transport/buses", {
+        const res = await adminFetch("/api/admin/transport/buses", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ schoolId, action: "add", ...input }),
@@ -58,7 +59,7 @@ export function useBranchTransportBuses(schoolId: string) {
     ) => {
       setMutating(true);
       try {
-        const res = await fetch("/api/admin/transport/buses", {
+        const res = await adminFetch("/api/admin/transport/buses", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ schoolId, id, ...patch }),
@@ -78,7 +79,7 @@ export function useBranchTransportBuses(schoolId: string) {
       setMutating(true);
       try {
         const params = new URLSearchParams({ schoolId, id });
-        const res = await fetch(`/api/admin/transport/buses?${params.toString()}`, { method: "DELETE" });
+        const res = await adminFetch(`/api/admin/transport/buses?${params.toString()}`, { method: "DELETE" });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error || "Failed to delete bus");
         syncCache(data.buses ?? []);

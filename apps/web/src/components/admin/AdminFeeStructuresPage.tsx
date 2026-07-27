@@ -17,6 +17,7 @@ import BarSummary from "@/components/charts/BarSummary";
 
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
+import { Skeleton, SkeletonTableRows } from "@/components/ui/Skeleton";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
 import { buildPath, subscribeData, buildQuery, sortBy, fetchMany, db } from "@/lib/db-client";
 import {
@@ -453,9 +454,13 @@ export default function AdminFeeStructuresPage() {
  </div>
  
  <div className="flex items-center gap-2">
+ {loading ? (
+ <Skeleton className="h-3 w-20" />
+ ) : (
  <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
- {loading ? "Loading..." : activeTab === "structures" ? `${filteredFees.length} records` : `${filteredLedger.length} receipts`}
+ {activeTab === "structures" ? `${filteredFees.length} records` : `${filteredLedger.length} receipts`}
  </p>
+ )}
  </div>
  </div>
 
@@ -475,7 +480,9 @@ export default function AdminFeeStructuresPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
- {filteredFees.length > 0 ? (
+ {loading ? (
+ <SkeletonTableRows rows={7} columns={7} />
+ ) : filteredFees.length > 0 ? (
  filteredFees.map((fee) => {
  const total = fee.tuition + fee.sports + fee.transport + fee.others;
  const otherFees = fee.sports + fee.transport + fee.others;
@@ -581,7 +588,9 @@ export default function AdminFeeStructuresPage() {
  </tr>
  </thead>
  <tbody className="divide-y divide-gray-100">
- {filteredLedger.length > 0 ? (
+ {loading ? (
+ <SkeletonTableRows rows={7} columns={7} />
+ ) : filteredLedger.length > 0 ? (
  filteredLedger.map((r) => (
  <tr key={r.id} className="hover:bg-gray-50/50 transition-colors group">
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-600">{r.date || "—"}</td>

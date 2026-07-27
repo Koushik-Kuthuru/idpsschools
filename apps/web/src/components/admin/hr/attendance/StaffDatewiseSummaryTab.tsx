@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 
 import { Search, CalendarDays } from "lucide-react";
 import { buildPath, buildQuery, fetchMany, sortBy, limitTo, db, auth } from "@/lib/db-client";
+import { SkeletonChart } from "@/components/ui/Skeleton";
 
 
 interface StaffDatewiseSummaryTabProps {
@@ -136,10 +137,12 @@ export default function StaffDatewiseSummaryTab({ schoolId }: StaffDatewiseSumma
               );
             })}
           </div>
+        ) : loading ? (
+          <SkeletonChart className="border-0 p-0" bars={12} />
         ) : (
           <div className="h-[300px] flex items-center justify-center border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/50">
             <div className="text-center text-gray-500 font-medium">
-              {loading ? "Loading graph data..." : "No attendance data found to chart."}
+              No attendance data found to chart.
             </div>
           </div>
         )}

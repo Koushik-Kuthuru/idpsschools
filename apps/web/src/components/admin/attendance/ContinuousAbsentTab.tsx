@@ -4,7 +4,8 @@ import React, { useState } from "react";
 
 
 import { Search, RotateCw, Download, FileText, AlertCircle } from "lucide-react";
-import AttendanceTabGuide, { AttendanceTabLoading } from "./AttendanceTabGuide";
+import AttendanceTabGuide from "./AttendanceTabGuide";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { continuousGuide } from "./attendanceGuidePresets";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -241,7 +242,7 @@ export default function ContinuousAbsentTab({ schoolId, classOptions, sectionOpt
       )}
 
       {!streakData && !isLoading ? <AttendanceTabGuide {...continuousGuide} /> : null}
-      {isLoading && !streakData ? <AttendanceTabLoading label="Finding streaks…" /> : null}
+      {isLoading && !streakData ? <SkeletonTable rows={8} columns={6} /> : null}
 
       {streakData && (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">

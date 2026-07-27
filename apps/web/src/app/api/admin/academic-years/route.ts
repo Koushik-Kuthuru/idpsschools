@@ -1,6 +1,8 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import { resolveSchoolUuid } from "@/lib/resolveSchoolUuid";
 import { resolveBranchUuid } from "@/lib/resolveBranchUuid";
+import { invalidateServerCache } from "@/lib/serverQueryCache";
 import {
   createBranchAcademicYear,
   datesFromYearName,
@@ -11,7 +13,10 @@ function defaultDatesFromName(name: string): { start_date: string; end_date: str
   return datesFromYearName(name);
 }
 
-export async function loadAcademicYearsForSchool(schoolSlug: string) {
+export async function loadAcademicYearsForSchool(
+  supabaseAdmin: SupabaseClient,
+  schoolSlug: string
+) {
   const schoolUuid = await resolveSchoolUuid(supabaseAdmin, schoolSlug, { createIfMissing: false });
   if (schoolUuid) {
     const { data, error } = await supabaseAdmin
@@ -37,25 +42,27 @@ export async function loadAcademicYearsForSchool(schoolSlug: string) {
   return { years };
 }
 
-export async function GET(req: Request) {
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   const schoolSlug = new URL(req.url).searchParams.get("schoolId");
   if (!schoolSlug) {
-    return Response.json({ error: "schoolId required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId required" }, { status: 400 });
   }
 
   try {
-    const result = await loadAcademicYearsForSchool(schoolSlug);
+    const result = await loadAcademicYearsForSchool(supabaseAdmin, schoolSlug);
     if ("error" in result && result.error) {
-      return Response.json({ error: result.error }, { status: 404 });
+      return noStoreJson({ error: result.error }, { status: 404 });
     }
-    return Response.json({ years: result.years ?? [] });
+    return noStoreJson({ years: result.years ?? [] });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load academic years";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   let body: {
     schoolId?: string;
     name?: string;
@@ -67,13 +74,13 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+    return noStoreJson({ error: "Invalid JSON body" }, { status: 400 });
   }
 
   const schoolSlug = body.schoolId?.trim();
   const name = body.name?.trim();
   if (!schoolSlug || !name) {
-    return Response.json({ error: "schoolId and name are required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId and name are required" }, { status: 400 });
   }
 
   const schoolUuid = await resolveSchoolUuid(supabaseAdmin, schoolSlug, { createIfMissing: false });
@@ -91,7 +98,7 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (existing?.id) {
-      return Response.json({ error: "An academic year with this name already exists" }, { status: 409 });
+      return noStoreJson({ error: "An academic year with this name already exists" }, { status: 409 });
     }
 
     if (setAsCurrent) {
@@ -114,16 +121,17 @@ export async function POST(req: Request) {
       .single();
 
     if (!error) {
-      return Response.json({ year: data }, { status: 201 });
+      invalidateServerCache("catalog|academic-years");
+      return noStoreJson({ year: data }, { status: 201 });
     }
     if (error.code !== "PGRST205") {
-      return Response.json({ error: error.message }, { status: 500 });
+      return noStoreJson({ error: error.message }, { status: 500 });
     }
   }
 
   const branchId = await resolveBranchUuid(supabaseAdmin, schoolSlug);
   if (!branchId) {
-    return Response.json({ error: "School not found" }, { status: 404 });
+    return noStoreJson({ error: "School not found" }, { status: 404 });
   }
 
   try {
@@ -133,10 +141,11 @@ export async function POST(req: Request) {
       end_date: body.end_date,
       setAsCurrent: body.setAsCurrent,
     });
-    return Response.json({ year }, { status: 201 });
+    invalidateServerCache("catalog|academic-years");
+    return noStoreJson({ year }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to create academic year";
     const status = message.includes("already exists") ? 409 : 500;
-    return Response.json({ error: message }, { status });
+    return noStoreJson({ error: message }, { status });
   }
-}
+});

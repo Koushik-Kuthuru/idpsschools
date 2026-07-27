@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import {
   addBranchDepartment,
   addBranchDesignation,
@@ -9,25 +9,34 @@ import {
   updateBranchDesignation,
 } from "@/lib/loadBranchDepartments";
 
-export async function GET(req: Request) {
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   const url = new URL(req.url);
   const schoolSlug = url.searchParams.get("schoolId");
   const academicYear = url.searchParams.get("academicYear");
+  const includeCountsParam = url.searchParams.get("includeCounts");
+  const lite = url.searchParams.get("lite") === "1" || url.searchParams.get("lite") === "true";
+  const includeCounts = lite
+    ? false
+    : includeCountsParam !== "0" && includeCountsParam !== "false";
 
   if (!schoolSlug) {
-    return Response.json({ error: "schoolId required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId required" }, { status: 400 });
   }
 
   try {
-    const departments = await loadBranchDepartments(supabaseAdmin, schoolSlug, academicYear);
-    return Response.json({ departments });
+    const departments = await loadBranchDepartments(supabaseAdmin, schoolSlug, academicYear, {
+      includeCounts,
+    });
+    return noStoreJson({ departments });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load departments";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   try {
     const body = await req.json();
     const schoolSlug = String(body.schoolId ?? "").trim();
@@ -35,7 +44,7 @@ export async function POST(req: Request) {
     const action = String(body.action ?? "").trim();
 
     if (!schoolSlug) {
-      return Response.json({ error: "schoolId required" }, { status: 400 });
+      return noStoreJson({ error: "schoolId required" }, { status: 400 });
     }
 
     if (action === "addDepartment") {
@@ -48,18 +57,19 @@ export async function POST(req: Request) {
         String(body.name ?? "")
       );
     } else {
-      return Response.json({ error: "Invalid action" }, { status: 400 });
+      return noStoreJson({ error: "Invalid action" }, { status: 400 });
     }
 
     const departments = await loadBranchDepartments(supabaseAdmin, schoolSlug, academicYear);
-    return Response.json({ departments });
+    return noStoreJson({ departments });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to save department";
-    return Response.json({ error: message }, { status: 400 });
+    return noStoreJson({ error: message }, { status: 400 });
   }
-}
+});
 
-export async function PATCH(req: Request) {
+export const PATCH = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   try {
     const body = await req.json();
     const schoolSlug = String(body.schoolId ?? "").trim();
@@ -67,7 +77,7 @@ export async function PATCH(req: Request) {
     const action = String(body.action ?? "").trim();
 
     if (!schoolSlug) {
-      return Response.json({ error: "schoolId required" }, { status: 400 });
+      return noStoreJson({ error: "schoolId required" }, { status: 400 });
     }
 
     if (action === "updateDepartment") {
@@ -86,18 +96,19 @@ export async function PATCH(req: Request) {
         String(body.name ?? "")
       );
     } else {
-      return Response.json({ error: "Invalid action" }, { status: 400 });
+      return noStoreJson({ error: "Invalid action" }, { status: 400 });
     }
 
     const departments = await loadBranchDepartments(supabaseAdmin, schoolSlug, academicYear);
-    return Response.json({ departments });
+    return noStoreJson({ departments });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to update department";
-    return Response.json({ error: message }, { status: 400 });
+    return noStoreJson({ error: message }, { status: 400 });
   }
-}
+});
 
-export async function DELETE(req: Request) {
+export const DELETE = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   try {
     const url = new URL(req.url);
     const schoolSlug = url.searchParams.get("schoolId");
@@ -107,14 +118,14 @@ export async function DELETE(req: Request) {
     const designationId = url.searchParams.get("designationId");
 
     if (!schoolSlug) {
-      return Response.json({ error: "schoolId required" }, { status: 400 });
+      return noStoreJson({ error: "schoolId required" }, { status: 400 });
     }
 
     if (action === "deleteDepartment" && departmentId) {
       const departments = await loadBranchDepartments(supabaseAdmin, schoolSlug, academicYear);
       const target = departments.find((d) => d.id === departmentId);
       if (target && target.staffCount > 0) {
-        return Response.json(
+        return noStoreJson(
           { error: `Cannot delete — ${target.staffCount} staff assigned to this department` },
           { status: 400 }
         );
@@ -125,20 +136,20 @@ export async function DELETE(req: Request) {
       const dept = departments.find((d) => d.id === departmentId);
       const desig = dept?.designations.find((d) => d.id === designationId);
       if (desig && desig.staffCount > 0) {
-        return Response.json(
+        return noStoreJson(
           { error: `Cannot delete — ${desig.staffCount} staff assigned to this designation` },
           { status: 400 }
         );
       }
       await deleteBranchDesignation(supabaseAdmin, schoolSlug, departmentId, designationId);
     } else {
-      return Response.json({ error: "Invalid delete request" }, { status: 400 });
+      return noStoreJson({ error: "Invalid delete request" }, { status: 400 });
     }
 
     const departments = await loadBranchDepartments(supabaseAdmin, schoolSlug, academicYear);
-    return Response.json({ departments });
+    return noStoreJson({ departments });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to delete department";
-    return Response.json({ error: message }, { status: 400 });
+    return noStoreJson({ error: message }, { status: 400 });
   }
-}
+});

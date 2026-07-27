@@ -6,6 +6,7 @@ import TeacherProfileSidebar from "@/components/erp-teachers/profile/TeacherProf
 import {
   TeacherProfileTabPanels,
 } from "@/components/erp-teachers/profile/TeacherProfileTabPanels";
+import { SkeletonProfile } from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
@@ -301,8 +302,12 @@ export default function TeacherProfileView() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="w-8 h-8 border-4 border-[#144835] border-t-transparent rounded-full animate-spin" />
+      <div className="erp-body space-y-6 pb-10 max-w-[1600px] mx-auto">
+        <AdminPageHeader
+          title="My Profile"
+          description="Attendance, payroll, expenses, leave, and feedback — all in one place"
+        />
+        <SkeletonProfile />
       </div>
     );
   }

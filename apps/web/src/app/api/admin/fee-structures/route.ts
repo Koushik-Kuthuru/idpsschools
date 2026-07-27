@@ -1,16 +1,17 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import {
   loadBranchClassFeeRecords,
   upsertBranchClassFeeRecord,
 } from "@/lib/loadBranchClassFeeStructures";
 
-export async function GET(req: Request) {
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   const url = new URL(req.url);
   const schoolSlug = url.searchParams.get("schoolId");
   const academicYear = url.searchParams.get("academicYear");
 
   if (!schoolSlug) {
-    return Response.json({ error: "schoolId required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId required" }, { status: 400 });
   }
 
   try {
@@ -19,21 +20,22 @@ export async function GET(req: Request) {
       schoolSlug,
       academicYear
     );
-    return Response.json({ structures });
+    return noStoreJson({ structures });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load fee structures";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});
 
-export async function POST(req: Request) {
+export const POST = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   try {
     const body = await req.json();
     const schoolSlug = String(body.schoolId ?? "").trim();
     const entry = body.entry;
 
     if (!schoolSlug || !entry?.grade || !entry?.academicYear) {
-      return Response.json({ error: "schoolId, entry.grade, and entry.academicYear required" }, { status: 400 });
+      return noStoreJson({ error: "schoolId, entry.grade, and entry.academicYear required" }, { status: 400 });
     }
 
     await upsertBranchClassFeeRecord(supabaseAdmin, schoolSlug, {
@@ -45,9 +47,9 @@ export async function POST(req: Request) {
       remarks: entry.remarks ?? null,
     });
 
-    return Response.json({ ok: true });
+    return noStoreJson({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to save fee structure";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});

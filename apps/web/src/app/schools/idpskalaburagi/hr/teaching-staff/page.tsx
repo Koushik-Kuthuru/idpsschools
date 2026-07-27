@@ -2,12 +2,14 @@
 
 import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { Skeleton, SkeletonTable } from "@/components/ui/Skeleton";
 
 import Link from "next/link";
 const SafeLink = Link as any;
 
 import { useEffect, useMemo, useState } from "react";
-import { Building2, CalendarX2, ChevronRight, Eye, EyeOff, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Building2, CalendarX2, ChevronRight, Eye, Filter, Pencil, Search, Trash2, UserCheck, UserPlus, Users } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import ExportButton from "@/components/ui/ExportButton";
@@ -28,12 +30,18 @@ function staffBase(schoolId: string) {
 
 export default function AdminTeachingStaffPage() {
  const schoolId = useSchoolId();
+ const router = useRouter();
  const { currentYear, loading: yearLoading } = useAcademicYear();
  const { staff, loading, error: loadError } = useBranchStaff(schoolId, "teaching", currentYear?.name);
  const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
  const [searchQuery, setSearchQuery] = useState("");
  const [deptFilter, setDeptFilter] = useState("all");
  const [statusFilter, setStatusFilter] = useState("All Status");
+
+ const profileHref = (id: string) =>
+   `${staffBase(schoolId)}/${encodeURIComponent(id)}/profile`;
+
+ const openProfile = (id: string) => router.push(profileHref(id));
 
  const employees = useMemo(
    () => staff.filter((row) => !removedIds.has(row.id)),
@@ -194,10 +202,13 @@ export default function AdminTeachingStaffPage() {
  </div>
  </div>
 
- <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{listLoading ? "Loading..." : `${filtered.length} members`}</div>
+ <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">{listLoading ? <Skeleton className="h-3 w-20" /> : `${filtered.length} members`}</div>
  </div>
 
  <div className="overflow-x-auto">
+ {listLoading ? (
+ <SkeletonTable rows={8} columns={8} showHeader={false} className="rounded-none border-0" />
+ ) : (
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
@@ -213,12 +224,16 @@ export default function AdminTeachingStaffPage() {
  </thead>
  <tbody className="divide-y divide-gray-100">
  {filtered.map((e: any) => (
- <tr key={e.id} className="hover:bg-gray-50/50 transition-colors group">
+ <tr
+ key={e.id}
+ className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+ onClick={() => openProfile(e.id)}
+ >
  <td className="px-4 py-2.5 text-xs font-bold text-gray-700 whitespace-nowrap">{e.employeeId}</td>
  <td className="px-4 py-2.5">
  <div className="flex items-center gap-2.5 min-w-[140px]">
  <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-700 border border-gray-200 shrink-0">
- {e.name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("")}
+ {e.name.split(" ").filter(Boolean).slice(0, 2).map((p: string) => p[0]?.toUpperCase()).join("")}
  </div>
  <p className="text-xs font-bold text-gray-900">{e.name}</p>
  </div>
@@ -228,10 +243,10 @@ export default function AdminTeachingStaffPage() {
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 whitespace-nowrap">{e.mobile}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 max-w-[180px] truncate" title={e.classes}>{e.classes}</td>
  <td className="px-4 py-2.5 text-xs font-semibold text-gray-700 max-w-[180px] truncate" title={e.subjects}>{e.subjects}</td>
- <td className="px-4 py-2.5 text-right">
+ <td className="px-4 py-2.5 text-right" onClick={(ev) => ev.stopPropagation()}>
  <TableRowActions
  items={[
- { label: "View Profile", icon: Eye, href: `${staffBase(schoolId)}/${encodeURIComponent(e.id)}/profile` },
+ { label: "View Profile", icon: Eye, href: profileHref(e.id) },
  { label: "Edit", icon: Pencil, href: `${staffBase(schoolId)}/${encodeURIComponent(e.id)}/edit` },
  {
  label: "Delete",
@@ -259,6 +274,7 @@ export default function AdminTeachingStaffPage() {
  )}
  </tbody>
  </table>
+ )}
  </div>
  </div>
  </div>

@@ -26,7 +26,7 @@ export function TeacherPortalScopeProvider({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
-  const { classKeys, assignments, matchesStudent } = useTeacherClassScope(schoolId);
+  const { classKeys, assignments, matchesStudent, displayName } = useTeacherClassScope(schoolId);
 
   const value = useMemo<TeacherPortalScope>(
     () => ({
@@ -35,11 +35,11 @@ export function TeacherPortalScopeProvider({
       allowedClassKeys: new Set(classKeys),
       assignments,
       matchesStudent,
-      teacherDisplayName: user?.displayName ?? null,
+      teacherDisplayName: displayName ?? user?.displayName ?? null,
       teacherUid: user?.uid ?? null,
       teacherEmail: user?.email ?? null,
     }),
-    [schoolId, classKeys, assignments, matchesStudent, user?.displayName, user?.uid, user?.email]
+    [schoolId, classKeys, assignments, matchesStudent, displayName, user?.displayName, user?.uid, user?.email]
   );
 
   return (

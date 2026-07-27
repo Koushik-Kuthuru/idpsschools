@@ -1,3 +1,4 @@
+import { adminFetch } from "@/lib/adminApi";
 export async function fetchBranchStaffByIdViaApi(
   schoolSlug: string,
   staffId: string,
@@ -9,7 +10,7 @@ export async function fetchBranchStaffByIdViaApi(
     if (academicYear) params.set("academicYear", academicYear);
     if (kind) params.set("kind", kind);
 
-    const res = await fetch(`/api/admin/staff/${encodeURIComponent(staffId)}?${params.toString()}`);
+    const res = await adminFetch(`/api/admin/staff/${encodeURIComponent(staffId)}?${params.toString()}`);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return null;
 

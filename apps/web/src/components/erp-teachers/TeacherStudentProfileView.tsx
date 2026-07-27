@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useTeacherClassScope } from "@/hooks/useTeacherClassScope";
+import { SkeletonProfile } from "@/components/ui/Skeleton";
 import { buildPath, fetchOne, db } from "@/lib/db-client";
 import { calculateAttendanceStats } from "@/utils/attendance";
 
@@ -89,8 +90,8 @@ export default function TeacherStudentProfileView({ schoolId }: TeacherStudentPr
 
   if (loading || scopeLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <div className="w-8 h-8 border-4 border-[#144835] border-t-transparent rounded-full animate-spin" />
+      <div className="erp-body space-y-4 max-w-[1600px] mx-auto">
+        <SkeletonProfile />
       </div>
     );
   }

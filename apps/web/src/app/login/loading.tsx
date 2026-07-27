@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function Loading() {
  return (
- <main className="min-h-screen w-full flex font-jost bg-white overflow-hidden">
+ <main className="min-h-[100dvh] w-full flex font-jost bg-white">
  {/* Left Side Skeleton */}
  <div className="hidden lg:flex lg:w-1/2 xl:w-7/12 bg-[#144835] p-12 flex-col justify-between">
  <div className="space-y-4">
@@ -20,8 +20,8 @@ export default function Loading() {
  </div>
 
  {/* Right Side Skeleton */}
- <div className="w-full lg:w-1/2 xl:w-5/12 flex items-center justify-center p-12">
- <div className="w-full max-w-[420px] space-y-8">
+ <div className="w-full lg:w-1/2 xl:w-5/12 flex items-start lg:items-center justify-center px-5 py-8 sm:p-12">
+ <div className="w-full max-w-[420px] space-y-6 sm:space-y-8">
  <div className="space-y-2">
  <Skeleton className="h-10 w-48" />
  <Skeleton className="h-5 w-64" />

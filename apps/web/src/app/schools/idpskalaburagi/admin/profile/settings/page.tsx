@@ -210,7 +210,6 @@ export default function AdminProfileSettingsPage() {
   const handleLogout = async () => {
     setLoggingOut(true);
     await logout();
-    router.push("/login");
   };
 
   return (

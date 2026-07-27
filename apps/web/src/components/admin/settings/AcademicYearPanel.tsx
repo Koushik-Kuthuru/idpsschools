@@ -1,27 +1,30 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Plus, RefreshCw } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, Plus, RefreshCw, Save } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useAcademicYearOptional } from "@/contexts/AcademicYearContext";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-type ToggleProps = { checked: boolean; onChange: (v: boolean) => void };
+type ToggleProps = { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean };
 
-function Toggle({ checked, onChange }: ToggleProps) {
+function Toggle({ checked, onChange, disabled }: ToggleProps) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
         "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors",
-        checked ? "bg-[#144835]" : "bg-gray-200"
+        checked ? "bg-[#144835]" : "bg-gray-200",
+        disabled && "opacity-50 cursor-not-allowed"
       )}
     >
       <span
@@ -53,7 +56,9 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
   const [endDate, setEndDate] = useState("");
   const [setAsCurrent, setSetAsCurrent] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [switchingId, setSwitchingId] = useState<string | null>(null);
+  const [savingActive, setSavingActive] = useState(false);
+  const [savedFlash, setSavedFlash] = useState(false);
+  const [draftYearId, setDraftYearId] = useState<string>("");
 
   const inputCls =
     "w-full h-9 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#144835]/20 focus:border-[#144835] shadow-sm transition-all placeholder:text-gray-400";
@@ -64,6 +69,22 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
     () => [...years].sort((a, b) => String(b.start_date).localeCompare(String(a.start_date))),
     [years]
   );
+
+  useEffect(() => {
+    setDraftYearId((prev) => {
+      if (currentYear?.id) {
+        // Keep an unsaved selection; otherwise follow the active year.
+        if (prev && prev !== currentYear.id && sortedYears.some((y) => y.id === prev)) {
+          return prev;
+        }
+        return currentYear.id;
+      }
+      return prev || sortedYears[0]?.id || "";
+    });
+  }, [currentYear?.id, sortedYears]);
+
+  const draftYear = sortedYears.find((y) => y.id === draftYearId) ?? null;
+  const isDirty = Boolean(draftYearId && currentYear?.id && draftYearId !== currentYear.id);
 
   const handleCreate = async () => {
     const trimmed = name.trim();
@@ -81,11 +102,15 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
     setSaving(false);
   };
 
-  const handleSelectActive = async (id: string) => {
-    if (id === currentYear?.id) return;
-    setSwitchingId(id);
-    await setCurrentYear(id);
-    setSwitchingId(null);
+  const handleSaveActive = async () => {
+    if (!draftYearId || draftYearId === currentYear?.id) return;
+    setSavingActive(true);
+    const result = await setCurrentYear(draftYearId);
+    setSavingActive(false);
+    if (result) {
+      setSavedFlash(true);
+      window.setTimeout(() => setSavedFlash(false), 2500);
+    }
   };
 
   return (
@@ -106,7 +131,8 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
               Active academic year
             </p>
             <p className="mt-1 text-xs text-gray-500">
-              Students, classes, enrollments and teacher scope use this year across the portal.
+              Choose a year, then press Save. The student app will show fees, attendance, marks,
+              subjects and timetable for that year.
             </p>
           </div>
           <button
@@ -119,31 +145,65 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
           </button>
         </div>
 
-        <div className="relative mt-3">
-          <select
-            className={selectCls}
-            value={currentYear?.id ?? ""}
-            disabled={loading || sortedYears.length === 0 || switchingId !== null}
-            onChange={(e) => void handleSelectActive(e.target.value)}
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative min-w-0 flex-1">
+            <select
+              className={selectCls}
+              value={draftYearId}
+              disabled={loading || sortedYears.length === 0 || savingActive}
+              onChange={(e) => setDraftYearId(e.target.value)}
+            >
+              {sortedYears.length === 0 ? (
+                <option value="">No academic years yet</option>
+              ) : (
+                sortedYears.map((y) => (
+                  <option key={y.id} value={y.id}>
+                    {y.name}
+                    {y.is_current ? " (active)" : ""}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+          <button
+            type="button"
+            disabled={!isDirty || savingActive || !draftYearId}
+            onClick={() => void handleSaveActive()}
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 transition-all hover:bg-[#144835]/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {sortedYears.length === 0 ? (
-              <option value="">No academic years yet</option>
+            {savingActive ? (
+              <>
+                <RefreshCw size={13} className="animate-spin" />
+                Saving…
+              </>
+            ) : savedFlash && !isDirty ? (
+              <>
+                <Check size={13} />
+                Saved
+              </>
             ) : (
-              sortedYears.map((y) => (
-                <option key={y.id} value={y.id}>
-                  {y.name}
-                  {y.is_current ? " (active)" : ""}
-                </option>
-              ))
+              <>
+                <Save size={13} />
+                Save
+              </>
             )}
-          </select>
+          </button>
         </div>
 
-        {currentYear ? (
+        {draftYear || currentYear ? (
           <p className="mt-2 text-xs text-gray-500">
-            {currentYear.start_date && currentYear.end_date
-              ? `${currentYear.start_date} → ${currentYear.end_date}`
-              : "Dates not set"}
+            {isDirty ? (
+              <>
+                Selected <span className="font-semibold text-gray-700">{draftYear?.name}</span>
+                {" · "}currently active{" "}
+                <span className="font-semibold text-gray-700">{currentYear?.name}</span>
+                {" — press Save to apply to the student app."}
+              </>
+            ) : currentYear?.start_date && currentYear?.end_date ? (
+              `${currentYear.name}: ${currentYear.start_date} → ${currentYear.end_date}`
+            ) : (
+              `Active: ${currentYear?.name ?? draftYear?.name ?? "—"}`
+            )}
           </p>
         ) : null}
       </div>
@@ -156,7 +216,7 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
               <p className="text-xs font-bold uppercase tracking-wide text-[#144835]">Sessions</p>
             </div>
             {loading && years.length === 0 ? (
-              <div className="py-8 text-center text-xs text-gray-400">Loading…</div>
+              <SkeletonTable rows={4} columns={4} showHeader={false} className="border-0 rounded-none shadow-none" />
             ) : sortedYears.length === 0 ? (
               <div className="py-8 text-center text-xs text-gray-400">No academic years yet — create one below.</div>
             ) : (
@@ -166,7 +226,7 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
                     <th className="px-4 py-2 text-left text-xs font-bold text-gray-500">Year</th>
                     <th className="px-4 py-2 text-left text-xs font-bold text-gray-500">Period</th>
                     <th className="px-4 py-2 text-left text-xs font-bold text-gray-500">Status</th>
-                    <th className="px-4 py-2 text-right text-xs font-bold text-gray-500">Use</th>
+                    <th className="px-4 py-2 text-right text-xs font-bold text-gray-500">Select</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -183,13 +243,14 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
                             y.is_current ? "bg-emerald-50 text-emerald-700" : "bg-gray-100 text-gray-500"
                           )}
                         >
-                          {y.is_current ? "Active" : "Inactive"}
+                          {y.is_current ? "Active" : draftYearId === y.id ? "Selected" : "Inactive"}
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-right">
                         <Toggle
-                          checked={y.is_current}
-                          onChange={(v) => v && void handleSelectActive(y.id)}
+                          checked={draftYearId === y.id}
+                          disabled={savingActive}
+                          onChange={(v) => v && setDraftYearId(y.id)}
                         />
                       </td>
                     </tr>
@@ -198,6 +259,19 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
               </table>
             )}
           </div>
+          {isDirty ? (
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                disabled={savingActive}
+                onClick={() => void handleSaveActive()}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 disabled:opacity-50"
+              >
+                <Save size={13} />
+                {savingActive ? "Saving…" : "Save active year"}
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -238,7 +312,7 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
               onChange={(e) => setSetAsCurrent(e.target.checked)}
               className="rounded border-gray-300 text-[#144835] focus:ring-[#144835]"
             />
-            Set as active year
+            Set as active year after create
           </label>
           <button
             type="button"

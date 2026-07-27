@@ -11,6 +11,7 @@ import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { buildPath, fetchOne, fetchMany, sortBy, buildQuery, patchData, db, auth } from "@/lib/db-client";
+import { SkeletonForm, SkeletonPageHeader } from "@/components/ui/Skeleton";
 
 
 
@@ -34,7 +35,6 @@ export type AcademicSubject = {
  grade: string;
  section: string;
  name: string;
- code: string;
  description: string;
  portions: SubjectPortion[];
 };
@@ -66,7 +66,6 @@ export default function AdminEditSubjectPage({
  grade: "10",
  section: "A",
  name: "",
- code: "",
  description: "",
  portions: [emptyPortion()],
  });
@@ -123,7 +122,6 @@ export default function AdminEditSubjectPage({
  grade: String(data.classId || "").trim(),
  section: String(data.section || "").toUpperCase(),
  name: String(data.name || ""),
- code: String(data.code || ""),
  description: String(data.description || ""),
  portions: Array.isArray(data.portions) && data.portions.length ? data.portions : [emptyPortion()],
  });
@@ -169,7 +167,6 @@ export default function AdminEditSubjectPage({
  classId: form.grade,
  section: String(form.section).toUpperCase(),
  name: form.name.trim(),
- code: form.code.trim(),
  description: form.description.trim(),
  portions: cleanedPortions,
  updatedAt: new Date().toISOString()
@@ -185,8 +182,11 @@ export default function AdminEditSubjectPage({
 
  if (loading) {
  return (
- <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto flex items-center justify-center min-h-[60vh]">
- <div className="w-8 h-8 border-4 border-[#144835] border-t-transparent rounded-full animate-spin" />
+ <div className="space-y-6 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
+ <SkeletonPageHeader />
+ <div className="rounded-xl border border-gray-200 bg-white p-6">
+ <SkeletonForm fields={8} columns={2} />
+ </div>
  </div>
  );
  }
@@ -240,10 +240,6 @@ export default function AdminEditSubjectPage({
  <div>
  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Subject Name</label>
  <input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
- </div>
- <div>
- <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Code</label>
- <input value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} className="w-full h-9 rounded-lg border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-800" />
  </div>
  <div>
  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Description</label>

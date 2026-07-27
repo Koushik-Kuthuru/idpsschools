@@ -75,10 +75,19 @@ export default function AcademicYearsSettingsPage() {
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900">Academic Years</h1>
               <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-500">
-                Create academic years for {activeBranch.name} and choose which year is active. Students,
-                classes, enrollments and teacher scope across the portal follow the active year.
+                Create academic years for {activeBranch.name} and choose which session is active. The
+                student app shows fees, attendance, marks, subjects and timetable for the active year
+                only — change it here to switch what parents and students see.
               </p>
             </div>
+          </div>
+
+          <div className="mb-6 rounded-xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-900">
+            <p className="font-semibold">Student app year</p>
+            <p className="mt-1 text-emerald-800/90">
+              Pick the active year below. Students do not choose the year in their app — they always
+              receive data for this branch&apos;s active academic year.
+            </p>
           </div>
 
           <div className="rounded-xl border border-gray-200/80 bg-white p-6 shadow-sm sm:p-8">

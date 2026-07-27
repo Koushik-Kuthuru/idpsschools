@@ -19,6 +19,20 @@ type UseCachedQueryResult<T> = {
   setData: (value: T | null) => void;
 };
 
+/** Share one in-flight request across hook instances with the same cacheKey. */
+const sharedInflight = new Map<string, Promise<unknown>>();
+
+async function runSharedFetcher<T>(cacheKey: string, fetcher: () => Promise<T>): Promise<T> {
+  const existing = sharedInflight.get(cacheKey) as Promise<T> | undefined;
+  if (existing) return existing;
+
+  const promise = fetcher().finally(() => {
+    sharedInflight.delete(cacheKey);
+  });
+  sharedInflight.set(cacheKey, promise);
+  return promise;
+}
+
 export function useCachedQuery<T>({
   cacheKey,
   enabled = true,
@@ -48,7 +62,7 @@ export function useCachedQuery<T>({
     setError(null);
 
     try {
-      const next = await fetcherRef.current();
+      const next = await runSharedFetcher(cacheKey, () => fetcherRef.current());
       setData(next);
       writeClientCache(cacheKey, next);
     } catch (err) {
@@ -71,6 +85,11 @@ export function useCachedQuery<T>({
     if (cached !== null) {
       setData(cached);
       setLoading(false);
+    } else {
+      // Year/filter key changed and there is no cache for the new key —
+      // clear stale data from the previous key immediately.
+      setData(null);
+      setLoading(true);
     }
 
     let cancelled = false;
@@ -82,7 +101,7 @@ export function useCachedQuery<T>({
 
       setError(null);
       try {
-        const next = await fetcherRef.current();
+        const next = await runSharedFetcher(cacheKey, () => fetcherRef.current());
         if (cancelled) return;
         setData(next);
         writeClientCache(cacheKey, next);

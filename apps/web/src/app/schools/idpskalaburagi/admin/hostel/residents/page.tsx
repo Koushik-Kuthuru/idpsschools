@@ -1,5 +1,5 @@
-import AdminHostelMessPage from "@/components/admin/AdminHostelMessPage";
+import HostelResidentsView from "@/components/admin/hostel/HostelResidentsView";
 
-export default function Page() {
-  return <AdminHostelMessPage module="hostel" />;
+export default function HostelResidentsPage() {
+  return <HostelResidentsView />;
 }

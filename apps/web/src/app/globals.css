@@ -24,6 +24,21 @@ body {
       rgb(var(--background-end-rgb))
     )
     rgb(var(--background-start-rgb));
+  overflow-x: clip;
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 /* ERP admin typography — 14px body, 12px captions, readable hierarchy */
@@ -47,17 +62,39 @@ body {
     @apply text-sm font-semibold text-gray-700;
   }
   .erp-page-title {
-    @apply text-xl font-bold text-gray-900 tracking-tight;
+    @apply text-lg sm:text-xl font-bold text-gray-900 tracking-tight;
   }
   .erp-metric {
-    @apply text-lg font-bold text-gray-900 tabular-nums;
+    @apply text-base sm:text-lg font-bold text-gray-900 tabular-nums;
+  }
+  /* Responsive page shell — caps width without breaking mobile */
+  .erp-page-shell {
+    @apply w-full max-w-[1600px] mx-auto min-w-0;
+  }
+  /* Wrap wide data tables for horizontal scroll on small screens */
+  .erp-table-scroll {
+    @apply w-full min-w-0 overflow-x-auto custom-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0;
+  }
+  .erp-table-scroll > table {
+    @apply min-w-full;
+  }
+  /* Responsive stat/metric grids */
+  .erp-stat-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4;
+  }
+  .erp-stat-grid-2 {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4;
+  }
+  /* Stack action bars on mobile */
+  .erp-actions-row {
+    @apply flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3;
   }
   /* Portal shell — cascades readable typography to all ERP pages */
   .erp-portal {
-    @apply font-jost text-sm leading-normal text-gray-800 antialiased;
+    @apply font-jost text-sm leading-normal text-gray-800 antialiased min-w-0 max-w-full;
   }
   .erp-portal h1 {
-    @apply text-xl font-bold text-gray-900 tracking-tight;
+    @apply text-lg sm:text-xl font-bold text-gray-900 tracking-tight;
   }
   .erp-portal h2 {
     @apply text-sm font-semibold text-gray-700;

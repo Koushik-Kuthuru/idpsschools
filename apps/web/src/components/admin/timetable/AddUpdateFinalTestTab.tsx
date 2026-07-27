@@ -3,6 +3,7 @@ import { Plus, RotateCw, Save, Trash2, Calendar as CalendarIcon, Clock, BookOpen
 
 
 import { useSchoolId } from "@/hooks/useSchoolId";
+import { SkeletonForm } from "@/components/ui/Skeleton";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { buildPath, fetchOne, fetchMany, upsertData, db, auth } from "@/lib/db-client";
@@ -230,8 +231,8 @@ export default function AddUpdateFinalTestTab() {
         {/* Editor Area */}
         <div className="p-5 relative min-h-[300px]">
           {isLoading && (
-            <div className="absolute inset-0 bg-white/80 z-10 flex items-center justify-center">
-              <RotateCw size={24} className="animate-spin text-[#144835]" />
+            <div className="absolute inset-0 bg-white/90 z-10 p-5">
+              <SkeletonForm fields={6} columns={3} />
             </div>
           )}
 
@@ -253,7 +254,7 @@ export default function AddUpdateFinalTestTab() {
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="grid grid-cols-12 gap-3 px-4 py-2 bg-gray-50/50 border border-gray-100 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-wide">
+              <div className="hidden lg:grid grid-cols-12 gap-3 px-4 py-2 bg-gray-50/50 border border-gray-100 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-wide">
                 <div className="col-span-3">Subject</div>
                 <div className="col-span-2">Date</div>
                 <div className="col-span-2">Start Time</div>
@@ -263,8 +264,14 @@ export default function AddUpdateFinalTestTab() {
               </div>
 
               {exams.map((exam) => (
-                <div key={exam.id} className="grid grid-cols-12 gap-3 px-4 py-3 bg-white border border-gray-200 rounded-lg shadow-sm items-start">
-                  <div className="col-span-3 relative">
+                <div
+                  key={exam.id}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-3 px-4 py-3 bg-white border border-gray-200 rounded-lg shadow-sm items-start"
+                >
+                  <div className="lg:col-span-3 relative">
+                    <label className="lg:hidden text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1 block">
+                      Subject
+                    </label>
                     <BookOpen size={14} className="absolute left-3 top-2.5 text-gray-400" />
                     <select
                       value={exam.subject}
@@ -282,7 +289,10 @@ export default function AddUpdateFinalTestTab() {
                     </select>
                   </div>
                   
-                  <div className="col-span-2 relative">
+                  <div className="lg:col-span-2 relative">
+                    <label className="lg:hidden text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1 block">
+                      Date
+                    </label>
                     <CalendarIcon size={14} className="absolute left-3 top-2.5 text-gray-400" />
                     <input
                       type="date"
@@ -292,7 +302,10 @@ export default function AddUpdateFinalTestTab() {
                     />
                   </div>
 
-                  <div className="col-span-2 relative">
+                  <div className="lg:col-span-2 relative">
+                    <label className="lg:hidden text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1 block">
+                      Start Time
+                    </label>
                     <Clock size={14} className="absolute left-3 top-2.5 text-gray-400" />
                     <input
                       type="time"
@@ -302,7 +315,10 @@ export default function AddUpdateFinalTestTab() {
                     />
                   </div>
 
-                  <div className="col-span-2 relative">
+                  <div className="lg:col-span-2 relative">
+                    <label className="lg:hidden text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1 block">
+                      End Time
+                    </label>
                     <Clock size={14} className="absolute left-3 top-2.5 text-gray-400" />
                     <input
                       type="time"
@@ -312,7 +328,10 @@ export default function AddUpdateFinalTestTab() {
                     />
                   </div>
 
-                  <div className="col-span-2">
+                  <div className="lg:col-span-2">
+                    <label className="lg:hidden text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1 block">
+                      Syllabus / Notes
+                    </label>
                     <input
                       type="text"
                       placeholder="e.g. Chapters 1-4"
@@ -322,7 +341,7 @@ export default function AddUpdateFinalTestTab() {
                     />
                   </div>
 
-                  <div className="col-span-1 flex justify-end">
+                  <div className="lg:col-span-1 flex justify-end">
                     <button
                       onClick={() => removeExam(exam.id)}
                       className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"

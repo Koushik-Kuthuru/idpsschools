@@ -1,15 +1,16 @@
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import { loadBranchTransportBuses } from "@/lib/branchTransportStore";
 import { loadBranchTransportStudents } from "@/lib/loadBranchStudents";
 import { aggregateTransportDrivers } from "@/lib/transportDriversUtils";
 
-export async function GET(req: Request) {
+export const GET = withAdminRoute(async (req, ctx) => {
+  const supabaseAdmin = ctx.admin;
   const url = new URL(req.url);
   const schoolSlug = url.searchParams.get("schoolId");
   const academicYear = url.searchParams.get("academicYear");
 
   if (!schoolSlug) {
-    return Response.json({ error: "schoolId required" }, { status: 400 });
+    return noStoreJson({ error: "schoolId required" }, { status: 400 });
   }
 
   try {
@@ -23,9 +24,9 @@ export async function GET(req: Request) {
       buses
     );
 
-    return Response.json({ drivers });
+    return noStoreJson({ drivers });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load drivers";
-    return Response.json({ error: message }, { status: 500 });
+    return noStoreJson({ error: message }, { status: 500 });
   }
-}
+});

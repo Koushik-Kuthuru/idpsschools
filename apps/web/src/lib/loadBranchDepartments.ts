@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { listBranchAcademicYears } from "@/lib/branchAcademicYears";
 import { resolveBranchUuid } from "@/lib/resolveBranchUuid";
 import { loadBranchStaffRecords } from "@/lib/loadBranchStaff";
+import { withServerCache, invalidateServerCache } from "@/lib/serverQueryCache";
 import {
   addDepartmentToCatalog,
   addDesignationToCatalog,
@@ -73,45 +74,57 @@ function aggregateStaffCounts(
 export async function loadBranchDepartments(
   admin: SupabaseClient<any>,
   schoolSlug: string,
-  academicYearName?: string | null
+  academicYearName?: string | null,
+  options?: { includeCounts?: boolean }
 ): Promise<BranchDepartmentRow[]> {
   const branchId = await resolveBranchUuid(admin, schoolSlug);
   if (!branchId) return [];
 
+  const includeCounts = options?.includeCounts !== false;
   const yearName = await resolveYearName(admin, branchId, academicYearName);
-  const staff = await loadBranchStaffRecords(admin, schoolSlug, "all", yearName);
-  const staffCounts = aggregateStaffCounts(staff);
 
-  const catalog = await loadBranchDepartmentsCatalog(admin, branchId);
+  return withServerCache(
+    `departments|${branchId}|${yearName ?? ""}|counts:${includeCounts ? 1 : 0}`,
+    async () => {
+      const catalog = await loadBranchDepartmentsCatalog(admin, branchId);
 
-  return catalog.departments.map((dept) => {
-    const stats = staffCounts.get(dept.name);
-    const designations = dept.designations.map((item) => ({
-      id: item.id,
-      name: item.name,
-      staffCount: stats?.designations.get(item.name) ?? 0,
-    }));
+      let staffCounts: ReturnType<typeof aggregateStaffCounts> | null = null;
+      if (includeCounts) {
+        const staff = await loadBranchStaffRecords(admin, schoolSlug, "all", yearName);
+        staffCounts = aggregateStaffCounts(staff);
+      }
 
-    const staffCount = designations.reduce((sum, d) => sum + d.staffCount, 0) || stats?.staffCount || 0;
-    const category =
-      dept.category === "teaching" || dept.category === "non_teaching"
-        ? dept.category
-        : stats?.category === "teaching"
-          ? "teaching"
-          : "non_teaching";
+      return catalog.departments.map((dept) => {
+        const stats = staffCounts?.get(dept.name);
+        const designations = dept.designations.map((item) => ({
+          id: item.id,
+          name: item.name,
+          staffCount: stats?.designations.get(item.name) ?? 0,
+        }));
 
-    return {
-      id: dept.id,
-      name: dept.name,
-      subtitle: `${designations.length} designation${designations.length === 1 ? "" : "s"}`,
-      category,
-      designations,
-      designationSummary: designations.map((d) => d.name).join(", "),
-      hodName: null,
-      staffCount,
-      status: "Active" as const,
-    };
-  });
+        const staffCount = designations.reduce((sum, d) => sum + d.staffCount, 0) || stats?.staffCount || 0;
+        const category =
+          dept.category === "teaching" || dept.category === "non_teaching"
+            ? dept.category
+            : stats?.category === "teaching"
+              ? "teaching"
+              : "non_teaching";
+
+        return {
+          id: dept.id,
+          name: dept.name,
+          subtitle: `${designations.length} designation${designations.length === 1 ? "" : "s"}`,
+          category,
+          designations,
+          designationSummary: designations.map((d) => d.name).join(", "),
+          hodName: null,
+          staffCount,
+          status: "Active" as const,
+        };
+      });
+    },
+    includeCounts ? 60_000 : 120_000
+  );
 }
 
 async function resolveBranchIdOrThrow(
@@ -123,6 +136,11 @@ async function resolveBranchIdOrThrow(
   return branchId;
 }
 
+function bustDepartmentCaches(branchId: string) {
+  invalidateServerCache(`departments|${branchId}`);
+  invalidateServerCache(`staff|${branchId}`);
+}
+
 export async function addBranchDepartment(
   admin: SupabaseClient<any>,
   schoolSlug: string,
@@ -130,6 +148,7 @@ export async function addBranchDepartment(
 ): Promise<void> {
   const branchId = await resolveBranchIdOrThrow(admin, schoolSlug);
   await addDepartmentToCatalog(admin, branchId, name);
+  bustDepartmentCaches(branchId);
 }
 
 export async function updateBranchDepartment(
@@ -140,6 +159,7 @@ export async function updateBranchDepartment(
 ): Promise<void> {
   const branchId = await resolveBranchIdOrThrow(admin, schoolSlug);
   await updateDepartmentInCatalog(admin, branchId, departmentId, name);
+  bustDepartmentCaches(branchId);
 }
 
 export async function deleteBranchDepartment(
@@ -149,6 +169,7 @@ export async function deleteBranchDepartment(
 ): Promise<void> {
   const branchId = await resolveBranchIdOrThrow(admin, schoolSlug);
   await deleteDepartmentFromCatalog(admin, branchId, departmentId);
+  bustDepartmentCaches(branchId);
 }
 
 export async function addBranchDesignation(
@@ -159,6 +180,7 @@ export async function addBranchDesignation(
 ): Promise<void> {
   const branchId = await resolveBranchIdOrThrow(admin, schoolSlug);
   await addDesignationToCatalog(admin, branchId, departmentId, name);
+  bustDepartmentCaches(branchId);
 }
 
 export async function updateBranchDesignation(
@@ -170,6 +192,7 @@ export async function updateBranchDesignation(
 ): Promise<void> {
   const branchId = await resolveBranchIdOrThrow(admin, schoolSlug);
   await updateDesignationInCatalog(admin, branchId, departmentId, designationId, name);
+  bustDepartmentCaches(branchId);
 }
 
 export async function deleteBranchDesignation(
@@ -180,4 +203,5 @@ export async function deleteBranchDesignation(
 ): Promise<void> {
   const branchId = await resolveBranchIdOrThrow(admin, schoolSlug);
   await deleteDesignationFromCatalog(admin, branchId, departmentId, designationId);
+  bustDepartmentCaches(branchId);
 }

@@ -6,6 +6,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import ExportButton from "@/components/ui/ExportButton";
+import { SkeletonTableRows } from "@/components/ui/Skeleton";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -212,7 +213,7 @@ export default function DepartmentsManagementView({
   let designationIndex = 0;
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500 font-jost pb-10 max-w-[1600px] mx-auto">
+    <div className="mx-auto max-w-[1600px] space-y-4 animate-in fade-in duration-500 font-jost pb-4">
       <AdminPageHeader
         title="Departments & Designations"
         description={
@@ -246,16 +247,15 @@ export default function DepartmentsManagementView({
         </div>
       )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
-        {/* Left — pinned in place; only the right designations column scrolls */}
-        <aside className="w-full min-w-0 xl:sticky xl:top-20 xl:z-10 xl:h-fit xl:self-start">
-          <div className="bg-white rounded-xl border border-gray-200">
-            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50/80">
+      <div className="grid grid-cols-1 items-stretch gap-4 xl:h-[calc(100vh-13rem)] xl:min-h-[560px] xl:grid-cols-2">
+        {/* Left — departments scroll independently */}
+        <aside className="flex min-h-[420px] w-full min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white xl:h-full xl:min-h-0">
+            <div className="shrink-0 border-b border-gray-200 bg-gray-50/80 px-4 py-3">
               <h2 className="text-sm font-bold text-gray-800">Departments</h2>
             </div>
 
             <form
-              className="p-4 border-b border-gray-100 bg-white"
+              className="shrink-0 border-b border-gray-100 bg-white p-4"
               onSubmit={(e) => void handleAddDepartment(e)}
             >
               <div className="flex flex-col sm:flex-row sm:items-end gap-3">
@@ -279,9 +279,9 @@ export default function DepartmentsManagementView({
               </div>
             </form>
 
-            <div className="overflow-x-auto">
+            <div className="min-h-0 flex-1 overflow-auto overscroll-contain">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50">
+                <thead className="sticky top-0 z-10 bg-gray-50 shadow-[0_1px_0_0_#e5e7eb]">
                   <tr className="border-b border-gray-200">
                     <th className="w-12 px-3 py-2.5 text-xs font-bold text-gray-600">#</th>
                     <th className="px-3 py-2.5 text-xs font-bold text-gray-600">DepartmentName</th>
@@ -290,11 +290,7 @@ export default function DepartmentsManagementView({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                 {loading ? (
-                  <tr>
-                    <td colSpan={3} className="px-4 py-10 text-center text-xs font-bold text-gray-400">
-                      Loading departments...
-                    </td>
-                  </tr>
+                  <SkeletonTableRows rows={7} columns={3} />
                 ) : filteredDepartments.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-4 py-10 text-center text-xs font-bold text-gray-400">
@@ -306,7 +302,7 @@ export default function DepartmentsManagementView({
                     <tr
                       key={dept.id}
                       className={cn(
-                        "hover:bg-sky-50/40 transition-colors",
+                        "cursor-pointer transition-colors hover:bg-sky-50/40",
                         designationDeptId === dept.id && "bg-sky-50/60"
                       )}
                       onClick={() => setDesignationDeptId(dept.id)}
@@ -402,16 +398,15 @@ export default function DepartmentsManagementView({
               </tbody>
             </table>
             </div>
-          </div>
         </aside>
 
-        {/* Right — designations list drives page scroll */}
-        <section className="w-full min-w-0 bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-200 bg-gray-50/80">
+        {/* Right — designations scroll independently */}
+        <section className="flex min-h-[420px] w-full min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white xl:h-full xl:min-h-0">
+          <div className="shrink-0 border-b border-gray-200 bg-gray-50/80 px-4 py-3">
             <h2 className="text-sm font-bold text-gray-800">Designations</h2>
           </div>
 
-          <form className="p-4 border-b border-gray-100 bg-white space-y-3" onSubmit={(e) => void handleAddDesignation(e)}>
+          <form className="shrink-0 space-y-3 border-b border-gray-100 bg-white p-4" onSubmit={(e) => void handleAddDesignation(e)}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-700">Department Name:</label>
@@ -449,9 +444,9 @@ export default function DepartmentsManagementView({
             </button>
           </form>
 
-          <div className="overflow-x-auto">
+          <div className="min-h-0 flex-1 overflow-auto overscroll-contain">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-gray-50">
+              <thead className="sticky top-0 z-10 bg-gray-50 shadow-[0_1px_0_0_#e5e7eb]">
                 <tr className="border-b border-gray-200">
                   <th className="w-12 px-3 py-2.5 text-xs font-bold text-gray-600">#</th>
                   <th className="px-3 py-2.5 text-xs font-bold text-gray-600">Designation Name</th>
@@ -460,11 +455,7 @@ export default function DepartmentsManagementView({
               </thead>
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan={3} className="px-4 py-10 text-center text-xs font-bold text-gray-400">
-                      Loading designations...
-                    </td>
-                  </tr>
+                  <SkeletonTableRows rows={7} columns={3} />
                 ) : designationGroups.length === 0 ? (
                   <tr>
                     <td colSpan={3} className="px-4 py-10 text-center text-xs font-bold text-gray-400">

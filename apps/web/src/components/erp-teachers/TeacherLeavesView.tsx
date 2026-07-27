@@ -14,6 +14,7 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useTeacherPortalScope } from "@/contexts/TeacherPortalScopeContext";
 import { buildPath, subscribeData, sortBy, buildQuery, db } from "@/lib/db-client";
@@ -164,9 +165,7 @@ export default function TeacherLeavesView() {
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="p-8 flex justify-center">
-            <div className="w-6 h-6 border-2 border-[#144835] border-t-transparent rounded-full animate-spin" />
-          </div>
+          <SkeletonTable rows={6} columns={4} showHeader={false} className="border-0 rounded-none" />
         ) : (
           <table className="w-full text-left">
             <thead>

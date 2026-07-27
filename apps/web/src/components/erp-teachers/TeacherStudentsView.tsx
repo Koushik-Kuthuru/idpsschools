@@ -21,6 +21,7 @@ import AdminPageHeader from "@/components/admin/PageHeader";
 import ExportButton from "@/components/ui/ExportButton";
 import SelectMenu from "@/components/ui/SelectMenu";
 import TableRowActions from "@/components/ui/TableRowActions";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { useTeacherClassScope } from "@/hooks/useTeacherClassScope";
 import { useBranchClassOptions } from "@/hooks/useBranchClassOptions";
 import { usePortalStudents } from "@/hooks/usePortalStudents";
@@ -330,9 +331,7 @@ export default function TeacherStudentsView({ schoolId }: TeacherStudentsViewPro
 
         <div className="overflow-x-auto">
           {pageLoading ? (
-            <div className="p-8 flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-[#144835] border-t-transparent rounded-full animate-spin" />
-            </div>
+            <SkeletonTable rows={8} columns={6} showHeader={false} className="border-0 rounded-none" />
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>

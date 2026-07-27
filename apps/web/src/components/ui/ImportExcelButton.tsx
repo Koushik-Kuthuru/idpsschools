@@ -2,13 +2,14 @@
 
 import React, { useRef, useState } from "react";
 import { Upload, FileSpreadsheet } from "lucide-react";
-import * as XLSX from "xlsx";
+import { usePortalActions } from "@/contexts/PortalActionContext";
 
 interface ImportExcelButtonProps {
   onImport: (rows: Record<string, unknown>[]) => Promise<void>;
   className?: string;
   iconSize?: number;
   label?: string;
+  requirePermission?: boolean;
 }
 
 export default function ImportExcelButton({
@@ -16,9 +17,15 @@ export default function ImportExcelButton({
   className,
   iconSize = 14,
   label = "Import",
+  requirePermission = true,
 }: ImportExcelButtonProps) {
+  const { canCreate, loading } = usePortalActions();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  if (requirePermission && (loading || !canCreate)) {
+    return null;
+  }
 
   const defaultClassName =
     "h-10 inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 text-xs font-bold text-gray-700 shadow-sm hover:bg-gray-50 whitespace-nowrap transition-colors disabled:opacity-60";
@@ -29,8 +36,9 @@ export default function ImportExcelButton({
       return;
     }
 
-    setLoading(true);
+    setBusy(true);
     try {
+      const XLSX = await import("xlsx");
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array" });
       const sheetName = workbook.SheetNames[0];
@@ -51,7 +59,7 @@ export default function ImportExcelButton({
       console.error(err);
       alert(err instanceof Error ? err.message : "Failed to import file.");
     } finally {
-      setLoading(false);
+      setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
     }
   };
@@ -70,16 +78,16 @@ export default function ImportExcelButton({
       />
       <button
         type="button"
-        disabled={loading}
+        disabled={busy}
         onClick={() => inputRef.current?.click()}
         className={className || defaultClassName}
       >
-        {loading ? (
+        {busy ? (
           <FileSpreadsheet size={iconSize} className="animate-pulse" />
         ) : (
           <Upload size={iconSize} />
         )}
-        {loading ? "Importing…" : label}
+        {busy ? "Importing…" : label}
       </button>
     </>
   );

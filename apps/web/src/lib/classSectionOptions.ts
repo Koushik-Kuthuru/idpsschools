@@ -33,9 +33,16 @@ export function uniqueSectionsFromClasses(classes: ClassLike[]): string[] {
 }
 
 export function sectionsForGrade(classes: ClassLike[], grade: string): string[] {
-  const sections = classes
-    .filter((c) => gradesMatchForClass(gradeOf(c), grade))
-    .map((c) => String(c.section ?? "").trim().toUpperCase())
-    .filter(Boolean);
-  return [...new Set(sections)].sort((a, b) => a.localeCompare(b));
+  const seen = new Set<string>();
+  const sections: string[] = [];
+  for (const c of classes) {
+    if (!gradesMatchForClass(gradeOf(c), grade)) continue;
+    const section = String(c.section ?? "").trim();
+    if (!section) continue;
+    const key = section.toUpperCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    sections.push(section);
+  }
+  return sections.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 }

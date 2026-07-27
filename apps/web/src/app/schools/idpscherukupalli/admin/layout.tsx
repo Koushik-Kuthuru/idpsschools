@@ -10,6 +10,8 @@ import AdminStandaloneShell from "@/components/admin/AdminStandaloneShell";
 import { BranchProvider } from "@/components/admin/BranchContext";
 import { AcademicYearProvider } from "@/contexts/AcademicYearContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import PortalPermissionGuard from "@/components/auth/PortalPermissionGuard";
+import { PortalActionProvider, PortalDomActionEnforcer } from "@/contexts/PortalActionContext";
 import { ADMIN_LAYOUT_ALLOWED_ROLES } from "@/lib/auth/admin-portal-roles";
 import { isAdminSidebarCollapsedRoute, isAdminStandaloneRoute } from "@/lib/admin-layout";
 import { AdminNotificationsProvider } from "@/contexts/AdminNotificationsContext";
@@ -55,6 +57,8 @@ export default function AdminLayout({
  <BranchProvider>
  <AcademicYearProvider schoolSlug="idpscherukupalli">
  <AdminNotificationsProvider>
+ <PortalActionProvider schoolId="idpscherukupalli" portal="admin">
+ <PortalDomActionEnforcer schoolId="idpscherukupalli" portal="admin" />
  <div className="min-h-screen bg-[#F8FAFB] flex">
  {isMobileMenuOpen && (
  <div 
@@ -77,11 +81,14 @@ export default function AdminLayout({
  )}>
  <Header setIsMobileMenuOpen={setIsMobileMenuOpen} />
 
- <main className="erp-portal flex-1 min-w-0 max-w-full p-4 sm:p-4 lg:p-8">
+ <main className="erp-portal flex-1 min-w-0 max-w-full overflow-x-clip p-4 sm:p-4 lg:p-8">
+ <PortalPermissionGuard schoolId="idpscherukupalli" portal="admin">
  {children}
+ </PortalPermissionGuard>
  </main>
  </div>
  </div>
+ </PortalActionProvider>
  </AdminNotificationsProvider>
  </AcademicYearProvider>
  </BranchProvider>

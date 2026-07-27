@@ -18,6 +18,8 @@ type PayableFeeStructureModalProps = {
   feeGrid?: FeeGridRow[];
   lastYearDue?: string | number;
   transportFees?: unknown;
+  totalDiscount?: string | number;
+  academicYear?: string | null;
 };
 
 function formatCell(value: string | number): string {
@@ -32,11 +34,15 @@ export default function PayableFeeStructureModal({
   feeGrid,
   lastYearDue,
   transportFees,
+  totalDiscount = 0,
+  academicYear,
 }: PayableFeeStructureModalProps) {
   if (!open || typeof document === "undefined") return null;
 
-  const rows = mergePayableFeeGrid(feeGrid, { lastYearDue, transportFees });
+  const rows = mergePayableFeeGrid(feeGrid, { lastYearDue, transportFees, academicYear });
   const grandTotal = payableFeeGridGrandTotal(rows);
+  const discount = parseAmount(totalDiscount);
+  const netPayable = Math.max(0, grandTotal);
 
   return createPortal(
     <div
@@ -99,12 +105,22 @@ export default function PayableFeeStructureModal({
               })}
               <tr className="bg-white">
                 <td colSpan={FEE_MONTHS.length + 1} className="border border-gray-300 px-3 py-2 text-right font-bold">
-                  TOTAL
+                  TOTAL (Payable)
                 </td>
                 <td className="border border-gray-300 px-3 py-2 text-center font-bold tabular-nums">
-                  {grandTotal.toLocaleString("en-IN")}
+                  {netPayable.toLocaleString("en-IN")}
                 </td>
               </tr>
+              {discount > 0 ? (
+                <tr className="bg-sky-50/60">
+                  <td colSpan={FEE_MONTHS.length + 1} className="border border-gray-300 px-3 py-2 text-right font-bold text-sky-800">
+                    Discount (already applied above)
+                  </td>
+                  <td className="border border-gray-300 px-3 py-2 text-center font-bold tabular-nums text-sky-800">
+                    {discount.toLocaleString("en-IN")}
+                  </td>
+                </tr>
+              ) : null}
             </tbody>
           </table>
         </div>

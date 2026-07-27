@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { getRoleHomePath } from "@/lib/auth/roles";
+import { SkeletonAppShell } from "@/components/ui/Skeleton";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -41,12 +42,8 @@ export default function ProtectedRoute({ children, allowedRoles, requiredSchoolI
 
   }, [user, role, schoolId, loading, allowedRoles, requiredSchoolId, router, pathname]);
 
-  if (loading && !user) {
-    return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-white">
-        <div className="w-10 h-10 border-4 border-[#144835]/30 border-t-[#144835] rounded-full animate-spin" />
-      </div>
-    );
+  if (loading) {
+    return <SkeletonAppShell />;
   }
 
   if (!user) {

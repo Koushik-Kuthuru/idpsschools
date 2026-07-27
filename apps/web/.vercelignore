@@ -1,0 +1,10 @@
+# Exclude local/native build artifacts from CLI uploads
+.next
+node_modules
+.turbo
+.expo
+dist
+android
+ios
+*.apk
+.env*.local

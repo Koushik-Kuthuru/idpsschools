@@ -6,7 +6,9 @@ import { useBranchStaff } from "@/hooks/useBranchStaff";
 import { useAcademicYear } from "@/contexts/AcademicYearContext";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import TableRowActions from "@/components/ui/TableRowActions";
+import { SkeletonList, SkeletonTableRows } from "@/components/ui/Skeleton";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { gradeDisplayLabel, gradeIdentityKey, sortGrades } from "@/lib/gradeOrder";
@@ -18,6 +20,7 @@ import {
 } from "@/lib/classTeacherAssignments";
 import {
   ClipboardList,
+  Eye,
   MapPin,
   Plus,
   RefreshCw,
@@ -30,7 +33,6 @@ import {
   TrendingUp,
   Filter,
   AlertCircle,
-  Trash2,
 } from "lucide-react";
 
 function cn(...inputs: ClassValue[]) {
@@ -109,6 +111,7 @@ function ClassTeacherCell({
 
 export default function AdminClassesPage() {
   const schoolId = useSchoolId();
+  const router = useRouter();
   const { currentYear, loading: yearLoading } = useAcademicYear();
   const { classes: branchClasses, loading, error: loadError, refresh } = useBranchClasses(
     schoolId,
@@ -128,14 +131,18 @@ export default function AdminClassesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterGrade, setFilterGrade] = useState("All");
   const [addOpen, setAddOpen] = useState(false);
-  const [formGrade, setFormGrade] = useState("Nursery");
-  const [formSection, setFormSection] = useState("A");
-  const [formRoom, setFormRoom] = useState("");
-  const [formStrength, setFormStrength] = useState<number>(0);
-  const [formTeacherCount, setFormTeacherCount] = useState<number>(0);
-  const [formStatus, setFormStatus] = useState<"Active" | "Inactive">("Active");
   const [formError, setFormError] = useState<string | null>(null);
   const [expandedClassTeacherId, setExpandedClassTeacherId] = useState<string | null>(null);
+
+  const classDetailHref = (grade: string) =>
+    `/schools/${schoolId}/admin/academic/classes/${encodeURIComponent(grade)}`;
+
+  const sectionDetailHref = (grade: string, section: string) =>
+    `/schools/${schoolId}/admin/academic/classes/${encodeURIComponent(grade)}/${encodeURIComponent(section)}`;
+
+  const openClass = (grade: string) => router.push(classDetailHref(grade));
+  const openSection = (grade: string, section: string) =>
+    router.push(sectionDetailHref(grade, section));
 
   const isLoading =
     ((loading || staffLoading) && branchClasses.length === 0) || (yearLoading && !currentYear);
@@ -303,8 +310,8 @@ export default function AdminClassesPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 flex items-center gap-3 sm:gap-4">
           <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <BookOpen size={20} />
           </div>
@@ -362,7 +369,7 @@ export default function AdminClassesPage() {
           ) : null}
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full border-collapse text-center">
             <thead className="text-center">
               <tr className="bg-gray-50/80 border-b border-gray-100">
@@ -376,28 +383,7 @@ export default function AdminClassesPage() {
             </thead>
             <tbody className="divide-y divide-gray-100">
               {isLoading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={`skeleton-${i}`} className="animate-pulse">
-                    <td className="px-5 py-2.5">
-                      <div className="mx-auto h-6 w-16 rounded bg-gray-100" />
-                    </td>
-                    <td className="px-5 py-2.5">
-                      <div className="mx-auto h-6 w-20 rounded bg-gray-100" />
-                    </td>
-                    <td className="px-5 py-2.5">
-                      <div className="mx-auto h-5 w-24 rounded bg-gray-100" />
-                    </td>
-                    <td className="px-5 py-2.5">
-                      <div className="mx-auto h-6 w-28 rounded bg-gray-100" />
-                    </td>
-                    <td className="px-5 py-2.5">
-                      <div className="mx-auto h-5 w-16 rounded bg-gray-100" />
-                    </td>
-                    <td className="px-5 py-2.5">
-                      <div className="mx-auto h-6 w-20 rounded bg-gray-100" />
-                    </td>
-                  </tr>
-                ))
+                <SkeletonTableRows rows={6} columns={6} />
               ) : filteredClasses.length > 0 ? (
                 filteredClasses.flatMap((g) =>
                   g.sections.map((s, idx) => {
@@ -407,10 +393,23 @@ export default function AdminClassesPage() {
                     const isOvercrowded = s.strength > 50;
 
                     return (
-                      <tr key={s.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <tr
+                        key={s.id}
+                        className="hover:bg-gray-50/50 transition-colors group cursor-pointer"
+                        onClick={() => openSection(g.grade, s.section)}
+                      >
                         {showGrade ? (
-                          <td rowSpan={rowSpan} className="px-5 py-2.5 align-middle border-r border-gray-100/50">
-                            <span className="text-xs font-bold text-gray-900">{gradeLabel(g.grade)}</span>
+                          <td
+                            rowSpan={rowSpan}
+                            className="px-5 py-2.5 align-middle border-r border-gray-100/50 cursor-pointer hover:bg-gray-100/60"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openClass(g.grade);
+                            }}
+                          >
+                            <span className="text-xs font-bold text-gray-900 hover:text-[#144835]">
+                              {gradeLabel(g.grade)}
+                            </span>
                           </td>
                         ) : null}
                         <td className="px-5 py-2.5">
@@ -448,7 +447,10 @@ export default function AdminClassesPage() {
                             ) : null}
                           </div>
                         </td>
-                        <td className="px-5 py-2.5">
+                        <td
+                          className="px-5 py-2.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <ClassTeacherCell
                             sectionId={s.id}
                             teachers={s.classTeachers}
@@ -458,15 +460,40 @@ export default function AdminClassesPage() {
                             }
                           />
                         </td>
-                        <td className="px-5 py-2.5">
+                        <td
+                          className="px-5 py-2.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <div className="flex justify-center">
                             <TableRowActions
-                            items={[
-                              { label: "Edit Section", icon: Pencil, onClick: () => {} },
-                              { label: "View Teachers", icon: Users, onClick: () => {} },
-                              { label: "Student List", icon: ClipboardList, onClick: () => {} },
-                            ]}
-                          />
+                              items={[
+                                {
+                                  label: "View Section",
+                                  icon: Eye,
+                                  href: sectionDetailHref(g.grade, s.section),
+                                },
+                                {
+                                  label: "View Class",
+                                  icon: BookOpen,
+                                  href: classDetailHref(g.grade),
+                                },
+                                {
+                                  label: "Student List",
+                                  icon: ClipboardList,
+                                  href: sectionDetailHref(g.grade, s.section),
+                                },
+                                {
+                                  label: "View Teachers",
+                                  icon: Users,
+                                  href: sectionDetailHref(g.grade, s.section),
+                                },
+                                {
+                                  label: "Edit Section",
+                                  icon: Pencil,
+                                  onClick: () => {},
+                                },
+                              ]}
+                            />
                           </div>
                         </td>
                       </tr>
@@ -490,6 +517,131 @@ export default function AdminClassesPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile cards */}
+        <div className="lg:hidden divide-y divide-gray-100">
+          {isLoading ? (
+            <SkeletonList rows={6} avatar={false} />
+          ) : filteredClasses.length > 0 ? (
+            filteredClasses.map((g) => (
+              <div key={g.grade} className="p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <button
+                    type="button"
+                    onClick={() => openClass(g.grade)}
+                    className="text-sm font-bold text-gray-900 hover:text-[#144835]"
+                  >
+                    {gradeLabel(g.grade)}
+                  </button>
+                  <span className="text-xs font-semibold text-gray-500">
+                    {g.sections.length} section{g.sections.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {g.sections.map((s) => {
+                    const barWidth = Math.min(100, Math.round((s.strength / 60) * 100));
+                    const isOvercrowded = s.strength > 50;
+                    return (
+                      <div
+                        key={s.id}
+                        className="rounded-xl border border-gray-100 bg-gray-50/50 p-3 cursor-pointer"
+                        onClick={() => openSection(g.grade, s.section)}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-xs font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded shrink-0">
+                              Sec {s.section}
+                            </span>
+                            <div className="flex items-center gap-1 text-xs font-bold text-gray-600 min-w-0">
+                              <MapPin size={12} className="text-gray-400 shrink-0" />
+                              <span className="truncate">{s.room || "TBD"}</span>
+                            </div>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div
+                              className={cn(
+                                "flex items-center justify-center min-w-[2rem] rounded px-1.5 py-0.5 text-xs font-bold border border-white/20",
+                                strengthBg(s.strength),
+                                strengthText(s.strength)
+                              )}
+                            >
+                              {s.strength}
+                            </div>
+                            {isOvercrowded ? (
+                              <span title="Overcrowded">
+                                <TriangleAlert size={12} className="text-red-500" />
+                              </span>
+                            ) : null}
+                            <TableRowActions
+                              items={[
+                                {
+                                  label: "View Section",
+                                  icon: Eye,
+                                  href: sectionDetailHref(g.grade, s.section),
+                                },
+                                {
+                                  label: "View Class",
+                                  icon: BookOpen,
+                                  href: classDetailHref(g.grade),
+                                },
+                                {
+                                  label: "Student List",
+                                  icon: ClipboardList,
+                                  href: sectionDetailHref(g.grade, s.section),
+                                },
+                                {
+                                  label: "View Teachers",
+                                  icon: Users,
+                                  href: sectionDetailHref(g.grade, s.section),
+                                },
+                                {
+                                  label: "Edit Section",
+                                  icon: Pencil,
+                                  onClick: () => {},
+                                },
+                              ]}
+                            />
+                          </div>
+                        </div>
+                        <div className="mt-2 h-1 w-full rounded-full bg-gray-100 overflow-hidden">
+                          <div
+                            className={cn("h-full rounded-full transition-all", strengthColor(s.strength))}
+                            style={{ width: `${barWidth}%` }}
+                          />
+                        </div>
+                        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                          <ClassTeacherCell
+                            sectionId={s.id}
+                            teachers={s.classTeachers}
+                            expandedId={expandedClassTeacherId}
+                            onToggle={(id) =>
+                              setExpandedClassTeacherId((prev) => (prev === id ? null : id))
+                            }
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="px-5 py-8 text-center">
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-50 mb-2">
+                <Search size={20} className="text-gray-400" />
+              </div>
+              <p className="text-xs font-bold text-gray-900">No classes found</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {currentYear
+                  ? `No classes for ${currentYear.name}. Import student data for this year first.`
+                  : "Select an active academic year in Settings."}
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

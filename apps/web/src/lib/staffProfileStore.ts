@@ -7,7 +7,13 @@ export type StaffYearProfile = {
   subjects?: string;
   classTeacher?: string;
   portalPassword?: string;
+  portalPasswordHash?: string;
   password?: string;
+  classLoads?: Array<{
+    classSection?: string;
+    subject?: string;
+    weeklyHours?: number;
+  }>;
 };
 
 export type StaffExtendedProfile = {
@@ -56,6 +62,12 @@ export type StaffProfileData = StaffYearProfile &
   username?: string;
   academicYear?: string;
   years?: Record<string, StaffYearProfile>;
+  loginEmail?: string;
+  authUid?: string;
+  portalProvisioned?: boolean;
+  /** ISO timestamp when staff last changed their own portal password. */
+  passwordChangedAt?: string;
+  passwordChangedBy?: string;
 };
 
 export function baseEmployeeId(employeeId: string | null | undefined): string {
@@ -120,6 +132,7 @@ export function mergeStaffProfileYear(
       subjects: profile.subjects,
       classTeacher: profile.classTeacher,
       portalPassword: profile.portalPassword,
+      portalPasswordHash: profile.portalPasswordHash,
       password: profile.password,
     };
   }
@@ -131,6 +144,7 @@ export function mergeStaffProfileYear(
   delete profile.subjects;
   delete profile.classTeacher;
   delete profile.portalPassword;
+  delete profile.portalPasswordHash;
   delete profile.password;
 
   profile.years![academicYear] = yearData;
@@ -150,6 +164,7 @@ export function clearStaffProfileYear(profile: StaffProfileData, academicYear: s
       delete next.subjects;
       delete next.classTeacher;
       delete next.portalPassword;
+      delete next.portalPasswordHash;
       delete next.password;
       return next;
     }

@@ -284,9 +284,9 @@ export default function AcademicCalendarPage() {
  {/* Calendar Controls */}
  <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
  <div className="flex items-center gap-3">
- <h2 className="text-lg font-bold text-gray-900">
- {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
- </h2>
+<h2 className="text-base sm:text-lg font-bold text-gray-900">
+{currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+</h2>
  </div>
  <div className="flex items-center gap-2">
  <button onClick={today} className="px-3 h-8 rounded-lg bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-sm transition-colors">
@@ -303,15 +303,16 @@ export default function AcademicCalendarPage() {
  </div>
  </div>
 
- {/* Calendar Grid */}
- <div className="p-4">
- <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200">
- {/* Day Headers */}
- {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
- <div key={day} className="bg-gray-50 py-2 text-center text-xs font-bold text-gray-500 uppercase tracking-wide">
- {day}
- </div>
- ))}
+{/* Calendar Grid */}
+<div className="p-2 sm:p-4">
+<div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden border border-gray-200">
+{/* Day Headers */}
+{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+<div key={day} className="bg-gray-50 py-2 text-center text-xs font-bold text-gray-500 uppercase tracking-wide">
+<span className="sm:hidden">{day.charAt(0)}</span>
+<span className="hidden sm:inline">{day}</span>
+</div>
+))}
  
  {/* Date Cells */}
  {monthCells.map((date, idx) => {
@@ -323,10 +324,10 @@ export default function AcademicCalendarPage() {
  return (
  <div 
  key={idx} 
- className={cn(
- "min-h-[100px] bg-white p-1.5 transition-colors hover:bg-gray-50 cursor-pointer group",
- !isCurrentMonth && "bg-gray-50/50 text-gray-400"
- )}
+className={cn(
+"min-h-[64px] sm:min-h-[100px] bg-white p-1 sm:p-1.5 transition-colors hover:bg-gray-50 cursor-pointer group",
+!isCurrentMonth && "bg-gray-50/50 text-gray-400"
+)}
  >
  <div className="flex justify-between items-start">
  <span className={cn(

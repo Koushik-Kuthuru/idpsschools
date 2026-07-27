@@ -10,7 +10,7 @@ import { notificationIcon, notificationIconStyles } from "@/components/admin/not
 import { useAuth } from "@/contexts/AuthContext";
 import { useAdminNotifications } from "@/contexts/AdminNotificationsContext";
 import { formatRelativeTime } from "@/lib/adminNotifications";
-import { auth } from "@/lib/db-client";
+import { getPortalLoginPath } from "@/lib/auth/roles";
 import { getStudentDisplayName } from "@/lib/studentClassInfo";
 
 interface HeaderProps {
@@ -23,7 +23,7 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const { user, role } = useAuth();
+  const { user, role, logout } = useAuth();
   const { notifications, unreadCount, markAllRead, openNotification } = useAdminNotifications();
 
   const schoolId = useMemo(() => {
@@ -77,13 +77,8 @@ export default function Header({ setIsMobileMenuOpen }: HeaderProps) {
   }, [userDisplayName]);
 
   const handleLogout = async () => {
-    try {
-      setUserMenuOpen(false);
-      await auth.signOut();
-      router.push("/login");
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
+    setUserMenuOpen(false);
+    await logout(getPortalLoginPath(schoolId, role));
   };
 
   useEffect(() => {

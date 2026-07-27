@@ -17,6 +17,7 @@ import {
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { useAuth } from "@/contexts/AuthContext";
+import { SkeletonPortalDashboard } from "@/components/ui/Skeleton";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,13 +49,17 @@ type TeacherDashboardProps = {
 };
 
 export default function TeacherDashboard({ schoolId }: TeacherDashboardProps) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  if (authLoading) {
+    return <SkeletonPortalDashboard />;
+  }
 
   const userName = user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "Teacher";
 

@@ -39,9 +39,7 @@ function monthBalanceValue(month: string, monthlyBalances: number[] | undefined)
   return monthlyBalances[idx] ?? 0;
 }
 
-export function lineItemsFromReceipt(
-  receipt: FeeReceiptRow & { lineItems?: FeeReceiptLineItem[]; particular?: string }
-): FeeReceiptLineItem[] {
+export function lineItemsFromReceipt(receipt: FeeReceiptRow): FeeReceiptLineItem[] {
   if (Array.isArray(receipt.lineItems) && receipt.lineItems.length > 0) {
     return receipt.lineItems.map((row) => ({
       particular: String(row.particular ?? "FEE"),
@@ -56,7 +54,7 @@ export function lineItemsFromReceipt(
 }
 
 export function buildFeeReceiptPrintData(params: {
-  receipt: FeeReceiptRow & { lineItems?: FeeReceiptLineItem[]; particular?: string };
+  receipt: FeeReceiptRow;
   student: StudentLike;
   academicYear?: string;
   feeTotals?: FeeTotals;

@@ -2,6 +2,8 @@
 
 import React from "react";
 import AdminPageHeader from "@/components/admin/PageHeader";
+import { SkeletonCard, SkeletonPageHeader } from "@/components/ui/Skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   FileText, 
   Download, 
@@ -18,6 +20,8 @@ import {
 } from "lucide-react";
 
 export default function DocumentsView() {
+  const { loading } = useAuth();
+
   const academicDocs = [
     { name: "Skill Assessment Report", date: "Sept 12, 2026", icon: FileCheck },
     { name: "Mid-Term Grade Sheet", date: "Aug 05, 2026", icon: FileText },
@@ -38,6 +42,18 @@ export default function DocumentsView() {
   const handleAction = (label: string) => {
     alert(`Action initiated: ${label}`);
   };
+
+  if (loading) {
+    return (
+      <div className="erp-body space-y-4 sm:space-y-6 pb-10 max-w-[1600px] mx-auto">
+        <SkeletonPageHeader />
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <SkeletonCard lines={4} />
+          <SkeletonCard lines={4} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="erp-body space-y-4 sm:space-y-6 animate-in fade-in duration-500 pb-10 max-w-[1600px] mx-auto">

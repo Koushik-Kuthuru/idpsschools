@@ -25,7 +25,11 @@ export function buildDbQueryCacheKey(
 ): string {
   const pathPart = collectionPath.join("/");
   const constraintPart = constraints.length ? `:c:${stableHash(constraints)}` : "";
-  return `${CACHE_PREFIX}:q:${pathPart}${constraintPart}${academicYearSuffix(collectionPath)}`;
+  // Bump when student list shape gains fields (e.g. attendance) so stale 24h
+  // localStorage entries without those fields are not reused.
+  const table = collectionPath.length === 3 ? collectionPath[2] : collectionPath[0];
+  const shapePart = table === "students" ? ":shape:att2" : "";
+  return `${CACHE_PREFIX}:q:${pathPart}${constraintPart}${academicYearSuffix(collectionPath)}${shapePart}`;
 }
 
 export function buildDbDocCacheKey(docPath: string[]): string {

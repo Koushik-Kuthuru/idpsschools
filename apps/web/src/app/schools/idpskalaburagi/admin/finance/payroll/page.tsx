@@ -4,6 +4,7 @@ import { useSchoolId } from "@/hooks/useSchoolId";
 import AdminPageHeader from "@/components/admin/PageHeader";
 import TableRowActions from "@/components/ui/TableRowActions";
 import { deleteSchoolDocument } from "@/lib/deleteSchoolDocument";
+import { Skeleton, SkeletonTable } from "@/components/ui/Skeleton";
 
 import React, { useEffect, useMemo, useState } from "react";
 import { Download, Search, Settings, FileText, CheckCircle2, AlertCircle, ChevronRight, IndianRupee, Users, Briefcase , Trash2} from "lucide-react";
@@ -203,10 +204,13 @@ export default function AdminPayrollPage() {
  <div className="bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col overflow-hidden">
  <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
  <h2 className="text-sm font-bold text-gray-800">Payroll Directory</h2>
- <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{loading ? "Loading..." : `${filteredPayroll.length} records`}</p>
+ <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{loading ? <Skeleton className="h-3 w-20" /> : `${filteredPayroll.length} records`}</p>
  </div>
 
  <div className="overflow-x-auto">
+ {loading ? (
+ <SkeletonTable rows={8} columns={7} showHeader={false} className="rounded-none border-0" />
+ ) : (
  <table className="w-full text-left border-collapse">
  <thead>
  <tr className="bg-gray-50/80 border-b border-gray-100">
@@ -282,6 +286,7 @@ export default function AdminPayrollPage() {
  )}
  </tbody>
  </table>
+ )}
  </div>
  </div>
  </div>

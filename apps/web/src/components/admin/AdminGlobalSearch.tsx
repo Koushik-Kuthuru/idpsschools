@@ -63,14 +63,20 @@ export default function AdminGlobalSearch({ schoolId, onOpenChange }: AdminGloba
   const [scopeAnchor, setScopeAnchor] = useState<{ top: number; left: number; width: number } | null>(
     null
   );
-  const { loading, search } = useAdminSearch(schoolId);
-
   const [query, setQuery] = useState("");
   const [scope, setScope] = useState<SearchScopeFilter>("all");
   const [scopeOpen, setScopeOpen] = useState(false);
   const [resultsOpen, setResultsOpen] = useState(false);
   const [focused, setFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [indexArmed, setIndexArmed] = useState(false);
+
+  // Defer heavy search index until the user opens search (layout used to index on every page).
+  useEffect(() => {
+    if (focused || resultsOpen || query.trim()) setIndexArmed(true);
+  }, [focused, resultsOpen, query]);
+
+  const { loading, search } = useAdminSearch(schoolId, { enabled: indexArmed });
 
   const groups = useMemo(
     () => (query.trim() ? search(query, { scope }) : []),

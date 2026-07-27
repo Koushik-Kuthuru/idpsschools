@@ -122,11 +122,12 @@ export function mapNotificationRecord(
   schoolId: string
 ): Omit<AdminNotification, "unread"> {
   const base = `/schools/${schoolId}/admin`;
+  const rawCreatedAt = data.createdAt ?? data.created_at;
   const createdAt =
-    typeof data.createdAt === "object" && data.createdAt !== null && "toDate" in data.createdAt
-      ? (data.createdAt as { toDate: () => Date }).toDate().toISOString()
-      : typeof data.createdAt === "string"
-        ? data.createdAt
+    typeof rawCreatedAt === "object" && rawCreatedAt !== null && "toDate" in rawCreatedAt
+      ? (rawCreatedAt as { toDate: () => Date }).toDate().toISOString()
+      : typeof rawCreatedAt === "string"
+        ? rawCreatedAt
         : new Date().toISOString();
 
   const category = (data.category as NotificationCategory) || "System";

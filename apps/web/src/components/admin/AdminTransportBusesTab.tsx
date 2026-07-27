@@ -6,6 +6,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import ExportButton from "@/components/ui/ExportButton";
 import TableRowActions from "@/components/ui/TableRowActions";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 import { useSchoolId } from "@/hooks/useSchoolId";
 import { useBranchTransportBuses } from "@/hooks/useBranchTransportBuses";
 import type { TransportBusRecord } from "@/lib/branchTransportStore";
@@ -213,7 +214,7 @@ export default function AdminTransportBusesTab() {
 
         <div className="overflow-x-auto">
           {listLoading ? (
-            <div className="px-4 py-12 text-center text-xs font-bold text-gray-400">Loading...</div>
+            <SkeletonTable rows={8} columns={6} showHeader={false} className="rounded-none border-0" />
           ) : (
             <table className="w-full text-left border-collapse">
               <thead>

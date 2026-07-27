@@ -274,9 +274,52 @@ function sumFeeRowForMonth(
   return Number(row.values[monthIndex]) || 0;
 }
 
+function sumMonthAmounts(values: unknown): number {
+  if (!Array.isArray(values)) return 0;
+  return values.reduce<number>((sum, v) => sum + (Number(v) || 0), 0);
+}
+
+/**
+ * Outstanding transport due for one student.
+ * Prefer explicit balance / feePaid from transportDetails; otherwise due − paid from monthly arrays.
+ * Fees arrays are APR–MAR (not calendar Jan–Dec).
+ */
+export function transportFeeOutstanding(input: {
+  fees?: unknown;
+  paidFees?: unknown;
+  feePaid?: unknown;
+  balance?: unknown;
+  feeTotal?: unknown;
+}): number {
+  const balanceRaw = Number.parseInt(String(input.balance ?? ""), 10);
+  if (Number.isFinite(balanceRaw) && String(input.balance ?? "").trim() !== "") {
+    return Math.max(0, balanceRaw);
+  }
+
+  const expectedFromFees = sumMonthAmounts(input.fees);
+  const expectedFromTotal = Number.parseInt(String(input.feeTotal ?? ""), 10);
+  const expected =
+    Number.isFinite(expectedFromTotal) && expectedFromTotal > 0
+      ? expectedFromTotal
+      : expectedFromFees;
+
+  const paidExplicit = Number.parseInt(String(input.feePaid ?? ""), 10);
+  const paidFromMonths = sumMonthAmounts(input.paidFees);
+  const paid = Number.isFinite(paidExplicit) ? paidExplicit : paidFromMonths;
+
+  return Math.max(0, expected - paid);
+}
+
+/** Calendar month 0–11 → APR–MAR fee-grid index. */
+export function academicMonthIndexFromCalendarMonth(calendarMonth: number): number {
+  if (!Number.isFinite(calendarMonth) || calendarMonth < 0 || calendarMonth > 11) return -1;
+  return (calendarMonth + 9) % 12;
+}
+
 export function computeTransportHostelMetrics(
   students: Array<Record<string, unknown>>,
-  monthIndex = new Date().getMonth()
+  /** Calendar month 0–11; converted to APR–MAR for fee grids. */
+  calendarMonth = new Date().getMonth()
 ): Omit<
   TransportHostelMetrics,
   "totalBuses" | "activeRoutes" | "driverAttendancePct" | "totalBeds" | "occupiedBeds"
@@ -285,6 +328,7 @@ export function computeTransportHostelMetrics(
   routeNames: Set<string>;
   driverNames: Set<string>;
 } {
+  const academicMonth = academicMonthIndexFromCalendarMonth(calendarMonth);
   const busNos = new Set<string>();
   const routeNames = new Set<string>();
   const driverNames = new Set<string>();
@@ -306,10 +350,7 @@ export function computeTransportHostelMetrics(
       const driver = String(td.driverName ?? "").trim();
       if (driver) driverNames.add(driver);
 
-      const fees = td.fees;
-      if (Array.isArray(fees)) {
-        transportFeePending += Number(fees[monthIndex]) || 0;
-      }
+      transportFeePending += transportFeeOutstanding(td);
     }
 
     if (String(s.studentType ?? "").toLowerCase() === "boarder") {
@@ -317,7 +358,9 @@ export function computeTransportHostelMetrics(
     }
 
     const feeDetails = s.feeDetails as { feeGrid?: Array<{ name?: string; values?: unknown[] }> } | undefined;
-    hostelFeePending += sumFeeRowForMonth(feeDetails?.feeGrid, "HOSTEL", monthIndex);
+    if (academicMonth >= 0) {
+      hostelFeePending += sumFeeRowForMonth(feeDetails?.feeGrid, "HOSTEL", academicMonth);
+    }
   }
 
   return {
