@@ -42,6 +42,7 @@ async function schoolIdForBranch(
 ): Promise<string | null> {
   const { data, error } = await admin.from("branches").select("school_id").eq("id", branchId).maybeSingle();
   if (error?.code === "PGRST205") return null;
+  if (error) return null;
   return data?.school_id ? String(data.school_id) : null;
 }
 
@@ -65,6 +66,11 @@ async function readTableCurrentYearName(
   return String(data?.name ?? "").trim() || null;
 }
 
+/**
+ * Read the branch active year. Uses limit(1) because historical bugs created
+ * many duplicate `__config__:current_academic_year` notice rows; maybeSingle()
+ * fails on duplicates and caused a silent fallback to the newest year (2026-27).
+ */
 async function readCurrentYearName(
   admin: SupabaseClient<any>,
   branchId: string
@@ -74,36 +80,61 @@ async function readCurrentYearName(
     .select("content")
     .eq("branch_id", branchId)
     .eq("title", SETTINGS_NOTICE_TITLE)
-    .maybeSingle();
+    .order("id", { ascending: false })
+    .limit(1);
 
   if (error?.code === "PGRST205") return null;
-  return data?.content?.trim() || null;
+  if (error) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  return String(row?.content ?? "").trim() || null;
 }
 
-/** Persist active year for student/portal loaders (notices-backed branch config). */
+/** Persist active year for student/portal loaders — one notice row per branch. */
 export async function writeCurrentYearName(
   admin: SupabaseClient<any>,
   branchId: string,
   yearName: string
 ): Promise<void> {
-  const { data: existing } = await admin
+  const name = yearName.trim();
+  if (!name) return;
+
+  const { data: existingRows, error: listError } = await admin
     .from("notices")
     .select("id")
     .eq("branch_id", branchId)
     .eq("title", SETTINGS_NOTICE_TITLE)
-    .maybeSingle();
+    .order("id", { ascending: false });
 
-  if (existing?.id) {
-    await admin.from("notices").update({ content: yearName }).eq("id", existing.id);
-    return;
+  if (listError && listError.code !== "PGRST205") {
+    throw new Error(listError.message);
   }
 
-  await admin.from("notices").insert({
-    branch_id: branchId,
-    title: SETTINGS_NOTICE_TITLE,
-    content: yearName,
-    target: "admin",
-  });
+  const rows = existingRows ?? [];
+  const keepId = rows[0]?.id ? String(rows[0].id) : null;
+  const extras = rows.slice(1).map((row) => String(row.id)).filter(Boolean);
+
+  if (keepId) {
+    const { error: updateError } = await admin
+      .from("notices")
+      .update({ content: name })
+      .eq("id", keepId);
+    if (updateError) throw new Error(updateError.message);
+  } else {
+    const { error: insertError } = await admin.from("notices").insert({
+      branch_id: branchId,
+      title: SETTINGS_NOTICE_TITLE,
+      content: name,
+      target: "admin",
+    });
+    if (insertError) throw new Error(insertError.message);
+  }
+
+  // Remove duplicate config rows so future reads stay deterministic.
+  for (let i = 0; i < extras.length; i += 50) {
+    const chunk = extras.slice(i, i + 50);
+    const { error: deleteError } = await admin.from("notices").delete().in("id", chunk);
+    if (deleteError) throw new Error(deleteError.message);
+  }
 }
 
 /**
@@ -170,7 +201,7 @@ export async function listBranchAcademicYears(
     ),
   ].sort((a, b) => datesFromYearName(b).start_date.localeCompare(datesFromYearName(a).start_date));
 
-  // Prefer schools.academic_years.is_current (what admin Settings saves) over the notices fallback.
+  // Prefer schools.academic_years.is_current when present; otherwise branch notice.
   const activeName =
     (tableCurrent && allNames.includes(tableCurrent) ? tableCurrent : null) ??
     (noticeCurrent && allNames.includes(noticeCurrent) ? noticeCurrent : null) ??
