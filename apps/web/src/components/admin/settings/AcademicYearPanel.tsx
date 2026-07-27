@@ -71,20 +71,12 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
   );
 
   useEffect(() => {
-    setDraftYearId((prev) => {
-      if (currentYear?.id) {
-        // Keep an unsaved selection; otherwise follow the active year.
-        if (prev && prev !== currentYear.id && sortedYears.some((y) => y.id === prev)) {
-          return prev;
-        }
-        return currentYear.id;
-      }
-      return prev || sortedYears[0]?.id || "";
-    });
+    // Always follow the persisted active year (do not keep a stale draft selection).
+    if (currentYear?.id) setDraftYearId(currentYear.id);
+    else if (sortedYears[0]?.id) setDraftYearId(sortedYears[0].id);
   }, [currentYear?.id, sortedYears]);
 
   const draftYear = sortedYears.find((y) => y.id === draftYearId) ?? null;
-  const isDirty = Boolean(draftYearId && currentYear?.id && draftYearId !== currentYear.id);
 
   const handleCreate = async () => {
     const trimmed = name.trim();
@@ -102,15 +94,27 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
     setSaving(false);
   };
 
-  const handleSaveActive = async () => {
-    if (!draftYearId || draftYearId === currentYear?.id) return;
+  const applyActiveYear = async (academicYearId: string) => {
+    if (!academicYearId || academicYearId === currentYear?.id) {
+      setDraftYearId(academicYearId);
+      return;
+    }
+    setDraftYearId(academicYearId);
     setSavingActive(true);
-    const result = await setCurrentYear(draftYearId);
+    const result = await setCurrentYear(academicYearId);
     setSavingActive(false);
     if (result) {
+      setDraftYearId(result.id);
       setSavedFlash(true);
       window.setTimeout(() => setSavedFlash(false), 2500);
+    } else if (currentYear?.id) {
+      setDraftYearId(currentYear.id);
     }
+  };
+
+  const handleSaveActive = async () => {
+    if (!draftYearId) return;
+    await applyActiveYear(draftYearId);
   };
 
   return (
@@ -131,8 +135,8 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
               Active academic year
             </p>
             <p className="mt-1 text-xs text-gray-500">
-              Choose a year, then press Save. The student app will show fees, attendance, marks,
-              subjects and timetable for that year.
+              Changing the year saves immediately. The student app will use this year for fees,
+              attendance, marks, subjects and timetable (pull to refresh in the app).
             </p>
           </div>
           <button
@@ -149,9 +153,9 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
           <div className="relative min-w-0 flex-1">
             <select
               className={selectCls}
-              value={draftYearId}
+              value={draftYearId || currentYear?.id || ""}
               disabled={loading || sortedYears.length === 0 || savingActive}
-              onChange={(e) => setDraftYearId(e.target.value)}
+              onChange={(e) => void applyActiveYear(e.target.value)}
             >
               {sortedYears.length === 0 ? (
                 <option value="">No academic years yet</option>
@@ -167,7 +171,7 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
           </div>
           <button
             type="button"
-            disabled={!isDirty || savingActive || !draftYearId}
+            disabled={savingActive || !draftYearId}
             onClick={() => void handleSaveActive()}
             className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 transition-all hover:bg-[#144835]/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -176,7 +180,7 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
                 <RefreshCw size={13} className="animate-spin" />
                 Saving…
               </>
-            ) : savedFlash && !isDirty ? (
+            ) : savedFlash ? (
               <>
                 <Check size={13} />
                 Saved
@@ -192,17 +196,12 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
 
         {draftYear || currentYear ? (
           <p className="mt-2 text-xs text-gray-500">
-            {isDirty ? (
-              <>
-                Selected <span className="font-semibold text-gray-700">{draftYear?.name}</span>
-                {" · "}currently active{" "}
-                <span className="font-semibold text-gray-700">{currentYear?.name}</span>
-                {" — press Save to apply to the student app."}
-              </>
+            {savingActive ? (
+              <>Saving active year…</>
             ) : currentYear?.start_date && currentYear?.end_date ? (
-              `${currentYear.name}: ${currentYear.start_date} → ${currentYear.end_date}`
+              `Active for student app: ${currentYear.name} (${currentYear.start_date} → ${currentYear.end_date})`
             ) : (
-              `Active: ${currentYear?.name ?? draftYear?.name ?? "—"}`
+              `Active for student app: ${currentYear?.name ?? draftYear?.name ?? "—"}`
             )}
           </p>
         ) : null}
@@ -248,9 +247,9 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
                       </td>
                       <td className="px-4 py-2.5 text-right">
                         <Toggle
-                          checked={draftYearId === y.id}
+                          checked={(draftYearId || currentYear?.id) === y.id}
                           disabled={savingActive}
-                          onChange={(v) => v && setDraftYearId(y.id)}
+                          onChange={(v) => v && void applyActiveYear(y.id)}
                         />
                       </td>
                     </tr>
@@ -259,19 +258,6 @@ export default function AcademicYearPanel({ compact = false }: AcademicYearPanel
               </table>
             )}
           </div>
-          {isDirty ? (
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                disabled={savingActive}
-                onClick={() => void handleSaveActive()}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#144835] px-4 text-xs font-bold text-white shadow-md shadow-[#144835]/20 hover:bg-[#144835]/90 disabled:opacity-50"
-              >
-                <Save size={13} />
-                {savingActive ? "Saving…" : "Save active year"}
-              </button>
-            </div>
-          ) : null}
         </div>
       ) : null}
 
