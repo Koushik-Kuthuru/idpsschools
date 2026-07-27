@@ -122,6 +122,8 @@ export interface AttendanceRecord {
 export interface MarksExamBucket {
   id: string;
   name: string;
+  /** Which academic term this examination belongs to. */
+  term?: AcademicTerm;
   gpa: number;
   grade: string;
   rank: string;

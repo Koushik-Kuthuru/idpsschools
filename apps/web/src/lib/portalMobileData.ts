@@ -611,6 +611,7 @@ function finalizeStudentMarksFromExamRows(
       return {
         id: subjectIdFromName(name),
         name,
+        term: examToTermKey(name),
         ...bucket,
       };
     })
