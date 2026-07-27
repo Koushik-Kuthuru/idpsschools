@@ -27,6 +27,7 @@ export interface User {
   grade: string;
   rollNumber: string;
   className: string;
+  section?: string;
   schoolName: string;
   avatar?: string;
   /** Admin-generated ID card image URL (Supabase Storage / CDN). */
@@ -39,6 +40,8 @@ export interface User {
   bloodGroup?: string;
   parentName?: string;
   parentPhone?: string;
+  /** Active academic year from admin settings (e.g. 2025-26). */
+  academicYear?: string;
   transport?: TransportInfo;
   hostel?: HostelInfo;
 }
@@ -83,7 +86,11 @@ export interface AnnouncementDetail extends Announcement {
   priority?: string;
   attachments?: number;
   attachmentFiles?: string[];
+  attachmentUrls?: string[];
   imageUrl?: string;
+  linkUrl?: string;
+  subject?: string;
+  className?: string;
   content?: string;
 }
 
@@ -112,6 +119,16 @@ export interface AttendanceRecord {
   subject?: string;
 }
 
+export interface MarksExamBucket {
+  id: string;
+  name: string;
+  gpa: number;
+  grade: string;
+  rank: string;
+  totalPercent: number;
+  subjects: SubjectMark[];
+}
+
 export interface MarksOverview {
   gpa: number;
   grade: string;
@@ -120,6 +137,8 @@ export interface MarksOverview {
   lastUpdated: string;
   teacherInCharge: string;
   subjects: SubjectMark[];
+  /** Per-examination buckets (PT1, SE2, MA TERM1, …). */
+  exams?: MarksExamBucket[];
   terms: Record<AcademicTerm, { gpa: number; grade: string; rank: string; totalPercent: number; subjects: SubjectMark[] }>;
 }
 

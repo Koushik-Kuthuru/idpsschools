@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +13,7 @@ import { MarksSkeleton } from '@/components/ui/Skeleton';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Button } from '@/components/ui/Button';
 import { cardShadow } from '@/constants/shadows';
-import type { AcademicTerm } from '@/types';
+import type { MarksExamBucket } from '@/types';
 import { buildMarksPdfFileName, exportMarksPdf, shareMarksPdf, saveMarksPdf } from '@/utils/marksExport';
 import { TAB_SCREEN_SCROLL_PADDING } from '@/constants/layout';
 
@@ -26,26 +26,41 @@ const ICON_MAP: Record<string, keyof typeof MaterialIcons.glyphMap> = {
   'history-edu': 'history-edu',
 };
 
-const TERM_OPTIONS: { key: AcademicTerm; label: string }[] = [
-  { key: 'term1', label: 'Term 1' },
-  { key: 'term2', label: 'Term 2' },
-  { key: 'term3', label: 'Term 3' },
-  { key: 'annual', label: 'Annual' },
-];
+const OVERALL_EXAM_ID = '__overall__';
 
 export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean }) {
   const theme = useTheme();
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const { data, isLoading, error, refetch } = useMarksOverview();
-  const [term, setTerm] = useState<AcademicTerm | null>(null);
-  const [termModal, setTermModal] = useState(false);
+  const [examId, setExamId] = useState<string | null>(null);
+  const [examModal, setExamModal] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  const examOptions = useMemo(() => {
+    if (!data) return [] as MarksExamBucket[];
+    const fromApi = (data.exams ?? []).filter((exam) => (exam.subjects?.length ?? 0) > 0);
+    if (fromApi.length > 0) return fromApi;
+    // Legacy fallback when API only has term buckets.
+    return (['term1', 'term2', 'term3', 'annual'] as const)
+      .map((key) => {
+        const bucket = data.terms[key];
+        if (!bucket || (bucket.subjects?.length ?? 0) === 0) return null;
+        return {
+          id: key,
+          name: key === 'term1' ? 'Term 1' : key === 'term2' ? 'Term 2' : key === 'term3' ? 'Term 3' : 'Annual',
+          ...bucket,
+        } satisfies MarksExamBucket;
+      })
+      .filter((row): row is MarksExamBucket => Boolean(row));
+  }, [data]);
 
   if (isLoading) return <MarksSkeleton />;
   if (error || !data) return <ErrorScreen message="Failed to load marks" onRetry={() => refetch()} />;
 
-  const overviewFallback = {
+  const overviewFallback: MarksExamBucket = {
+    id: OVERALL_EXAM_ID,
+    name: 'Overall',
     gpa: data.gpa,
     grade: data.grade,
     rank: data.rank,
@@ -53,29 +68,20 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
     subjects: data.subjects ?? [],
   };
 
-  const preferredTerm =
-    term ??
-    TERM_OPTIONS.find((opt) => (data.terms[opt.key]?.subjects?.length ?? 0) > 0)?.key ??
-    'annual';
+  const preferredExamId =
+    (examId && examOptions.some((exam) => exam.id === examId) ? examId : null) ??
+    examOptions[0]?.id ??
+    OVERALL_EXAM_ID;
 
-  const termBucket = data.terms[preferredTerm];
   const active =
-    termBucket && (termBucket.subjects?.length ?? 0) > 0
-      ? termBucket
-      : overviewFallback.subjects.length > 0
-        ? overviewFallback
-        : termBucket ?? overviewFallback;
+    examOptions.find((exam) => exam.id === preferredExamId) ??
+    (overviewFallback.subjects.length > 0 ? overviewFallback : examOptions[0] ?? overviewFallback);
 
-  if (!active) return <ErrorScreen message="Failed to load marks" onRetry={() => refetch()} />;
-
-  const termLineChart = {
-    labels: TERM_OPTIONS.map((t) => t.label),
-    values: TERM_OPTIONS.map((t) => {
-      const bucket = data.terms[t.key];
-      if ((bucket?.subjects?.length ?? 0) > 0) return bucket.totalPercent;
-      // When term buckets are empty, show overall once on Annual so the chart isn't all zeros.
-      return t.key === 'annual' ? data.totalPercent : 0;
-    }),
+  const examLineChart = {
+    labels: examOptions.map((exam) =>
+      exam.name.length > 8 ? `${exam.name.slice(0, 7)}…` : exam.name,
+    ),
+    values: examOptions.map((exam) => exam.totalPercent),
   };
 
   const subjectBarChart = {
@@ -89,8 +95,8 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
     setExporting(true);
     try {
       const studentName = user?.name ?? 'Student';
-      const fileName = buildMarksPdfFileName(type, studentName, preferredTerm, user?.className);
-      const uri = await exportMarksPdf(data, preferredTerm, studentName, type, {
+      const fileName = buildMarksPdfFileName(type, studentName, active.name, user?.className);
+      const uri = await exportMarksPdf(data, active, studentName, type, {
         className: user?.className,
         studentId: user?.studentId,
       });
@@ -116,7 +122,7 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
       {showHeader && (
         <View style={[styles.contextBadge, { backgroundColor: theme.colors.primaryLight }]}>
           <Text style={[styles.contextText, { color: theme.colors.primary }]}>
-            {user?.className ?? 'Class'} · {TERM_OPTIONS.find((t) => t.key === preferredTerm)?.label}
+            {user?.className ?? 'Class'} · {active.name}
             {user?.academicYear ? ` · AY ${user.academicYear}` : ''}
           </Text>
           <Text style={[styles.updatedText, { color: theme.colors.textMuted }]}>
@@ -162,7 +168,7 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
           <View style={styles.reportCopy}>
             <Text style={[styles.reportTitle, { color: theme.colors.text }]}>Academic report</Text>
             <Text style={[styles.reportSub, { color: theme.colors.textSecondary }]}>
-              Overall {active.totalPercent}% · Subject-wise below
+              {active.name} · {active.totalPercent}% · Subject-wise below
             </Text>
           </View>
         </View>
@@ -172,16 +178,22 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
         </View>
       </View>
 
-      <SectionHeader title="Term performance" />
+      <SectionHeader title="Exam performance" />
       <View style={[styles.chartBox, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-        <TermLineChart labels={termLineChart.labels} values={termLineChart.values} />
+        {examOptions.length === 0 ? (
+          <Text style={{ color: theme.colors.textSecondary, textAlign: 'center', paddingVertical: 16 }}>
+            No examinations found for this year
+          </Text>
+        ) : (
+          <TermLineChart labels={examLineChart.labels} values={examLineChart.values} />
+        )}
       </View>
 
       <SectionHeader title="Subject percentages" />
       <View style={[styles.chartBox, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
         {active.subjects.length === 0 ? (
           <Text style={{ color: theme.colors.textSecondary, textAlign: 'center', paddingVertical: 16 }}>
-            No marks for this academic year yet
+            No marks for this examination yet
           </Text>
         ) : (
           <SubjectBarChart labels={subjectBarChart.labels} values={subjectBarChart.values} />
@@ -190,9 +202,12 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
 
       <View style={styles.listHeader}>
         <Text style={[styles.listTitle, { color: theme.colors.text }]}>Subject-wise marks</Text>
-        <TouchableOpacity style={[styles.termFilter, { backgroundColor: theme.colors.primaryLight }]} onPress={() => setTermModal(true)}>
-          <Text style={[styles.termFilterText, { color: theme.colors.primary }]}>
-            {TERM_OPTIONS.find((t) => t.key === preferredTerm)?.label}
+        <TouchableOpacity
+          style={[styles.termFilter, { backgroundColor: theme.colors.primaryLight }]}
+          onPress={() => setExamModal(true)}
+        >
+          <Text style={[styles.termFilterText, { color: theme.colors.primary }]} numberOfLines={1}>
+            {active.name}
           </Text>
           <Ionicons name="chevron-down" size={14} color={theme.colors.primary} />
         </TouchableOpacity>
@@ -234,25 +249,37 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
         ))
       )}
 
-      <Modal visible={termModal} transparent animationType="fade" onRequestClose={() => setTermModal(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setTermModal(false)}>
+      <Modal visible={examModal} transparent animationType="fade" onRequestClose={() => setExamModal(false)}>
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setExamModal(false)}>
           <View style={[styles.modalSheet, cardShadow, { backgroundColor: theme.colors.card }]}>
-            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Select term</Text>
-            {TERM_OPTIONS.map((opt) => (
-              <TouchableOpacity
-                key={opt.key}
-                style={[styles.termOption, preferredTerm === opt.key && { backgroundColor: theme.colors.primaryLight }]}
-                onPress={() => {
-                  setTerm(opt.key);
-                  setTermModal(false);
-                }}
-              >
-                <Text style={{ color: preferredTerm === opt.key ? theme.colors.primary : theme.colors.text, fontWeight: '600' }}>
-                  {opt.label}
-                </Text>
-                {preferredTerm === opt.key ? <Ionicons name="checkmark" size={20} color={theme.colors.primary} /> : null}
-              </TouchableOpacity>
-            ))}
+            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Select examination</Text>
+            <ScrollView style={styles.modalList} showsVerticalScrollIndicator={false}>
+              {(examOptions.length > 0 ? examOptions : [overviewFallback]).map((exam) => (
+                <TouchableOpacity
+                  key={exam.id}
+                  style={[styles.termOption, preferredExamId === exam.id && { backgroundColor: theme.colors.primaryLight }]}
+                  onPress={() => {
+                    setExamId(exam.id);
+                    setExamModal(false);
+                  }}
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        color: preferredExamId === exam.id ? theme.colors.primary : theme.colors.text,
+                        fontWeight: '600',
+                      }}
+                    >
+                      {exam.name}
+                    </Text>
+                    <Text style={{ color: theme.colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+                      {exam.subjects.length} subjects · {exam.totalPercent}%
+                    </Text>
+                  </View>
+                  {preferredExamId === exam.id ? <Ionicons name="checkmark" size={20} color={theme.colors.primary} /> : null}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -270,9 +297,10 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     marginBottom: 12,
+    gap: 8,
   },
-  contextText: { fontSize: 13, fontWeight: '700' },
-  updatedText: { fontSize: 10, fontWeight: '500' },
+  contextText: { fontSize: 12, fontWeight: '700', flex: 1 },
+  updatedText: { fontSize: 11 },
   gpaCard: {
     backgroundColor: '#144835',
     borderRadius: 16,
@@ -280,77 +308,63 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   gpaTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  gpaLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
-  gpaValue: { color: '#fff', fontSize: 34, fontWeight: '800', marginTop: 4 },
-  gpaMax: { fontSize: 16, fontWeight: '500', opacity: 0.7 },
+  gpaLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 11, fontWeight: '700', letterSpacing: 1 },
+  gpaValue: { color: '#fff', fontSize: 36, fontWeight: '800', marginTop: 4 },
+  gpaMax: { color: 'rgba(255,255,255,0.5)', fontSize: 16, fontWeight: '600' },
   gpaStarWrap: {
     width: 44,
     height: 44,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    backgroundColor: 'rgba(162,193,68,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gpaFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 18,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.15)',
-  },
-  gpaMeta: { minWidth: 56 },
-  gpaMetaLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '700', letterSpacing: 0.6 },
-  gpaMetaValue: { color: '#fff', fontSize: 17, fontWeight: '700', marginTop: 2 },
-  gpaDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 14 },
+  gpaFooter: { flexDirection: 'row', alignItems: 'center', marginTop: 20, gap: 12 },
+  gpaMeta: { flex: 1 },
+  gpaMetaLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 10, fontWeight: '700' },
+  gpaMetaValue: { color: '#fff', fontSize: 18, fontWeight: '800', marginTop: 2 },
+  gpaDivider: { width: 1, height: 28, backgroundColor: 'rgba(255,255,255,0.15)' },
   insightsBtn: {
-    marginLeft: 'auto',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#fff',
+    backgroundColor: '#a2c144',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 999,
+    borderRadius: 10,
+    gap: 2,
   },
-  insightsText: { color: '#144835', fontWeight: '700', fontSize: 12 },
-  reportCard: { padding: 16, borderRadius: 14, borderWidth: 1, marginBottom: 8 },
-  reportHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
+  insightsText: { color: '#144835', fontWeight: '700', fontSize: 13 },
+  reportCard: { borderRadius: 14, borderWidth: 1, padding: 16, marginBottom: 8 },
+  reportHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
   reportIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   reportCopy: { flex: 1 },
-  reportTitle: { fontSize: 15, fontWeight: '700' },
+  reportTitle: { fontSize: 16, fontWeight: '700' },
   reportSub: { fontSize: 12, marginTop: 2 },
   exportRow: { flexDirection: 'row' },
-  chartBox: { padding: 12, borderRadius: 14, borderWidth: 1, marginBottom: 8, overflow: 'hidden' },
-  listHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 12 },
-  listTitle: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
-  termFilter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  termFilterText: { fontSize: 12, fontWeight: '700' },
+  chartBox: { borderRadius: 14, borderWidth: 1, padding: 12, marginBottom: 8, overflow: 'hidden' },
+  listHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, marginBottom: 12 },
+  listTitle: { fontSize: 17, fontWeight: '700' },
+  termFilter: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 4, maxWidth: 180 },
+  termFilterText: { fontSize: 12, fontWeight: '700', flexShrink: 1 },
   subjectCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 14,
     borderRadius: 14,
     borderWidth: 1,
     marginBottom: 10,
   },
-  subjectLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  subjectLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12 },
   subjectIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   subjectCopy: { flex: 1 },
   subjectName: { fontSize: 15, fontWeight: '700' },
   subjectMeta: { fontSize: 12, marginTop: 2 },
-  subjectRight: { alignItems: 'flex-end', minWidth: 88 },
-  subjectScore: { fontSize: 16, fontWeight: '700', marginBottom: 6 },
+  subjectRight: { width: 72, alignItems: 'flex-end', gap: 6 },
+  subjectScore: { fontSize: 14, fontWeight: '800' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  modalSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40 },
+  modalSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40, maxHeight: '70%' },
+  modalList: { maxHeight: 360 },
   modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  termOption: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 10, borderRadius: 10 },
+  termOption: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, borderRadius: 10 },
 });

@@ -585,8 +585,13 @@ function finalizeStudentMarksFromExamRows(
     term3: [],
     annual: [],
   };
+  const byExam = new Map<string, StudentExamMarkRow[]>();
   for (const row of examRows) {
     byTerm[examToTermKey(row.exam)].push(row);
+    const examName = String(row.exam ?? "Overall").trim() || "Overall";
+    const list = byExam.get(examName) ?? [];
+    list.push(row);
+    byExam.set(examName, list);
   }
 
   const term1 = termOverviewFromSubjects(aggregateSubjects(byTerm.term1));
@@ -600,11 +605,23 @@ function finalizeStudentMarksFromExamRows(
 
   const overviewBase = termOverviewFromSubjects(overallSubjects);
 
+  const exams = [...byExam.entries()]
+    .map(([name, rows]) => {
+      const bucket = termOverviewFromSubjects(aggregateSubjects(rows));
+      return {
+        id: subjectIdFromName(name),
+        name,
+        ...bucket,
+      };
+    })
+    .sort((a, b) => compareExamNames(a.name, b.name));
+
   return {
     overview: {
       ...overviewBase,
       lastUpdated: String(detail.updatedAt ?? ""),
       teacherInCharge: "",
+      exams,
       terms: {
         term1,
         term2,
@@ -614,6 +631,34 @@ function finalizeStudentMarksFromExamRows(
     },
     subjects: overallSubjects,
   };
+}
+
+/** Rough chronological / syllabus order for common IDPS exam codes. */
+function compareExamNames(a: string, b: string): number {
+  const rank = (name: string) => {
+    const c = name.replace(/[\s_-]+/g, "").toUpperCase();
+    const patterns: Array<[RegExp, number]> = [
+      [/PPT1|NB1|MA1|PA1|SE1|PT1|TERM1|^T1$/, 10],
+      [/PPT2|NB2|MA2|PA2|SE2|PT2|TERM2|^T2$/, 20],
+      [/PPT3|NB3|MA3|PA3|SE3|PT3|TERM3|^T3$/, 30],
+      [/PPT4|NB4|MA4|PA4|SE4|PT4|TERM4|^T4$/, 40],
+      [/FINAL|ANNUAL/, 90],
+    ];
+    for (const [re, score] of patterns) {
+      if (re.test(c)) {
+        // Prefer MA < PPT < NB < SE < PA within the same term band when possible.
+        if (c.startsWith("MA")) return score;
+        if (c.startsWith("PPT") || c.startsWith("PT")) return score + 1;
+        if (c.startsWith("NB")) return score + 2;
+        if (c.startsWith("SE")) return score + 3;
+        if (c.startsWith("PA")) return score + 4;
+        return score + 5;
+      }
+    }
+    return 50;
+  };
+  const diff = rank(a) - rank(b);
+  return diff !== 0 ? diff : a.localeCompare(b);
 }
 
 function buildStudentMarksFromProfile(detail: BranchStudentDetail) {

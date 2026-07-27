@@ -61,6 +61,7 @@ const EMPTY_MARKS: MarksOverview = {
   subjects: [],
   lastUpdated: '',
   teacherInCharge: '',
+  exams: [],
   terms: {
     term1: { gpa: 0, grade: '—', rank: '—', totalPercent: 0, subjects: [] },
     term2: { gpa: 0, grade: '—', rank: '—', totalPercent: 0, subjects: [] },
