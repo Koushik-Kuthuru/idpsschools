@@ -23,8 +23,24 @@ export const GET = withSupabaseRoute("user", async (req, ctx) => {
     const url = new URL(req.url);
     const subjectId = url.searchParams.get("subjectId");
     if (subjectId) {
-      const subject = marks.subjects.find((row) => row.id === subjectId);
-      return Response.json({ subject });
+      const overviewSubject = marks.overview.subjects.find((row) => row.id === subjectId);
+      const raw = marks.subjects.find((row) => row.id === subjectId);
+      if (overviewSubject) {
+        return Response.json({ subject: overviewSubject });
+      }
+      if (raw) {
+        return Response.json({
+          subject: {
+            id: raw.id,
+            subject: raw.name,
+            score: raw.marks,
+            maxScore: raw.maxMarks,
+            grade: raw.grade,
+            icon: "book",
+          },
+        });
+      }
+      return Response.json({ subject: null });
     }
     if (url.pathname.endsWith("/performance")) {
       return Response.json({

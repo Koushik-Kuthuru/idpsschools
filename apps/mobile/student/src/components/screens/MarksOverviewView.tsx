@@ -38,32 +38,59 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const { data, isLoading, error, refetch } = useMarksOverview();
-  const [term, setTerm] = useState<AcademicTerm>('term1');
+  const [term, setTerm] = useState<AcademicTerm | null>(null);
   const [termModal, setTermModal] = useState(false);
   const [exporting, setExporting] = useState(false);
 
   if (isLoading) return <MarksSkeleton />;
   if (error || !data) return <ErrorScreen message="Failed to load marks" onRetry={() => refetch()} />;
 
-  const active = data.terms[term];
+  const overviewFallback = {
+    gpa: data.gpa,
+    grade: data.grade,
+    rank: data.rank,
+    totalPercent: data.totalPercent,
+    subjects: data.subjects ?? [],
+  };
+
+  const preferredTerm =
+    term ??
+    TERM_OPTIONS.find((opt) => (data.terms[opt.key]?.subjects?.length ?? 0) > 0)?.key ??
+    'annual';
+
+  const termBucket = data.terms[preferredTerm];
+  const active =
+    termBucket && (termBucket.subjects?.length ?? 0) > 0
+      ? termBucket
+      : overviewFallback.subjects.length > 0
+        ? overviewFallback
+        : termBucket ?? overviewFallback;
+
   if (!active) return <ErrorScreen message="Failed to load marks" onRetry={() => refetch()} />;
 
   const termLineChart = {
     labels: TERM_OPTIONS.map((t) => t.label),
-    values: TERM_OPTIONS.map((t) => data.terms[t.key].totalPercent),
+    values: TERM_OPTIONS.map((t) => {
+      const bucket = data.terms[t.key];
+      if ((bucket?.subjects?.length ?? 0) > 0) return bucket.totalPercent;
+      // When term buckets are empty, show overall once on Annual so the chart isn't all zeros.
+      return t.key === 'annual' ? data.totalPercent : 0;
+    }),
   };
 
   const subjectBarChart = {
     labels: active.subjects.map((s) => (s.subject.length > 6 ? `${s.subject.slice(0, 5)}…` : s.subject)),
-    values: active.subjects.map((s) => Math.round((s.score / s.maxScore) * 100)),
+    values: active.subjects.map((s) =>
+      s.maxScore > 0 ? Math.round((s.score / s.maxScore) * 100) : 0,
+    ),
   };
 
   const handleExport = async (type: 'transcript' | 'report') => {
     setExporting(true);
     try {
       const studentName = user?.name ?? 'Student';
-      const fileName = buildMarksPdfFileName(type, studentName, term, user?.className);
-      const uri = await exportMarksPdf(data, term, studentName, type, {
+      const fileName = buildMarksPdfFileName(type, studentName, preferredTerm, user?.className);
+      const uri = await exportMarksPdf(data, preferredTerm, studentName, type, {
         className: user?.className,
         studentId: user?.studentId,
       });
@@ -89,9 +116,12 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
       {showHeader && (
         <View style={[styles.contextBadge, { backgroundColor: theme.colors.primaryLight }]}>
           <Text style={[styles.contextText, { color: theme.colors.primary }]}>
-            {user?.className ?? 'Class'} · {TERM_OPTIONS.find((t) => t.key === term)?.label}
+            {user?.className ?? 'Class'} · {TERM_OPTIONS.find((t) => t.key === preferredTerm)?.label}
+            {user?.academicYear ? ` · AY ${user.academicYear}` : ''}
           </Text>
-          <Text style={[styles.updatedText, { color: theme.colors.textMuted }]}>Updated {data.lastUpdated}</Text>
+          <Text style={[styles.updatedText, { color: theme.colors.textMuted }]}>
+            Updated {data.lastUpdated || '—'}
+          </Text>
         </View>
       )}
 
@@ -149,45 +179,60 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
 
       <SectionHeader title="Subject percentages" />
       <View style={[styles.chartBox, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-        <SubjectBarChart labels={subjectBarChart.labels} values={subjectBarChart.values} />
+        {active.subjects.length === 0 ? (
+          <Text style={{ color: theme.colors.textSecondary, textAlign: 'center', paddingVertical: 16 }}>
+            No marks for this academic year yet
+          </Text>
+        ) : (
+          <SubjectBarChart labels={subjectBarChart.labels} values={subjectBarChart.values} />
+        )}
       </View>
 
       <View style={styles.listHeader}>
         <Text style={[styles.listTitle, { color: theme.colors.text }]}>Subject-wise marks</Text>
         <TouchableOpacity style={[styles.termFilter, { backgroundColor: theme.colors.primaryLight }]} onPress={() => setTermModal(true)}>
           <Text style={[styles.termFilterText, { color: theme.colors.primary }]}>
-            {TERM_OPTIONS.find((t) => t.key === term)?.label}
+            {TERM_OPTIONS.find((t) => t.key === preferredTerm)?.label}
           </Text>
           <Ionicons name="chevron-down" size={14} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>
 
-      {active.subjects.map((sub) => (
-        <TouchableOpacity
-          key={sub.id}
-          activeOpacity={0.75}
-          style={[styles.subjectCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
-          onPress={() => router.push(`/marks/subject/${sub.id}`)}
-        >
-          <View style={styles.subjectLeft}>
-            <View style={[styles.subjectIcon, { backgroundColor: theme.colors.primaryLight }]}>
-              <MaterialIcons name={ICON_MAP[sub.icon] ?? 'school'} size={20} color={theme.colors.primary} />
+      {active.subjects.length === 0 ? (
+        <View style={[styles.chartBox, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+          <Text style={{ color: theme.colors.textSecondary, textAlign: 'center' }}>
+            No subject marks found. Try another academic year in Settings.
+          </Text>
+        </View>
+      ) : (
+        active.subjects.map((sub) => (
+          <TouchableOpacity
+            key={sub.id}
+            activeOpacity={0.75}
+            style={[styles.subjectCard, cardShadow, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}
+            onPress={() => router.push(`/marks/subject/${sub.id}`)}
+          >
+            <View style={styles.subjectLeft}>
+              <View style={[styles.subjectIcon, { backgroundColor: theme.colors.primaryLight }]}>
+                <MaterialIcons name={ICON_MAP[sub.icon] ?? 'school'} size={20} color={theme.colors.primary} />
+              </View>
+              <View style={styles.subjectCopy}>
+                <Text style={[styles.subjectName, { color: theme.colors.text }]}>{sub.subject}</Text>
+                <Text style={[styles.subjectMeta, { color: theme.colors.textSecondary }]}>
+                  Grade {sub.grade || '—'} ·{' '}
+                  {sub.maxScore > 0 ? Math.round((sub.score / sub.maxScore) * 100) : 0}%
+                </Text>
+              </View>
             </View>
-            <View style={styles.subjectCopy}>
-              <Text style={[styles.subjectName, { color: theme.colors.text }]}>{sub.subject}</Text>
-              <Text style={[styles.subjectMeta, { color: theme.colors.textSecondary }]}>
-                Grade {sub.grade} · {Math.round((sub.score / sub.maxScore) * 100)}%
+            <View style={styles.subjectRight}>
+              <Text style={[styles.subjectScore, { color: theme.colors.primary }]}>
+                {sub.score}/{sub.maxScore}
               </Text>
+              <ProgressBar percent={sub.maxScore > 0 ? (sub.score / sub.maxScore) * 100 : 0} height={5} />
             </View>
-          </View>
-          <View style={styles.subjectRight}>
-            <Text style={[styles.subjectScore, { color: theme.colors.primary }]}>
-              {sub.score}/{sub.maxScore}
-            </Text>
-            <ProgressBar percent={(sub.score / sub.maxScore) * 100} height={5} />
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        ))
+      )}
 
       <Modal visible={termModal} transparent animationType="fade" onRequestClose={() => setTermModal(false)}>
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setTermModal(false)}>
@@ -196,16 +241,16 @@ export function MarksOverviewView({ showHeader = true }: { showHeader?: boolean 
             {TERM_OPTIONS.map((opt) => (
               <TouchableOpacity
                 key={opt.key}
-                style={[styles.termOption, term === opt.key && { backgroundColor: theme.colors.primaryLight }]}
+                style={[styles.termOption, preferredTerm === opt.key && { backgroundColor: theme.colors.primaryLight }]}
                 onPress={() => {
                   setTerm(opt.key);
                   setTermModal(false);
                 }}
               >
-                <Text style={{ color: term === opt.key ? theme.colors.primary : theme.colors.text, fontWeight: '600' }}>
+                <Text style={{ color: preferredTerm === opt.key ? theme.colors.primary : theme.colors.text, fontWeight: '600' }}>
                   {opt.label}
                 </Text>
-                {term === opt.key ? <Ionicons name="checkmark" size={20} color={theme.colors.primary} /> : null}
+                {preferredTerm === opt.key ? <Ionicons name="checkmark" size={20} color={theme.colors.primary} /> : null}
               </TouchableOpacity>
             ))}
           </View>

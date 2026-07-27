@@ -401,98 +401,240 @@ export function buildStudentAttendance(detail: BranchStudentDetail) {
   };
 }
 
-function buildStudentMarksFromProfile(detail: BranchStudentDetail) {
-  const yearEnrollment = asRecord(
-    (asRecord(detail.enrollments)[String(detail.academicYear ?? "")] as Record<string, unknown>) ?? {}
-  );
-  const rawMarks =
-    detail.marks ??
-    detail.examMarks ??
-    yearEnrollment.examMarks ??
-    detail.reportCard ??
-    detail.marksData;
-  const subjects: Array<{
-    id: string;
-    name: string;
-    marks: number;
-    maxMarks: number;
-    grade: string;
-    teacher: string;
-  }> = [];
+type StudentMarkSubject = {
+  id: string;
+  name: string;
+  marks: number;
+  maxMarks: number;
+  grade: string;
+  teacher: string;
+};
 
-  if (Array.isArray(rawMarks)) {
-    rawMarks.forEach((entry, index) => {
-      const row = asRecord(entry);
-      const marks = Number(row.marks ?? row.marksObtained ?? row.score ?? 0);
-      const maxMarks = Number(row.maxMarks ?? row.total ?? 100);
-      subjects.push({
-        id: String(row.id ?? row.subject ?? index),
-        name: String(row.subject ?? row.name ?? `Subject ${index + 1}`),
-        marks,
-        maxMarks,
-        grade: String(row.grade ?? ""),
-        teacher: String(row.teacher ?? ""),
-      });
-    });
-  } else if (rawMarks && typeof rawMarks === "object") {
-    Object.entries(asRecord(rawMarks)).forEach(([name, value], index) => {
-      const row = asRecord(value);
-      subjects.push({
-        id: String(row.id ?? name ?? index),
-        name,
-        marks: Number(row.marks ?? row.marksObtained ?? value ?? 0),
-        maxMarks: Number(row.maxMarks ?? 100),
-        grade: String(row.grade ?? ""),
-        teacher: String(row.teacher ?? ""),
-      });
-    });
+type StudentExamMarkRow = {
+  exam: string;
+  subject: string;
+  marks: number;
+  maxMarks: number;
+  grade: string;
+  absent?: boolean;
+};
+
+type MarksTermKey = "term1" | "term2" | "term3" | "annual";
+
+function subjectIdFromName(name: string) {
+  return name.trim().toLowerCase().replace(/\s+/g, "-") || "subject";
+}
+
+function gradeFromPercent(totalPercent: number) {
+  if (totalPercent >= 90) return "A+";
+  if (totalPercent >= 80) return "A";
+  if (totalPercent >= 70) return "B";
+  if (totalPercent > 0) return "C";
+  return "—";
+}
+
+function gpaFromPercent(totalPercent: number) {
+  return Math.round((totalPercent / 25) * 10) / 10;
+}
+
+function percentFromSubjects(subjects: StudentMarkSubject[]) {
+  const scored = subjects.filter((row) => row.maxMarks > 0);
+  if (scored.length === 0) return 0;
+  return Math.round(
+    scored.reduce((sum, row) => sum + (row.marks / row.maxMarks) * 100, 0) / scored.length
+  );
+}
+
+/** Map school exam labels (PT1, MA TERM1, SE2, …) into UI term buckets. */
+function examToTermKey(exam: string): MarksTermKey {
+  const compact = String(exam ?? "")
+    .replace(/[\s_-]+/g, "")
+    .toUpperCase();
+  if (!compact) return "annual";
+  if (/(FINAL|ANNUAL|YEAREND)/.test(compact)) return "annual";
+  if (/TERM?4|PT4|PPT4|NB4|MA4|SE4|PA4/.test(compact)) return "annual";
+  if (/TERM?3|PT3|PPT3|NB3|MA3|SE3|PA3/.test(compact)) return "term3";
+  if (/TERM?2|PT2|PPT2|NB2|MA2|SE2|PA2/.test(compact)) return "term2";
+  if (/TERM?1|PT1|PPT1|NB1|MA1|SE1|PA1/.test(compact)) return "term1";
+  return "annual";
+}
+
+function aggregateSubjects(rows: StudentExamMarkRow[]): StudentMarkSubject[] {
+  const bySubject = new Map<
+    string,
+    { id: string; name: string; marks: number; maxMarks: number; grade: string; teacher: string; count: number }
+  >();
+
+  for (const row of rows) {
+    if (row.absent || row.marks == null || Number.isNaN(Number(row.marks))) continue;
+    const subjectName = String(row.subject ?? "").trim() || "Subject";
+    const key = subjectName.toUpperCase();
+    const maxMarks = Number(row.maxMarks) > 0 ? Number(row.maxMarks) : 100;
+    const marks = Number(row.marks) || 0;
+    const current = bySubject.get(key) ?? {
+      id: subjectIdFromName(subjectName),
+      name: subjectName,
+      marks: 0,
+      maxMarks: 0,
+      grade: "",
+      teacher: "",
+      count: 0,
+    };
+    current.marks += marks;
+    current.maxMarks += maxMarks;
+    current.count += 1;
+    if (row.grade) current.grade = row.grade;
+    bySubject.set(key, current);
   }
 
-  return finalizeStudentMarks(detail, subjects);
+  return Array.from(bySubject.values()).map((row) => ({
+    id: row.id,
+    name: row.name,
+    marks: row.count > 0 ? Math.round(row.marks / row.count) : 0,
+    maxMarks: row.count > 0 ? Math.round(row.maxMarks / row.count) : 100,
+    grade: row.grade,
+    teacher: row.teacher,
+  }));
+}
+
+function termOverviewFromSubjects(subjects: StudentMarkSubject[]) {
+  const totalPercent = percentFromSubjects(subjects);
+  return {
+    gpa: gpaFromPercent(totalPercent),
+    grade: gradeFromPercent(totalPercent),
+    rank: "—" as const,
+    totalPercent,
+    subjects: subjects.map((row) => ({
+      id: row.id,
+      subject: row.name,
+      score: row.marks,
+      maxScore: row.maxMarks,
+      grade: row.grade || gradeFromPercent(
+        row.maxMarks > 0 ? Math.round((row.marks / row.maxMarks) * 100) : 0
+      ),
+      icon: "book",
+    })),
+  };
+}
+
+function extractExamRowsFromProfile(detail: BranchStudentDetail): StudentExamMarkRow[] {
+  const yearName = detail.academicYear != null ? String(detail.academicYear) : "";
+  const yearEnrollment = asRecord(
+    (asRecord(detail.enrollments)[yearName] as Record<string, unknown>) ?? {}
+  );
+  const rawMarks =
+    yearEnrollment.examMarks ??
+    detail.examMarks ??
+    detail.marks ??
+    detail.reportCard ??
+    detail.marksData;
+
+  const rows: StudentExamMarkRow[] = [];
+  if (Array.isArray(rawMarks)) {
+    for (const entry of rawMarks) {
+      const row = asRecord(entry);
+      if (row.absent) continue;
+      const subject = String(row.subject ?? row.name ?? "").trim();
+      if (!subject) continue;
+      const marksRaw = row.marks ?? row.marksObtained ?? row.score;
+      if (marksRaw == null || marksRaw === "") continue;
+      rows.push({
+        exam: String(row.exam ?? row.examName ?? row.test ?? "Overall"),
+        subject,
+        marks: Number(marksRaw) || 0,
+        maxMarks: Number(row.maxMarks ?? row.total ?? 100) || 100,
+        grade: String(row.grade ?? row.gradeLabel ?? ""),
+        absent: Boolean(row.absent),
+      });
+    }
+  } else if (rawMarks && typeof rawMarks === "object") {
+    for (const [name, value] of Object.entries(asRecord(rawMarks))) {
+      const row = asRecord(value);
+      const marksRaw = row.marks ?? row.marksObtained ?? value;
+      if (marksRaw == null || marksRaw === "") continue;
+      rows.push({
+        exam: String(row.exam ?? "Overall"),
+        subject: name,
+        marks: Number(marksRaw) || 0,
+        maxMarks: Number(row.maxMarks ?? 100) || 100,
+        grade: String(row.grade ?? ""),
+      });
+    }
+  }
+  return rows;
+}
+
+function normalizeMarksClassToken(value: unknown): string {
+  return String(value ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/^CLASS\s+/i, "")
+    .replace(/\s*\(\s*/g, "(")
+    .replace(/\s*\)\s*/g, ")")
+    .replace(/\s+/g, " ");
+}
+
+function finalizeStudentMarksFromExamRows(
+  detail: BranchStudentDetail,
+  examRows: StudentExamMarkRow[],
+) {
+  const overallSubjects = aggregateSubjects(examRows);
+  const byTerm: Record<MarksTermKey, StudentExamMarkRow[]> = {
+    term1: [],
+    term2: [],
+    term3: [],
+    annual: [],
+  };
+  for (const row of examRows) {
+    byTerm[examToTermKey(row.exam)].push(row);
+  }
+
+  const term1 = termOverviewFromSubjects(aggregateSubjects(byTerm.term1));
+  const term2 = termOverviewFromSubjects(aggregateSubjects(byTerm.term2));
+  const term3 = termOverviewFromSubjects(aggregateSubjects(byTerm.term3));
+  const annualSubjects = aggregateSubjects(byTerm.annual);
+  const annual =
+    annualSubjects.length > 0
+      ? termOverviewFromSubjects(annualSubjects)
+      : termOverviewFromSubjects(overallSubjects);
+
+  const overviewBase = termOverviewFromSubjects(overallSubjects);
+
+  return {
+    overview: {
+      ...overviewBase,
+      lastUpdated: String(detail.updatedAt ?? ""),
+      teacherInCharge: "",
+      terms: {
+        term1,
+        term2,
+        term3,
+        annual,
+      },
+    },
+    subjects: overallSubjects,
+  };
+}
+
+function buildStudentMarksFromProfile(detail: BranchStudentDetail) {
+  return finalizeStudentMarksFromExamRows(detail, extractExamRowsFromProfile(detail));
 }
 
 function finalizeStudentMarks(
   detail: BranchStudentDetail,
-  subjects: Array<{
-    id: string;
-    name: string;
-    marks: number;
-    maxMarks: number;
-    grade: string;
-    teacher: string;
-  }>,
+  subjects: StudentMarkSubject[],
 ) {
-  const scored = subjects.filter((row) => row.maxMarks > 0);
-  const totalPercent =
-    scored.length > 0
-      ? Math.round(scored.reduce((sum, row) => sum + (row.marks / row.maxMarks) * 100, 0) / scored.length)
-      : 0;
-
-  return {
-    overview: {
-      gpa: Math.round((totalPercent / 25) * 10) / 10,
-      grade: totalPercent >= 90 ? "A+" : totalPercent >= 80 ? "A" : totalPercent >= 70 ? "B" : totalPercent > 0 ? "C" : "—",
-      rank: "—",
-      totalPercent,
-      subjects: subjects.map((row) => ({
-        id: row.id,
-        subject: row.name,
-        score: row.marks,
-        maxScore: row.maxMarks,
-        grade: row.grade,
-        icon: "book",
-      })),
-      lastUpdated: String(detail.updatedAt ?? ""),
-      teacherInCharge: "",
-      terms: {
-        term1: { gpa: 0, grade: "—", rank: "—", totalPercent: 0, subjects: [] },
-        term2: { gpa: 0, grade: "—", rank: "—", totalPercent: 0, subjects: [] },
-        term3: { gpa: 0, grade: "—", rank: "—", totalPercent: 0, subjects: [] },
-        annual: { gpa: 0, grade: "—", rank: "—", totalPercent: 0, subjects: [] },
-      },
-    },
-    subjects,
-  };
+  // Legacy path: subjects without exam labels → treat as overall/annual only.
+  return finalizeStudentMarksFromExamRows(
+    detail,
+    subjects.map((row) => ({
+      exam: "Overall",
+      subject: row.name,
+      marks: row.marks,
+      maxMarks: row.maxMarks,
+      grade: row.grade,
+    })),
+  );
 }
 
 export async function buildStudentMarks(
@@ -500,9 +642,10 @@ export async function buildStudentMarks(
   admin?: SupabaseClient<any>,
   schoolSlug?: string,
 ) {
-  const fromProfile = buildStudentMarksFromProfile(detail);
-  if (fromProfile.subjects.length > 0 || !admin || !schoolSlug) {
-    return fromProfile;
+  const profileRows = extractExamRowsFromProfile(detail);
+
+  if (!admin || !schoolSlug) {
+    return finalizeStudentMarksFromExamRows(detail, profileRows);
   }
 
   try {
@@ -512,25 +655,21 @@ export async function buildStudentMarks(
       schoolSlug,
       detail.academicYear != null ? String(detail.academicYear) : null,
     );
-    const grade = String(detail.grade ?? detail.classId ?? "").trim().toUpperCase();
-    const section = String(detail.section ?? "").trim().toUpperCase();
+    const grade = normalizeMarksClassToken(detail.grade ?? detail.classId ?? "");
+    const section = normalizeMarksClassToken(detail.section ?? "");
     const studentId = String(detail.id ?? "");
     const admissionNo = String(detail.admissionNo ?? detail.admission_number ?? "").trim();
 
-    const bySubject = new Map<
-      string,
-      { id: string; name: string; marks: number; maxMarks: number; grade: string; teacher: string; count: number }
-    >();
-
+    const branchRows: StudentExamMarkRow[] = [];
     for (const doc of marksDocs) {
-      const docGrade = String(doc.grade ?? "").trim().toUpperCase();
-      const docSection = String(doc.section ?? "").trim().toUpperCase();
+      const docGrade = normalizeMarksClassToken(doc.grade);
+      const docSection = normalizeMarksClassToken(doc.section);
       if (grade && docGrade && docGrade !== grade) continue;
       if (section && docSection && docSection !== section) continue;
 
       const row = doc.rows.find((entry) => {
         const entryId = String(entry.studentId ?? "");
-        const entryAdm = String(entry.admissionNo ?? "").trim();
+        const entryAdm = String(entry.admissionNo ?? entry.roll ?? "").trim();
         return (
           (studentId && entryId === studentId) ||
           (admissionNo && entryAdm && entryAdm === admissionNo)
@@ -538,39 +677,21 @@ export async function buildStudentMarks(
       });
       if (!row || row.absent || row.marks == null) continue;
 
-      const subjectName = String(doc.subject ?? "Subject").trim() || "Subject";
-      const maxMarks = Number(row.maxMarks ?? doc.maxMarks ?? 100) || 100;
-      const marks = Number(row.marks) || 0;
-      const current = bySubject.get(subjectName.toUpperCase()) ?? {
-        id: subjectName.toLowerCase().replace(/\s+/g, "-"),
-        name: subjectName,
-        marks: 0,
-        maxMarks: 0,
-        grade: "",
-        teacher: "",
-        count: 0,
-      };
-      current.marks += marks;
-      current.maxMarks += maxMarks;
-      current.count += 1;
-      if (row.gradeLabel) current.grade = String(row.gradeLabel);
-      bySubject.set(subjectName.toUpperCase(), current);
+      branchRows.push({
+        exam: String(doc.exam ?? "Overall"),
+        subject: String(doc.subject ?? "Subject").trim() || "Subject",
+        marks: Number(row.marks) || 0,
+        maxMarks: Number(row.maxMarks ?? doc.maxMarks ?? 100) || 100,
+        grade: String(row.gradeLabel ?? ""),
+      });
     }
 
-    const subjects = Array.from(bySubject.values()).map((row) => ({
-      id: row.id,
-      name: row.name,
-      marks: row.count > 0 ? Math.round(row.marks / row.count) : 0,
-      maxMarks: row.count > 0 ? Math.round(row.maxMarks / row.count) : 100,
-      grade: row.grade,
-      teacher: row.teacher,
-    }));
-
-    if (subjects.length === 0) return fromProfile;
-    return finalizeStudentMarks(detail, subjects);
+    // Prefer notice-store marks docs when present; otherwise profile examMarks.
+    const rows = branchRows.length > 0 ? branchRows : profileRows;
+    return finalizeStudentMarksFromExamRows(detail, rows);
   } catch (err) {
     console.error("[buildStudentMarks] loadBranchMarks failed", err);
-    return fromProfile;
+    return finalizeStudentMarksFromExamRows(detail, profileRows);
   }
 }
 
