@@ -7,6 +7,7 @@ import {
   createBranchAcademicYear,
   datesFromYearName,
   listBranchAcademicYears,
+  syncBranchCurrentAcademicYearName,
 } from "@/lib/branchAcademicYears";
 
 function defaultDatesFromName(name: string): { start_date: string; end_date: string } {
@@ -121,6 +122,9 @@ export const POST = withAdminRoute(async (req, ctx) => {
       .single();
 
     if (!error) {
+      if (setAsCurrent && data?.name) {
+        await syncBranchCurrentAcademicYearName(supabaseAdmin, { schoolSlug }, String(data.name));
+      }
       invalidateServerCache("catalog|academic-years");
       return noStoreJson({ year: data }, { status: 201 });
     }

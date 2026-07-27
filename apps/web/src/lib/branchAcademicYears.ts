@@ -36,6 +36,35 @@ export function datesFromYearName(name: string): { start_date: string; end_date:
   return { start_date: `${y}-06-01`, end_date: `${y + 1}-05-31` };
 }
 
+async function schoolIdForBranch(
+  admin: SupabaseClient<any>,
+  branchId: string
+): Promise<string | null> {
+  const { data, error } = await admin.from("branches").select("school_id").eq("id", branchId).maybeSingle();
+  if (error?.code === "PGRST205") return null;
+  return data?.school_id ? String(data.school_id) : null;
+}
+
+/** Active year from schools.academic_years (admin Settings source of truth when table exists). */
+async function readTableCurrentYearName(
+  admin: SupabaseClient<any>,
+  branchId: string
+): Promise<string | null> {
+  const schoolId = await schoolIdForBranch(admin, branchId);
+  if (!schoolId) return null;
+
+  const { data, error } = await admin
+    .from("academic_years")
+    .select("name")
+    .eq("school_id", schoolId)
+    .eq("is_current", true)
+    .maybeSingle();
+
+  if (error?.code === "PGRST205") return null;
+  if (error) return null;
+  return String(data?.name ?? "").trim() || null;
+}
+
 async function readCurrentYearName(
   admin: SupabaseClient<any>,
   branchId: string
@@ -51,7 +80,8 @@ async function readCurrentYearName(
   return data?.content?.trim() || null;
 }
 
-async function writeCurrentYearName(
+/** Persist active year for student/portal loaders (notices-backed branch config). */
+export async function writeCurrentYearName(
   admin: SupabaseClient<any>,
   branchId: string,
   yearName: string
@@ -74,6 +104,27 @@ async function writeCurrentYearName(
     content: yearName,
     target: "admin",
   });
+}
+
+/**
+ * Keep branch notice in sync when admin flips schools.academic_years.is_current.
+ * Student portal APIs resolve the active year via listBranchAcademicYears (notice + table).
+ */
+export async function syncBranchCurrentAcademicYearName(
+  admin: SupabaseClient<any>,
+  schoolSlugOrBranchId: { branchId?: string | null; schoolSlug?: string | null },
+  yearName: string
+): Promise<void> {
+  const name = yearName.trim();
+  if (!name) return;
+
+  let branchId = schoolSlugOrBranchId.branchId?.trim() || null;
+  if (!branchId && schoolSlugOrBranchId.schoolSlug) {
+    const { resolveBranchUuid } = await import("@/lib/resolveBranchUuid");
+    branchId = await resolveBranchUuid(admin, schoolSlugOrBranchId.schoolSlug);
+  }
+  if (!branchId) return;
+  await writeCurrentYearName(admin, branchId, name);
 }
 
 async function readCatalogYearNames(
@@ -106,24 +157,25 @@ export async function listBranchAcademicYears(
   admin: SupabaseClient<any>,
   branchId: string
 ): Promise<AcademicYearRecord[]> {
-  const [classYears, catalogYears, currentName] = await Promise.all([
+  const [classYears, catalogYears, noticeCurrent, tableCurrent] = await Promise.all([
     yearsFromClasses(admin, branchId),
     readCatalogYearNames(admin, branchId),
     readCurrentYearName(admin, branchId),
+    readTableCurrentYearName(admin, branchId),
   ]);
 
-  const allNames = [...new Set([...classYears, ...catalogYears])].sort((a, b) =>
-    datesFromYearName(b).start_date.localeCompare(datesFromYearName(a).start_date)
-  );
+  const allNames = [
+    ...new Set(
+      [...classYears, ...catalogYears, tableCurrent, noticeCurrent].filter(Boolean) as string[]
+    ),
+  ].sort((a, b) => datesFromYearName(b).start_date.localeCompare(datesFromYearName(a).start_date));
 
+  // Prefer schools.academic_years.is_current (what admin Settings saves) over the notices fallback.
   const activeName =
-    currentName && allNames.includes(currentName)
-      ? currentName
-      : allNames.length === 1
-        ? allNames[0]
-        : classYears.length === 1
-          ? classYears[0]
-          : null;
+    (tableCurrent && allNames.includes(tableCurrent) ? tableCurrent : null) ??
+    (noticeCurrent && allNames.includes(noticeCurrent) ? noticeCurrent : null) ??
+    (allNames.length === 1 ? allNames[0] : null) ??
+    (classYears.length === 1 ? classYears[0] : null);
 
   return allNames.map((name) => {
     const dates = datesFromYearName(name);

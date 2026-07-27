@@ -1,8 +1,19 @@
 import { withAdminRoute, noStoreJson } from "@/lib/adminRouteAuth";
 import { resolveSchoolUuid } from "@/lib/resolveSchoolUuid";
 import { resolveBranchUuid } from "@/lib/resolveBranchUuid";
-import { setBranchCurrentAcademicYear } from "@/lib/branchAcademicYears";
+import {
+  setBranchCurrentAcademicYear,
+  syncBranchCurrentAcademicYearName,
+} from "@/lib/branchAcademicYears";
 import { invalidateServerCache } from "@/lib/serverQueryCache";
+
+function invalidateAcademicYearCaches() {
+  invalidateServerCache("catalog|academic-years");
+  invalidateServerCache(`students|`);
+  invalidateServerCache(`student-detail|`);
+  invalidateServerCache(`staff|`);
+  invalidateServerCache(`transport-students|`);
+}
 
 /** Set the active academic year for a school (only one is_current=true per school). */
 export const PATCH = withAdminRoute(async (req, ctx) => {
@@ -48,11 +59,16 @@ export const PATCH = withAdminRoute(async (req, ctx) => {
         .single();
 
       if (!error) {
-        invalidateServerCache("catalog|academic-years");
-        invalidateServerCache(`students|`);
-        invalidateServerCache(`student-detail|`);
-        invalidateServerCache(`staff|`);
-        invalidateServerCache(`transport-students|`);
+        // Student portal resolves year via branch notices / listBranchAcademicYears —
+        // keep that in sync with schools.academic_years.is_current.
+        if (data?.name) {
+          await syncBranchCurrentAcademicYearName(
+            supabaseAdmin,
+            { schoolSlug },
+            String(data.name)
+          );
+        }
+        invalidateAcademicYearCaches();
         return noStoreJson({ year: data });
       }
       if (error.code !== "PGRST205") {
@@ -70,11 +86,7 @@ export const PATCH = withAdminRoute(async (req, ctx) => {
 
   try {
     const year = await setBranchCurrentAcademicYear(supabaseAdmin, branchId, academicYearId);
-    invalidateServerCache("catalog|academic-years");
-    invalidateServerCache(`students|`);
-    invalidateServerCache(`student-detail|`);
-    invalidateServerCache(`staff|`);
-    invalidateServerCache(`transport-students|`);
+    invalidateAcademicYearCaches();
     return noStoreJson({ year });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to set active academic year";
