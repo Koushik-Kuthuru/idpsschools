@@ -39,14 +39,24 @@ export function defaultMonthKey(records: AttendanceRecord[], preferredMonth?: st
   const available = getAvailableMonths(records);
   if (available.length === 0) return '';
   if (preferredMonth) {
-    const match = available.find((key) => formatMonthLabel(key).startsWith(preferredMonth));
+    const preferred = preferredMonth.trim().toLowerCase();
+    const match = available.find((key) => {
+      const label = formatMonthLabel(key).toLowerCase();
+      return label === preferred || label.startsWith(preferred) || preferred.startsWith(label);
+    });
     if (match) return match;
   }
   return available[0];
 }
 
+/** Overall day log rows may omit subject or use School/Overall from the portal API. */
 export function filterOverallRecords(records: AttendanceRecord[]) {
-  return records.filter((r) => !r.subject);
+  return records.filter((r) => {
+    const subject = String(r.subject ?? '')
+      .trim()
+      .toLowerCase();
+    return !subject || subject === 'school' || subject === 'overall' || subject === 'class' || subject === 'all';
+  });
 }
 
 export function filterSubjectRecords(records: AttendanceRecord[], subjectName: string) {

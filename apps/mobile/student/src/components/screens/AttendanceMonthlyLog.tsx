@@ -38,7 +38,11 @@ export function AttendanceMonthlyLog({
   const [selectedMonth, setSelectedMonth] = useState('');
 
   const availableMonths = useMemo(() => getAvailableMonths(records), [records]);
-  const activeMonth = selectedMonth || defaultMonthKey(records, preferredMonth);
+  // Ignore a stale picker value after academic-year / data changes.
+  const activeMonth = useMemo(() => {
+    if (selectedMonth && availableMonths.includes(selectedMonth)) return selectedMonth;
+    return defaultMonthKey(records, preferredMonth);
+  }, [selectedMonth, availableMonths, records, preferredMonth]);
   const monthRecords = useMemo(
     () => (activeMonth ? filterRecordsByMonth(records, activeMonth) : []),
     [records, activeMonth],

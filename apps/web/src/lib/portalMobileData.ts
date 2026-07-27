@@ -346,21 +346,18 @@ export function buildStudentAttendance(detail: BranchStudentDetail) {
       id: `p-${date}`,
       date,
       status: "present" as const,
-      subject: "School",
       remarks: "",
     })),
     ...(attendance.absentDates ?? []).map((date) => ({
       id: `a-${date}`,
       date,
       status: "absent" as const,
-      subject: "School",
       remarks: "",
     })),
     ...(attendance.lateDates ?? []).map((date) => ({
       id: `l-${date}`,
       date,
       status: "late" as const,
-      subject: "School",
       remarks: "",
     })),
   ]
